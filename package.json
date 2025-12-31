@@ -1,0 +1,14 @@
+{
+  "name": "classwindow",
+  "version": "1.0.0",
+  "main": "main.js",
+  "repository": "git@github.com:xinghai-smartedu/classwindow.git",
+  "author": "Yeying-Xingchen <yeyingxingchen@yeah.net>",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "39.2.7"
+  }
+}
