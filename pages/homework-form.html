@@ -3,63 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <title>添加作业</title>
+  <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
   <style>
     body {
       margin: 0;
-      padding: 20px;
-      background: #2d2d2d;
+      padding: 15px;
+      background: #333;
       color: white;
       font-family: Arial, sans-serif;
+      border-radius: 10px;
+      user-select: none;
+      overflow: hidden;
+      text-align: center;
     }
     .container {
       max-width: 100%;
-      padding: 0 10px;
     }
     h2 {
       margin-top: 0;
-      color: #4CAF50;
+      margin-bottom: 15px;
+      text-align: center;
+      color: white;
+      font-weight: bold;
     }
     .input-group {
-      margin: 15px 0;
+      margin: 12px 0;
     }
     .input-group label {
       display: block;
       margin-bottom: 5px;
       font-weight: bold;
+      font-size: 14px;
     }
-    .input-group select,
+    .input-group select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: white;
+      color: black;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
     .input-group textarea,
     .input-group input {
       width: 100%;
       padding: 8px;
-      border-radius: 4px;
-      border: 1px solid #555;
-      background: #333;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
       color: white;
       box-sizing: border-box;
+      font-family: Arial, sans-serif;
     }
     .input-group textarea {
-      height: 120px;
+      height: 100px;
       resize: vertical;
     }
     .button-group {
-      text-align: right;
+      text-align: center;
       margin-top: 20px;
+      display: flex;
+      gap: 10px;
     }
-    button {
-      padding: 8px 16px;
-      margin-left: 10px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .save-btn {
-      background: #2196F3;
-      color: white;
-    }
-    .cancel-btn {
-      background: #f44336;
-      color: white;
+    fluent-button {
+      flex: 1;
     }
   </style>
 </head>
@@ -86,12 +94,12 @@
       <textarea id="homeworkContent" placeholder="输入作业内容..."></textarea>
     </div>
     <div class="input-group">
-      <label>日期:</label>
+      <label>截止日期:</label>
       <input type="date" id="dueDate">
     </div>
     <div class="button-group">
-      <button class="cancel-btn" id="cancelBtn">取消</button>
-      <button class="save-btn" id="saveBtn">保存</button>
+      <fluent-button appearance="neutral" id="cancelBtn">取消</fluent-button>
+      <fluent-button appearance="accent" id="saveBtn">保存</fluent-button>
     </div>
   </div>
 
