@@ -13,8 +13,6 @@
         font-family: Arial, sans-serif;
         border-radius: 10px;
         user-select: none;
-        cursor: move;
-        -webkit-app-region: drag; /* 让整个窗口可拖动 */
         overflow: hidden; /* 防止出现滚动条 */
         width: 300px;
         display: flex;
@@ -186,12 +184,6 @@
 
   // 作业功能相关代码
   document.addEventListener('DOMContentLoaded', () => {
-    // 禁用特定元素的拖动功能，以便可以点击
-    const interactiveElements = document.querySelectorAll('button, input, textarea, select')
-    interactiveElements.forEach(element => {
-      element.style.webkitAppRegion = 'no-drag'
-    })
-    
     // 获取DOM元素
     const addHomeworkBtn = document.getElementById('addHomeworkBtn');
     const homeworkList = document.getElementById('homeworkList');
