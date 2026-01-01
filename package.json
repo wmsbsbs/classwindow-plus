@@ -9,7 +9,6 @@
     "start": "electron ."
   },
   "devDependencies": {
-    "@electron-forge/cli": "^7.10.2",
     "electron": "^39.2.7"
   }
 }

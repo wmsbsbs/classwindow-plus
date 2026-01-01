@@ -1,37 +1,60 @@
-const { app, BrowserWindow, screen, ipcMain } = require('electron/main')
+const { app, BrowserWindow, screen, ipcMain, Tray, Menu } = require('electron/main')
 const path = require('path')
 const fs = require('fs')
+const { nativeImage } = require('electron/common')
 
-// 配置文件路径
-const configPath = path.join(app.getPath('userData'), 'window-config.json')
+const CONFIG_PATH = path.join(__dirname, 'data/config.json')
 
-// 获取默认位置（右上角）
-const getDefaultPosition = () => {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize
-  return [width - 320, 20] // 距离右边20px，顶部20px
+// 确保配置目录存在
+const ensureConfigDir = () => {
+  const dir = path.dirname(CONFIG_PATH)
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true })
+  }
 }
 
-// 读取保存的窗口位置
-const loadWindowPosition = () => {
+// 读取配置文件
+const loadConfig = () => {
   try {
-    if (fs.existsSync(configPath)) {
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
-      return [config.x, config.y]
+    if (fs.existsSync(CONFIG_PATH)) {
+      return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'))
     }
   } catch (err) {
     console.warn('读取配置文件失败:', err)
   }
-  return getDefaultPosition()
+  return {}
 }
 
-// 保存窗口位置
-const saveWindowPosition = (x, y) => {
+// 保存配置文件
+const saveConfig = (config) => {
   try {
-    const config = { x, y, timestamp: Date.now() }
-    fs.writeFileSync(configPath, JSON.stringify(config))
+    ensureConfigDir()
+    config.timestamp = Date.now()
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2))
   } catch (err) {
     console.error('保存配置文件失败:', err)
   }
+}
+
+// 获取默认位置（右上角）
+const getDefaultPosition = () => {
+  const { width } = screen.getPrimaryDisplay().workAreaSize
+  return [width - 320, 20]
+}
+
+// 读取/保存窗口位置
+const loadWindowPosition = () => {
+  const config = loadConfig()
+  if (config.window?.x !== undefined && config.window?.y !== undefined) {
+    return [config.window.x, config.window.y]
+  }
+  return getDefaultPosition()
+}
+
+const saveWindowPosition = (x, y) => {
+  const config = loadConfig()
+  config.window = { x, y }
+  saveConfig(config)
 }
 
 // 主窗口
@@ -44,8 +67,6 @@ const createWindow = () => {
   const [defaultX, defaultY] = loadWindowPosition()
   
   mainWindow = new BrowserWindow({
-    width: 320,  // 增加宽度以适应内容
-    height: 400, // 增加高度以显示更多内容
     x: defaultX,
     y: defaultY,
     // 设置为无边框窗口
@@ -57,7 +78,7 @@ const createWindow = () => {
     // 背景透明
     transparent: true,
     // 可调整大小
-    resizable: false,
+    resizable: true,
     // 不显示在任务栏
     skipTaskbar: true,
     // 焦点丢失时是否隐藏窗口
@@ -87,6 +108,114 @@ const createWindow = () => {
 
   return mainWindow
 }
+
+// 保存时钟状态的变量
+let isClockEnabled = true;
+
+// 处理时钟开关的函数
+const handleClockToggle = (isEnabled) => {
+  isClockEnabled = isEnabled;
+  
+  // 保存设置到配置文件
+  saveClockSetting(isEnabled);
+  
+  // 根据开关状态控制时钟显示/隐藏
+  if (mainWindow) {
+    mainWindow.webContents.send('clock-toggle', isEnabled);
+  }
+};
+
+// 保存时钟设置
+const saveClockSetting = (isEnabled) => {
+  try {
+    // 确保 data 目录存在
+    const dir = path.dirname(CONFIG_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    // 读取现有配置
+    let config = {};
+    if (fs.existsSync(CONFIG_PATH)) {
+      config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    }
+    
+    // 更新时钟设置
+    config.clockEnabled = isEnabled;
+    config.timestamp = Date.now();
+    
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+  } catch (err) {
+    console.error('保存时钟设置失败:', err);
+  }
+};
+
+// 读取时钟设置
+const loadClockSetting = () => {
+  try {
+    if (fs.existsSync(CONFIG_PATH)) {
+      const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+      return config.clockEnabled !== undefined ? config.clockEnabled : true;
+    }
+  } catch (err) {
+    console.warn('读取时钟设置失败:', err);
+  }
+  return true; // 默认启用
+};
+
+// 保存作业状态的变量
+let isHomeworkEnabled = true;
+
+// 处理作业开关的函数
+const handleHomeworkToggle = (isEnabled) => {
+  isHomeworkEnabled = isEnabled;
+  
+  // 保存设置到配置文件
+  saveHomeworkSetting(isEnabled);
+  
+  // 根据开关状态控制作业显示/隐藏
+  if (mainWindow) {
+    mainWindow.webContents.send('homework-toggle', isEnabled);
+  }
+};
+
+// 保存作业设置
+const saveHomeworkSetting = (isEnabled) => {
+  try {
+    // 确保 data 目录存在
+    const dir = path.dirname(CONFIG_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    // 读取现有配置
+    let config = {};
+    if (fs.existsSync(CONFIG_PATH)) {
+      config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    }
+    
+    // 更新作业设置
+    config.homeworkEnabled = isEnabled;
+    config.timestamp = Date.now();
+    
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+  } catch (err) {
+    console.error('保存作业设置失败:', err);
+  }
+};
+
+// 读取作业设置
+const loadHomeworkSetting = () => {
+  try {
+    if (fs.existsSync(CONFIG_PATH)) {
+      const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+      return config.homeworkEnabled !== undefined ? config.homeworkEnabled : true;
+    }
+  } catch (err) {
+    console.warn('读取作业设置失败:', err);
+  }
+  return true; // 默认启用
+};
 
 // 创建作业输入窗口
 const createHomeworkWindow = () => {
@@ -118,13 +247,70 @@ const createHomeworkWindow = () => {
   });
 };
 
+// 为 Tray 对象保存一个全局引用以避免被垃圾回收
+let tray
+
+// 16x16 红色圆形 data URL
+const icon = nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACTSURBVHgBpZKBCYAgEEV/TeAIjuIIbdQIuUGt0CS1gW1iZ2jIVaTnhw+Cvs8/OYDJA4Y8kR3ZR2/kmazxJbpUEfQ/Dm/UG7wVwHkjlQdMFfDdJMFaACebnjJGyDWgcnZu1/lrCrl6NCoEHJBrDwEr5NrT6ko/UV8xdLAC2N49mlc5CylpYh8wCwqrvbBGLoKGvz8Bfq0QPWEUo/EAAAAASUVORK5CYII=')
+
 // 应用准备就绪时
 app.whenReady().then(() => {
+  isClockEnabled = loadClockSetting();
+  isHomeworkEnabled = loadHomeworkSetting();
+
   createWindow();
+
+  // 确保窗口完全加载后发送初始状态
+  mainWindow.webContents.once('dom-ready', () => {
+    // 发送时钟和作业的初始状态
+    mainWindow.webContents.send('clock-toggle', isClockEnabled);
+    mainWindow.webContents.send('homework-toggle', isHomeworkEnabled);
+  });
+
+  tray = new Tray(icon)
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '课堂窗 - ClassWindow',
+      role: "about"
+    },
+    {
+      label: '设置',
+      submenu: [
+        { type: 'separator' },
+        { 
+          label: '启用时钟', 
+          type: 'checkbox', 
+          checked: isClockEnabled, // 使用实际加载的值
+          click: (menuItem) => {
+            // 监听时钟开关状态变化
+            handleClockToggle(menuItem.checked);
+          }
+        },
+        { 
+          label: '启用作业', 
+          type: 'checkbox', 
+          checked: isHomeworkEnabled, // 使用实际加载的值
+          click: (menuItem) => {
+            // 监听作业开关状态变化
+            handleHomeworkToggle(menuItem.checked);
+          }
+        }
+      ]
+    },
+    {
+      label: '退出',
+      role: "quit"
+    },
+  ])
+
+  tray.setContextMenu(contextMenu)
 
   // 监听打开作业窗口的请求
   ipcMain.on('open-homework-window', () => {
-    createHomeworkWindow();
+    if(isHomeworkEnabled) { // 只有时作业功能启用时才打开窗口
+      createHomeworkWindow();
+    }
   });
   
   // 监听保存作业的请求
@@ -148,7 +334,4 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
 });
