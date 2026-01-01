@@ -227,6 +227,7 @@ const createHomeworkWindow = () => {
 
 
   homeworkWindow = new BrowserWindow({
+    icon: './assets/logo.png',
     frame: true,  // 有边框，便于用户操作
     alwaysOnTop: true,  // 保持在最前面
     resizable: true,
@@ -238,7 +239,6 @@ const createHomeworkWindow = () => {
 
   // 加载作业表单页面
   homeworkWindow.loadFile('pages/homework-form.html');
-
   homeworkWindow.setMenu(null);
 
   // 窗口关闭时清理引用

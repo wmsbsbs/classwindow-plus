@@ -7,7 +7,7 @@ jobs:
    continue-on-error: true
    strategy:
      matrix:
-       os: [macos-latest, ubuntu-latest, windows-latest]
+       os: [windows-latest, macos-latest, ubuntu-latest]
    steps:
      - name: Checkout Code
        uses: actions/checkout@v2
@@ -15,16 +15,16 @@ jobs:
        uses: actions/setup-node@v6.1.0
        with:
          node-version: 24
+     - name: Install Yarn
+       run: npm install -g yarn
      - name: Install Dependencies
-       run: npm install
-     - name: Import with electron-forge
-       run: |
-         npm install --save-dev @electron-forge/cli
-         npx electron-forge import
+       run: yarn
      - name: Build with electron-forge
-       run: "npm run make"
+       run: "yarn make"
      - name: Upload a Build Artifact
        uses: actions/upload-artifact@v6.0.0
        with:
-         name: build-output-${{ matrix.os }}  # 为每个平台使用不同的名称
-         path: "./out"
+         name: classwindows-${{ matrix.os }}  # 为每个平台使用不同的名称
+         path: |
+           ./out/**
+           !./out/make/**
