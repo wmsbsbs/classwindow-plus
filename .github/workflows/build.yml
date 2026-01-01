@@ -22,3 +22,7 @@ jobs:
          yarn dlx electron-forge import
      - name: Build with electron-forge
        run: "yarn make"
+     - name: Upload a Build Artifact
+       uses: actions/upload-artifact@v6.0.0
+       with:
+         path: "./out"
