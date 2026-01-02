@@ -144,4 +144,4 @@ vite.config.ts.timestamp-*
 Output/
 
 # data
-data/config.json
+data/
