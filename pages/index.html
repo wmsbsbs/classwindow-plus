@@ -437,6 +437,7 @@
         // 获取DOM元素
         const addHomeworkBtn = document.getElementById('addHomeworkBtn');
         const homeworkList = document.getElementById('homeworkList');
+        const launchpadCard = document.getElementById('launchpadCard');
 
         // 从localStorage加载作业数据
         let homeworkData = JSON.parse(localStorage.getItem('homeworkData')) || [];
@@ -559,6 +560,23 @@
                 console.log('Not in Electron environment');
             }
         });
+
+        launchpadCard.addEventListener('mouseenter', () => {
+            // 检查是否在 Electron 环境中
+            if (typeof require !== 'undefined') {
+                try {
+                    const {
+                        ipcRenderer
+                    } = require('electron');
+                    ipcRenderer.send('homework-delbutton-hover');
+                } catch (e) {
+                    console.log('Not in Electron environment');
+                }
+            } else {
+                console.log('Not in Electron environment');
+            }
+        })
+
         // 接收来自新窗口的作业数据和开关状态
         if (typeof require !== 'undefined') {
             try {
