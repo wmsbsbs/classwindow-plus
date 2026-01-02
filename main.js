@@ -63,6 +63,9 @@ let mainWindow;
 // 作业输入窗口
 let homeworkWindow;
 
+// 设置窗口
+let settingsWindow;
+
 const createWindow = () => {
   const [defaultX, defaultY] = loadWindowPosition()
   
@@ -191,6 +194,36 @@ const createHomeworkWindow = () => {
   });
 };
 
+// 创建设置窗口
+const createSettingsWindow = () => {
+  // 如果窗口已经存在，就聚焦它
+  if (settingsWindow) {
+    settingsWindow.focus();
+    return;
+  }
+
+  settingsWindow = new BrowserWindow({
+    icon: './assets/logo.png',
+    frame: true,
+    width: 500,
+    height: 400,
+    frame: false,
+    resizable: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+
+  settingsWindow.loadFile('pages/settings.html');
+  settingsWindow.setMenu(null);
+
+  // 窗口关闭时清理引用
+  settingsWindow.on('closed', () => {
+    settingsWindow = null;
+  });
+};
+
 // 为 Tray 对象保存一个全局引用以避免被垃圾回收
 let tray
 
@@ -219,27 +252,13 @@ app.whenReady().then(() => {
     },
     {
       label: '设置',
-      submenu: [
-        { type: 'separator' },
-        { 
-          label: '启用时钟', 
-          type: 'checkbox', 
-          checked: isClockEnabled, // 使用实际加载的值
-          click: (menuItem) => {
-            // 监听时钟开关状态变化
-            handleClockToggle(menuItem.checked);
-          }
-        },
-        { 
-          label: '启用作业', 
-          type: 'checkbox', 
-          checked: isHomeworkEnabled, // 使用实际加载的值
-          click: (menuItem) => {
-            // 监听作业开关状态变化
-            handleHomeworkToggle(menuItem.checked);
-          }
-        }
-      ]
+      click: () => {
+        createSettingsWindow();
+      }
+    },
+    {
+      label: '重新加载页面',
+      role: "forceReload"
     },
     {
       label: '退出',
@@ -267,6 +286,26 @@ app.whenReady().then(() => {
   // 监听作业窗口关闭事件
   ipcMain.on('homework-window-closed', () => {
     homeworkWindow = null;
+  });
+  
+  // 监听获取设置的请求
+  ipcMain.on('get-settings', () => {
+    if (settingsWindow) {
+      settingsWindow.webContents.send('settings-updated', {
+        clockEnabled: isClockEnabled,
+        homeworkEnabled: isHomeworkEnabled
+      });
+    }
+  });
+  
+  // 监听时钟开关变化
+  ipcMain.on('toggle-clock', (event, isEnabled) => {
+    handleClockToggle(isEnabled);
+  });
+  
+  // 监听作业开关变化
+  ipcMain.on('toggle-homework', (event, isEnabled) => {
+    handleHomeworkToggle(isEnabled);
   });
 
   app.on('activate', () => {
