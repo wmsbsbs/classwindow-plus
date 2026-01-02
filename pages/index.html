@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>桌面悬浮窗</title>
@@ -30,8 +31,6 @@
             /* 卡片圆角 */
             padding: 17px;
             margin: 10px;
-            -webkit-app-region: no-drag;
-            /* 禁用内容区域的拖动，防止干扰点击 */
         }
 
         .homework-card {
@@ -148,7 +147,7 @@
             cursor: pointer;
             font-size: 12px;
         }
-        
+
         /* 加载动画样式 */
         .loading-overlay {
             position: fixed;
@@ -177,21 +176,30 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        
+
         /* 启动台样式 */
         .launchpad-card {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            padding: 17px; /* 与其他卡片保持一致 */
-            margin: 10px; /* 与其他卡片保持一致 */
-            background: rgba(255, 255, 255, 0.15); /* 与其他卡片保持一致 */
-            border-radius: 8px; /* 与其他卡片保持一致 */
+            padding: 17px;
+            /* 与其他卡片保持一致 */
+            margin: 10px;
+            /* 与其他卡片保持一致 */
+            background: rgba(255, 255, 255, 0.15);
+            /* 与其他卡片保持一致 */
+            border-radius: 8px;
+            /* 与其他卡片保持一致 */
         }
-        
+
         .launchpad-app {
             width: 48px;
             height: 48px;
@@ -204,33 +212,35 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        
+
         .launchpad-app:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.1);
         }
-        
+
         .launchpad-icon {
             font-size: 24px;
             margin-bottom: 2px;
         }
-        
+
         .launchpad-name {
             font-size: 10px;
             text-align: center;
             word-break: break-all;
         }
-        
+
         /* 链接类型应用的特殊样式 */
         .launchpad-app.link-type {
-            background: rgba(0, 120, 212, 0.3); /* 蓝色背景表示链接 */
+            background: rgba(0, 120, 212, 0.3);
+            /* 蓝色背景表示链接 */
         }
-        
+
         .launchpad-app.link-type:hover {
             background: rgba(0, 120, 212, 0.4);
         }
     </style>
 </head>
+
 <body>
     <!-- 加载动画 -->
     <div id="loading" class="loading-overlay">
@@ -263,297 +273,334 @@
             </div>
         </div>
     </div>
+</body>
+<script>
+    // 添加时钟显示状态变量
+    let isClockVisible = true;
+    // 添加作业显示状态变量
+    let isHomeworkVisible = true;
+    // 添加启动台显示状态变量
+    let isLaunchpadVisible = true;
+    // 启动台应用列表
+    let launchpadApps = [];
 
-    <script>
-        // 添加时钟显示状态变量
-        let isClockVisible = true;
-        // 添加作业显示状态变量
-        let isHomeworkVisible = true;
-        // 添加启动台显示状态变量
-        let isLaunchpadVisible = true;
-        // 启动台应用列表
-        let launchpadApps = [];
-
-        // 更新时间函数
-        function updateTime() {
-            if (!isClockVisible) {
-                // 如果时钟被禁用，隐藏时间元素
-                document.getElementById('timeCard').style.display = 'none';
-                return;
-            }
-
-            // 如果时钟启用，确保元素可见
-            document.getElementById('timeCard').style.display = 'block';
-            document.getElementById('time').style.display = 'block';
-            document.getElementById('date').style.display = 'block';
-            const timeHeaders = document.querySelectorAll('h3');
-            if (timeHeaders[0]) {
-                timeHeaders[0].style.display = 'block';
-            }
-
-            const now = new Date();
-
-            // 格式化时间
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            const timeString = `${hours}:${minutes}:${seconds}`;
-
-            // 格式化日期
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            const weekday = weekdays[now.getDay()];
-            const dateString = `${year}年${month}月${day}日 ${weekday}`;
-
-            // 更新显示
-            document.getElementById('time').textContent = timeString;
-            document.getElementById('date').textContent = dateString;
+    // 更新时间函数
+    function updateTime() {
+        if (!isClockVisible) {
+            // 如果时钟被禁用，隐藏时间元素
+            document.getElementById('timeCard').style.display = 'none';
+            return;
         }
 
-        // 控制作业显示的函数
-        function updateHomeworkVisibility() {
-            if (!isHomeworkVisible) {
-                // 如果作业被禁用，隐藏作业相关元素
-                document.getElementById('homeworkCard').style.display = 'none';
+        // 如果时钟启用，确保元素可见
+        document.getElementById('timeCard').style.display = 'block';
+        document.getElementById('time').style.display = 'block';
+        document.getElementById('date').style.display = 'block';
+        const timeHeaders = document.querySelectorAll('h3');
+        if (timeHeaders[0]) {
+            timeHeaders[0].style.display = 'block';
+        }
+
+        const now = new Date();
+
+        // 格式化时间
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeString = `${hours}:${minutes}:${seconds}`;
+
+        // 格式化日期
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const weekday = weekdays[now.getDay()];
+        const dateString = `${year}年${month}月${day}日 ${weekday}`;
+
+        // 更新显示
+        document.getElementById('time').textContent = timeString;
+        document.getElementById('date').textContent = dateString;
+    }
+
+    // 控制作业显示的函数
+    function updateHomeworkVisibility() {
+        if (!isHomeworkVisible) {
+            // 如果作业被禁用，隐藏作业相关元素
+            document.getElementById('homeworkCard').style.display = 'none';
+        } else {
+            // 如果作业启用，确保元素可见
+            document.getElementById('homeworkCard').style.display = 'block';
+            document.getElementById('addHomeworkBtn').style.display = 'inline-block';
+            document.getElementById('homeworkList').style.display = 'block';
+            const homeworkHeaders = document.querySelectorAll('h3');
+            if (homeworkHeaders[1]) { // 注意：这里索引可能需要调整
+                homeworkHeaders[1].style.display = 'block';
+            }
+        }
+    }
+
+    // 控制启动台显示的函数
+    function updateLaunchpadVisibility() {
+        if (!isLaunchpadVisible || launchpadApps.length === 0) {
+            // 如果启动台被禁用或没有应用，隐藏启动台
+            document.getElementById('launchpadCard').style.display = 'none';
+        } else {
+            // 如果启动台启用且有应用，确保元素可见
+            document.getElementById('launchpadCard').style.display = 'block';
+            const launchpadHeaders = document.querySelectorAll('h3');
+            if (launchpadHeaders[2]) { // 启动台标题是第三个h3（因为现在启动台在最后）
+                launchpadHeaders[2].style.display = 'block';
+            }
+        }
+    }
+
+    // 渲染启动台应用
+    function renderLaunchpadApps() {
+        if (!isLaunchpadVisible || launchpadApps.length === 0) {
+            return; // 如果启动台功能被禁用或没有应用，则不渲染
+        }
+
+        const container = document.getElementById('launchpadContainer');
+        container.innerHTML = '';
+
+        launchpadApps.forEach((app, index) => {
+            const appElement = document.createElement('div');
+            appElement.className = 'launchpad-app';
+
+            // 为链接类型添加特殊类名
+            if (app.type === 'link') {
+                appElement.classList.add('link-type');
+                appElement.title = `链接: ${app.name}`;
             } else {
-                // 如果作业启用，确保元素可见
-                document.getElementById('homeworkCard').style.display = 'block';
-                document.getElementById('addHomeworkBtn').style.display = 'inline-block';
-                document.getElementById('homeworkList').style.display = 'block';
-                const homeworkHeaders = document.querySelectorAll('h3');
-                if (homeworkHeaders[1]) { // 注意：这里索引可能需要调整
-                    homeworkHeaders[1].style.display = 'block';
-                }
-            }
-        }
-
-        // 控制启动台显示的函数
-        function updateLaunchpadVisibility() {
-            if (!isLaunchpadVisible || launchpadApps.length === 0) {
-                // 如果启动台被禁用或没有应用，隐藏启动台
-                document.getElementById('launchpadCard').style.display = 'none';
-            } else {
-                // 如果启动台启用且有应用，确保元素可见
-                document.getElementById('launchpadCard').style.display = 'block';
-                const launchpadHeaders = document.querySelectorAll('h3');
-                if (launchpadHeaders[2]) { // 启动台标题是第三个h3（因为现在启动台在最后）
-                    launchpadHeaders[2].style.display = 'block';
-                }
-            }
-        }
-
-        // 渲染启动台应用
-        function renderLaunchpadApps() {
-            if (!isLaunchpadVisible || launchpadApps.length === 0) {
-                return; // 如果启动台功能被禁用或没有应用，则不渲染
+                appElement.title = `应用: ${app.name}`;
             }
 
-            const container = document.getElementById('launchpadContainer');
-            container.innerHTML = '';
+            // 获取应用程序或链接名称的首字母作为图标
+            const iconText = app.name.charAt(0).toUpperCase();
 
-            launchpadApps.forEach((app, index) => {
-                const appElement = document.createElement('div');
-                appElement.className = 'launchpad-app';
-                
-                // 为链接类型添加特殊类名
-                if (app.type === 'link') {
-                    appElement.classList.add('link-type');
-                    appElement.title = `链接: ${app.name}`;
-                } else {
-                    appElement.title = `应用: ${app.name}`;
-                }
-                
-                // 获取应用程序或链接名称的首字母作为图标
-                const iconText = app.name.charAt(0).toUpperCase();
-                
-                appElement.innerHTML = `
+            appElement.innerHTML = `
                     <div class="launchpad-icon">${iconText}</div>
                     <div class="launchpad-name">${app.name}</div>
                 `;
-                
-                appElement.addEventListener('click', () => {
-                    // 发送启动应用或打开链接请求
-                    if (typeof require !== 'undefined') {
-                        try {
-                            const { ipcRenderer } = require('electron');
-                            ipcRenderer.send('launch-app', app);
-                        } catch (e) {
-                            console.log('Not in Electron environment');
-                        }
+
+            appElement.addEventListener('click', () => {
+                // 发送启动应用或打开链接请求
+                if (typeof require !== 'undefined') {
+                    try {
+                        const {
+                            ipcRenderer
+                        } = require('electron');
+                        ipcRenderer.send('launch-app', app);
+                    } catch (e) {
+                        console.log('Not in Electron environment');
                     }
-                });
-                
-                container.appendChild(appElement);
+                }
             });
-        }
 
-        // 立即显示时间
-        updateTime();
+            container.appendChild(appElement);
+        });
+    }
 
-        // 每秒更新时间
-        const timeInterval = setInterval(updateTime, 1000);
+    // 立即显示时间
+    updateTime();
 
-        // 作业功能相关代码
-        document.addEventListener('DOMContentLoaded', () => {
-            // 隐藏加载动画并显示内容
-            const loadingOverlay = document.getElementById('loading');
-            const content = document.querySelector('.content');
-            
-            // 稍微延迟隐藏加载动画，让用户看到加载过程
-            setTimeout(() => {
-                loadingOverlay.style.display = 'none';
-                content.classList.add('loaded');
-            }, 500);
-            
-            // 获取DOM元素
-            const addHomeworkBtn = document.getElementById('addHomeworkBtn');
-            const homeworkList = document.getElementById('homeworkList');
+    // 每秒更新时间
+    const timeInterval = setInterval(updateTime, 1000);
 
-            // 从localStorage加载作业数据
-            let homeworkData = JSON.parse(localStorage.getItem('homeworkData')) || [];
+    // 作业功能相关代码
+    document.addEventListener('DOMContentLoaded', () => {
+        // 隐藏加载动画并显示内容
+        const loadingOverlay = document.getElementById('loading');
+        const content = document.querySelector('.content');
 
-            // 显示作业列表
-            function renderHomeworkList() {
-                if (!isHomeworkVisible) {
-                    return; // 如果作业功能被禁用，则不渲染
-                }
+        // 稍微延迟隐藏加载动画，让用户看到加载过程
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+            content.classList.add('loaded');
+        }, 500);
 
-                homeworkList.innerHTML = '';
-                if (homeworkData.length === 0) {
-                    homeworkList.innerHTML = '<p style="text-align:center; opacity:0.7;">暂无作业</p>';
-                    return;
-                }
+        // 获取DOM元素
+        const addHomeworkBtn = document.getElementById('addHomeworkBtn');
+        const homeworkList = document.getElementById('homeworkList');
 
-                homeworkData.forEach((item, index) => {
-                    const homeworkItem = document.createElement('div');
-                    homeworkItem.className = 'homework-item';
+        // 从localStorage加载作业数据
+        let homeworkData = JSON.parse(localStorage.getItem('homeworkData')) || [];
 
-                    // 格式化截止日期
-                    let dueDateStr = '';
-                    if (item.dueDate) {
-                        const date = new Date(item.dueDate);
-                        // 检查是否是当天
-                        const today = new Date();
-                        if (!(date.getFullYear() === today.getFullYear() &&
-                                date.getMonth() === today.getMonth() &&
-                                date.getDate() === today.getDate())) {
-                            dueDateStr = `<br> 截止: ${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                        }
+        // 显示作业列表
+        function renderHomeworkList() {
+            if (!isHomeworkVisible) {
+                return; // 如果作业功能被禁用，则不渲染
+            }
+
+            homeworkList.innerHTML = '';
+            if (homeworkData.length === 0) {
+                homeworkList.innerHTML = '<p style="text-align:center; opacity:0.7;">暂无作业</p>';
+                return;
+            }
+
+            homeworkData.forEach((item, index) => {
+                const homeworkItem = document.createElement('div');
+                homeworkItem.className = 'homework-item';
+
+                // 格式化截止日期
+                let dueDateStr = '';
+                if (item.dueDate) {
+                    const date = new Date(item.dueDate);
+                    // 检查是否是当天
+                    const today = new Date();
+                    if (!(date.getFullYear() === today.getFullYear() &&
+                            date.getMonth() === today.getMonth() &&
+                            date.getDate() === today.getDate())) {
+                        dueDateStr = `<br> 截止: ${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                     }
+                }
 
-                    // 将换行符替换为<br>标签
-                    const contentWithLineBreaks = item.content.replace(/\n/g, '<br>');
+                // 将换行符替换为<br>标签
+                const contentWithLineBreaks = item.content.replace(/\n/g, '<br>');
 
-                    homeworkItem.innerHTML = `
+                homeworkItem.innerHTML = `
           <div>
             <span class="subject-tag ${item.subject}">${getSubjectName(item.subject)}</span>
             ${contentWithLineBreaks}${dueDateStr}
           </div>
-          <button class="delete-btn" data-index="${index}">删除</button>
+          <button class="delete-btn" id="delete-btn" data-index="${index}">删除</button>
         `;
-                    homeworkList.appendChild(homeworkItem);
-                });
-
-                // 添加删除按钮事件监听
-                document.querySelectorAll('.delete-btn').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const index = parseInt(this.getAttribute('data-index'));
-                        homeworkData.splice(index, 1);
-                        localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
-                        renderHomeworkList();
-                    });
-                });
-            }
-
-            // 获取科目名称
-            function getSubjectName(subjectValue) {
-                const subjects = {
-                    'chinese': '语文',
-                    'math': '数学',
-                    'english': '英语',
-                    'physics': '物理',
-                    'chemistry': '化学',
-                    'biology': '生物',
-                    'history': '历史',
-                    'geography': '地理',
-                    'politics': '道德与法治',
-                    'other': '其他'
-                };
-                return subjects[subjectValue] || subjectValue;
-            }
-
-            // 打开新窗口添加作业
-            addHomeworkBtn.addEventListener('click', () => {
-                // 检查是否在 Electron 环境中
-                if (typeof require !== 'undefined') {
-                    try {
-                        const { ipcRenderer } = require('electron');
-                        ipcRenderer.send('open-homework-window');
-                    } catch (e) {
-                        console.log('Not in Electron environment');
-                    }
-                } else {
-                    console.log('Not in Electron environment');
-                }
+                homeworkList.appendChild(homeworkItem);
             });
 
-            // 接收来自新窗口的作业数据和开关状态
+            // 添加删除按钮事件监听
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    homeworkData.splice(index, 1);
+                    localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
+                    renderHomeworkList();
+                });
+            });
+        }
+
+        // 获取科目名称
+        function getSubjectName(subjectValue) {
+            const subjects = {
+                'chinese': '语文',
+                'math': '数学',
+                'english': '英语',
+                'physics': '物理',
+                'chemistry': '化学',
+                'biology': '生物',
+                'history': '历史',
+                'geography': '地理',
+                'politics': '道德与法治',
+                'other': '其他'
+            };
+            return subjects[subjectValue] || subjectValue;
+        }
+
+        // 打开新窗口添加作业
+        addHomeworkBtn.addEventListener('click', () => {
+            // 检查是否在 Electron 环境中
             if (typeof require !== 'undefined') {
                 try {
-                    const { ipcRenderer } = require('electron');
-
-                    // 监听新作业数据
-                    ipcRenderer.on('new-homework', (event, homework) => {
-                        // 添加新作业
-                        homeworkData.push(homework);
-
-                        // 保存到localStorage
-                        localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
-
-                        // 重新渲染作业列表
-                        renderHomeworkList();
-                    });
-
-                    // 监听时钟开关事件
-                    ipcRenderer.on('clock-toggle', (event, isEnabled) => {
-                        isClockVisible = isEnabled;
-                        // 重新设置时间更新逻辑
-                        if (isClockVisible) {
-                            updateTime(); // 立即更新一次显示
-                        } else {
-                            // 隐藏时间元素
-                            document.getElementById('timeCard').style.display = 'none';
-                        }
-                    });
-
-                    // 监听作业开关事件
-                    ipcRenderer.on('homework-toggle', (event, isEnabled) => {
-                        isHomeworkVisible = isEnabled;
-                        updateHomeworkVisibility();
-                        renderHomeworkList(); // 重新渲染作业列表
-                    });
-
-                    // 监听启动台应用更新事件
-                    ipcRenderer.on('launchpad-apps-updated', (event, apps) => {
-                        launchpadApps = apps;
-                        updateLaunchpadVisibility();
-                        renderLaunchpadApps();
-                    });
-
+                    const {
+                        ipcRenderer
+                    } = require('electron');
+                    ipcRenderer.send('open-homework-window');
                 } catch (e) {
                     console.log('Not in Electron environment');
                 }
+            } else {
+                console.log('Not in Electron environment');
             }
-
-            // 初始化作业列表
-            updateHomeworkVisibility(); // 初始化作业可见性
-            renderHomeworkList();
-            
-            // 初始化启动台
-            updateLaunchpadVisibility();
         });
-    </script>
-</body>
+
+        addHomeworkBtn.addEventListener('mouseenter', () => {
+            // 检查是否在 Electron 环境中
+            if (typeof require !== 'undefined') {
+                try {
+                    const {
+                        ipcRenderer
+                    } = require('electron');
+                    ipcRenderer.send('homework-button-hover');
+                } catch (e) {
+                    console.log('Not in Electron environment');
+                }
+            } else {
+                console.log('Not in Electron environment');
+            }
+        });
+
+        homeworkList.addEventListener('mouseenter', () => {
+            // 检查是否在 Electron 环境中
+            if (typeof require !== 'undefined') {
+                try {
+                    const {
+                        ipcRenderer
+                    } = require('electron');
+                    ipcRenderer.send('homework-delbutton-hover');
+                } catch (e) {
+                    console.log('Not in Electron environment');
+                }
+            } else {
+                console.log('Not in Electron environment');
+            }
+        });
+        // 接收来自新窗口的作业数据和开关状态
+        if (typeof require !== 'undefined') {
+            try {
+                const {
+                    ipcRenderer
+                } = require('electron');
+
+                // 监听新作业数据
+                ipcRenderer.on('new-homework', (event, homework) => {
+                    // 添加新作业
+                    homeworkData.push(homework);
+
+                    // 保存到localStorage
+                    localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
+
+                    // 重新渲染作业列表
+                    renderHomeworkList();
+                });
+
+                // 监听时钟开关事件
+                ipcRenderer.on('clock-toggle', (event, isEnabled) => {
+                    isClockVisible = isEnabled;
+                    // 重新设置时间更新逻辑
+                    if (isClockVisible) {
+                        updateTime(); // 立即更新一次显示
+                    } else {
+                        // 隐藏时间元素
+                        document.getElementById('timeCard').style.display = 'none';
+                    }
+                });
+
+                // 监听作业开关事件
+                ipcRenderer.on('homework-toggle', (event, isEnabled) => {
+                    isHomeworkVisible = isEnabled;
+                    updateHomeworkVisibility();
+                    renderHomeworkList(); // 重新渲染作业列表
+                });
+
+                // 监听启动台应用更新事件
+                ipcRenderer.on('launchpad-apps-updated', (event, apps) => {
+                    launchpadApps = apps;
+                    updateLaunchpadVisibility();
+                    renderLaunchpadApps();
+                });
+
+            } catch (e) {
+                console.log('Not in Electron environment');
+            }
+        }
+
+        // 初始化作业列表
+        updateHomeworkVisibility(); // 初始化作业可见性
+        renderHomeworkList();
+
+        // 初始化启动台
+        updateLaunchpadVisibility();
+    });
+</script>
+
 </html>

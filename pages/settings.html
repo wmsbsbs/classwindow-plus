@@ -6,15 +6,6 @@
     <!-- 引入 Fluent UI Web Components -->
     <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            min-width: 500px;
-            min-height: 400px;
-        }
-        
         .container {
             max-width: 700px;
             margin: 0 auto;
@@ -192,6 +183,18 @@
             padding: 8px;
             border: 1px solid #edebe9;
             border-radius: 4px;
+        }
+        
+        /* 隐藏滚动条但保持滚动功能 */
+        /* 隐藏 Webkit 浏览器的滚动条 */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* 针对 IE/Edge 的滚动条样式 */
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>

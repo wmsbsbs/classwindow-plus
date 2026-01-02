@@ -73,59 +73,6 @@ let welcomeWindow;
 // 功能展示窗口
 let featuresWindow;
 
-const createWindow = () => {
-  const [defaultX, defaultY] = loadWindowPosition()
-  
-  mainWindow = new BrowserWindow({
-    x: defaultX,
-    y: defaultY,
-    // 设置为无边框窗口
-    frame: false,
-    // 始终在最前（可被其他窗口覆盖）
-    alwaysOnTop: false,
-    // 设置窗口层级为桌面窗口
-    type: 'desktop',
-    // 背景透明
-    transparent: true,
-    // 可调整大小
-    resizable: true,
-    // 不显示在任务栏
-    skipTaskbar: true,
-    // 焦点丢失时是否隐藏窗口
-    focusable: false,
-    // 设置背景色为透明
-    backgroundColor: '#00000000',
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
-    }
-  })
-
-  // 加载页面内容
-  mainWindow.loadFile('pages/index.html')
-
-  // 当主窗口 DOM 就绪时发送初始状态（时钟/作业/启动台）
-  mainWindow.webContents.once('dom-ready', () => {
-    mainWindow.webContents.send('clock-toggle', isClockEnabled);
-    mainWindow.webContents.send('homework-toggle', isHomeworkEnabled);
-    mainWindow.webContents.send('launchpad-apps-updated', getLaunchpadApps());
-  });
-
-  // 监听窗口移动事件，保存位置
-  mainWindow.on('moved', () => {
-    const [x, y] = mainWindow.getPosition()
-    saveWindowPosition(x, y)
-  })
-
-  // 监听窗口关闭事件，保存位置
-  mainWindow.on('close', () => {
-    const [x, y] = mainWindow.getPosition()
-    saveWindowPosition(x, y)
-  })
-
-  return mainWindow
-}
-
 // 优化后的通用设置处理函数
 const createSettingHandler = (settingName, toggleEvent) => ({
   load: () => {
@@ -266,8 +213,8 @@ const createHomeworkWindow = () => {
   }
 
   homeworkWindow = new BrowserWindow({
-    icon: './assets/logo.png',
-    frame: true,
+    icon: iconPath,
+    frame: false,
     alwaysOnTop: true,
     resizable: true,
     webPreferences: {
@@ -295,11 +242,12 @@ const createSettingsWindow = () => {
   }
 
   settingsWindow = new BrowserWindow({
-    icon: './assets/logo.png',
-    frame: true,
+    icon: iconPath,
+    frame: false,
     width: 700,
     height: 600,
     resizable: true,
+    transparent: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -323,8 +271,8 @@ const createWelcomeWindow = () => {
   }
 
   welcomeWindow = new BrowserWindow({
-    icon: './assets/logo.png',
-    backgroundColor: 'transparent',
+    icon: iconPath,
+    transparent: true,
     frame: false,
     width: 600,
     height: 420,
@@ -382,6 +330,63 @@ const icon = nativeImage.createFromPath(iconPath);
 
 // 应用准备就绪时
 app.whenReady().then(() => {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { height } = primaryDisplay.workAreaSize;
+  const createWindow = () => {
+    const [defaultX, defaultY] = loadWindowPosition()
+    
+    mainWindow = new BrowserWindow({
+      height: parseInt(height * 0.9),
+      x: defaultX,
+      y: defaultY,
+      // 设置为无边框窗口
+      frame: false,
+      // 始终在最前（可被其他窗口覆盖）
+      alwaysOnTop: false,
+      // 设置窗口层级为桌面窗口
+      type: 'desktop',
+      // 背景透明
+      transparent: true,
+      // 可调整大小
+      resizable: true,
+      // 不显示在任务栏
+      skipTaskbar: true,
+      // 焦点丢失时是否隐藏窗口
+      focusable: false,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+        preload: path.join(__dirname, 'assets/js/main.js')
+      }
+    })
+
+    mainWindow.setIgnoreMouseEvents(true, { forward: true });
+
+    // 加载页面内容
+    mainWindow.loadFile('pages/index.html')
+
+    // 当主窗口 DOM 就绪时发送初始状态（时钟/作业/启动台）
+    mainWindow.webContents.once('dom-ready', () => {
+      mainWindow.webContents.send('clock-toggle', isClockEnabled);
+      mainWindow.webContents.send('homework-toggle', isHomeworkEnabled);
+      mainWindow.webContents.send('launchpad-apps-updated', getLaunchpadApps());
+    });
+
+    // 监听窗口移动事件，保存位置
+    mainWindow.on('moved', () => {
+      const [x, y] = mainWindow.getPosition()
+      saveWindowPosition(x, y)
+    })
+
+    // 监听窗口关闭事件，保存位置
+    mainWindow.on('close', () => {
+      const [x, y] = mainWindow.getPosition()
+      saveWindowPosition(x, y)
+    })
+
+    return mainWindow
+  }
+
   isClockEnabled = clockSettingHandler.load();
   isHomeworkEnabled = homeworkSettingHandler.load();
 
@@ -411,6 +416,17 @@ app.whenReady().then(() => {
   } else {
     createWindow();
   }
+
+  ipcMain.on('homework-button-hover', () => {
+    mainWindow.setIgnoreMouseEvents(false, { forward: false });
+  });
+
+  ipcMain.on('homework-delbutton-hover', () => {
+    mainWindow.setIgnoreMouseEvents(false, { forward: false });
+    setTimeout(() => {
+      mainWindow.setIgnoreMouseEvents(true, { forward: true });
+    }, 500);
+  });
 
   tray = new Tray(icon)
 
@@ -459,6 +475,7 @@ app.whenReady().then(() => {
   // 监听作业窗口关闭事件
   ipcMain.on('homework-window-closed', () => {
     homeworkWindow = null;
+    mainWindow.setIgnoreMouseEvents(true, { forward: true });
   });
   
   // 监听获取设置的请求

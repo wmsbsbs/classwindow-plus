@@ -8,8 +8,8 @@
         body {
             margin: 0;
             padding: 15px;
-            background: #333;
-            color: white;
+            background: transparent;
+            color: black;
             font-family: Arial, sans-serif;
             border-radius: 10px;
             user-select: none;
@@ -25,12 +25,13 @@
             margin-top: 0;
             margin-bottom: 15px;
             text-align: center;
-            color: white;
+            color: black;
             font-weight: bold;
         }
 
         .input-group {
             margin: 12px 0;
+            text-align: left;
         }
 
         .input-group label {
@@ -38,34 +39,18 @@
             margin-bottom: 5px;
             font-weight: bold;
             font-size: 14px;
-        }
-
-        .input-group select {
-            width: 100%;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: white;
             color: black;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
         }
 
-        .input-group textarea,
-        .input-group input {
+        fluent-select {
             width: 100%;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            margin-bottom: 5px;
         }
 
-        .input-group textarea {
-            height: 100px;
-            resize: vertical;
+        fluent-text-area,
+        fluent-text-field {
+            width: 100%;
+            margin-bottom: 5px;
         }
 
         .button-group {
@@ -78,6 +63,18 @@
         fluent-button {
             flex: 1;
         }
+
+        /* 隐藏滚动条但保持滚动功能 */
+        /* 隐藏 Webkit 浏览器的滚动条 */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* 针对 IE/Edge 的滚动条样式 */
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
 
@@ -86,7 +83,7 @@
         <h2>添加作业</h2>
         <div class="input-group">
             <label>科目:</label>
-            <select id="subjectSelect">
+            <fluent-select id="subjectSelect">
                 <option value="chinese">语文</option>
                 <option value="math">数学</option>
                 <option value="english">英语</option>
@@ -97,15 +94,15 @@
                 <option value="geography">地理</option>
                 <option value="politics">道德与法治</option>
                 <option value="other">其他</option>
-            </select>
+            </fluent-select>
         </div>
         <div class="input-group">
             <label>内容:</label>
-            <textarea id="homeworkContent" placeholder="输入作业内容..."></textarea>
+            <fluent-text-area id="homeworkContent" placeholder="输入作业内容..." resize="vertical"></fluent-text-area>
         </div>
         <div class="input-group">
             <label>截止日期:</label>
-            <input type="date" id="dueDate">
+            <fluent-text-field id="dueDate" type="date"></fluent-text-field>
         </div>
         <div class="button-group">
             <fluent-button appearance="neutral" id="cancelBtn">取消</fluent-button>
