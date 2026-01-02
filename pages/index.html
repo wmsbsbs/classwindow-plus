@@ -220,6 +220,15 @@
             text-align: center;
             word-break: break-all;
         }
+        
+        /* 链接类型应用的特殊样式 */
+        .launchpad-app.link-type {
+            background: rgba(0, 120, 212, 0.3); /* 蓝色背景表示链接 */
+        }
+        
+        .launchpad-app.link-type:hover {
+            background: rgba(0, 120, 212, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -329,8 +338,8 @@
                 // 如果启动台启用且有应用，确保元素可见
                 document.getElementById('launchpadCard').style.display = 'block';
                 const launchpadHeaders = document.querySelectorAll('h3');
-                if (launchpadHeaders[1]) { // 启动台标题是第二个h3
-                    launchpadHeaders[1].style.display = 'block';
+                if (launchpadHeaders[2]) { // 启动台标题是第三个h3（因为现在启动台在最后）
+                    launchpadHeaders[2].style.display = 'block';
                 }
             }
         }
@@ -347,9 +356,16 @@
             launchpadApps.forEach((app, index) => {
                 const appElement = document.createElement('div');
                 appElement.className = 'launchpad-app';
-                appElement.title = app.name;
                 
-                // 获取应用程序名称的首字母作为图标
+                // 为链接类型添加特殊类名
+                if (app.type === 'link') {
+                    appElement.classList.add('link-type');
+                    appElement.title = `链接: ${app.name}`;
+                } else {
+                    appElement.title = `应用: ${app.name}`;
+                }
+                
+                // 获取应用程序或链接名称的首字母作为图标
                 const iconText = app.name.charAt(0).toUpperCase();
                 
                 appElement.innerHTML = `
@@ -358,11 +374,11 @@
                 `;
                 
                 appElement.addEventListener('click', () => {
-                    // 发送启动应用请求
+                    // 发送启动应用或打开链接请求
                     if (typeof require !== 'undefined') {
                         try {
                             const { ipcRenderer } = require('electron');
-                            ipcRenderer.send('launch-app', app.path);
+                            ipcRenderer.send('launch-app', app);
                         } catch (e) {
                             console.log('Not in Electron environment');
                         }

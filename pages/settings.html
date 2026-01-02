@@ -140,6 +140,15 @@
             word-break: break-all;
         }
         
+        .launchpad-item-type {
+            font-size: 12px;
+            color: #0078d4;
+            background: #e6f4ff;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+        
         .launchpad-item-actions {
             display: flex;
             gap: 8px;
@@ -161,8 +170,14 @@
         
         .add-form {
             display: flex;
+            flex-direction: column;
             gap: 8px;
             margin-top: 16px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 8px;
         }
         
         .add-input {
@@ -172,17 +187,11 @@
             border-radius: 4px;
         }
         
-        .add-btn {
-            background-color: #0078d4;
-            color: white;
-            border: none;
-            padding: 8px 12px;
+        .type-selector {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #edebe9;
             border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .add-btn:hover {
-            background-color: #106ebe;
         }
     </style>
 </head>
@@ -219,16 +228,22 @@
             <div class="launchpad-header">
                 <div class="launchpad-title">启动台</div>
             </div>
-            <p style="color: #605e5c; margin-bottom: 16px;">管理快捷启动的应用程序</p>
+            <p style="color: #605e5c; margin-bottom: 16px;">管理快捷启动的应用程序和链接</p>
             
             <div class="launchpad-list" id="launchpadList">
                 <!-- 启动项将在这里显示 -->
             </div>
             
             <div class="add-form">
-                <input type="text" class="add-input" id="appNameInput" placeholder="应用程序名称">
-                <input type="text" class="add-input" id="appPathInput" placeholder="应用程序路径">
-                <fluent-button id="addAppBtn" appearance="primary">添加</fluent-button>
+                <div class="form-row">
+                    <input type="text" class="add-input" id="appNameInput" placeholder="名称">
+                    <select class="type-selector" id="appTypeInput">
+                        <option value="app">应用程序</option>
+                        <option value="link">链接</option>
+                    </select>
+                </div>
+                <input type="text" class="add-input" id="appPathInput" placeholder="应用程序路径或链接地址">
+                <fluent-button id="addAppBtn" appearance="accent" class="add-btn">添加</fluent-button>
             </div>
         </div>
         
@@ -269,21 +284,39 @@
         document.querySelector('#addAppBtn').addEventListener('click', function() {
             const nameInput = document.getElementById('appNameInput');
             const pathInput = document.getElementById('appPathInput');
+            const typeInput = document.getElementById('appTypeInput');
             
             const name = nameInput.value.trim();
             const path = pathInput.value.trim();
+            const type = typeInput.value;
             
             if (!name || !path) {
-                alert('请输入应用程序名称和路径');
+                alert('请输入名称和路径/链接');
                 return;
             }
             
-            ipcRenderer.send('add-launchpad-app', { name, path });
+            // 如果是链接类型，验证URL格式
+            if (type === 'link' && !isValidUrl(path)) {
+                alert('请输入有效的链接地址（以http://或https://开头）');
+                return;
+            }
+            
+            ipcRenderer.send('add-launchpad-app', { name, path, type });
             
             // 清空输入框
             nameInput.value = '';
             pathInput.value = '';
         });
+        
+        // 验证URL格式
+        function isValidUrl(string) {
+            try {
+                const url = new URL(string);
+                return url.protocol === 'http:' || url.protocol === 'https:';
+            } catch (_) {
+                return false;
+            }
+        }
         
         // 删除启动台应用
         function removeLaunchpadApp(index) {
@@ -303,9 +336,16 @@
             apps.forEach((app, index) => {
                 const item = document.createElement('div');
                 item.className = 'launchpad-item';
+                
+                const typeLabel = app.type === 'link' ? '链接' : '应用';
+                const typeClass = app.type === 'link' ? 'link' : 'app';
+                
                 item.innerHTML = `
                     <div class="launchpad-item-info">
-                        <div class="launchpad-item-name">${app.name}</div>
+                        <div class="launchpad-item-name">
+                            ${app.name}
+                            <span class="launchpad-item-type" data-type="${typeClass}">${typeLabel}</span>
+                        </div>
                         <div class="launchpad-item-path">${app.path}</div>
                     </div>
                     <div class="launchpad-item-actions">

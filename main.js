@@ -3,6 +3,7 @@ const path = require('path')
 const fs = require('fs')
 const { nativeImage } = require('electron/common')
 const { execFile } = require('child_process')
+const { shell } = require('electron')
 
 const CONFIG_PATH = path.join(__dirname, 'data/config.json')
 
@@ -174,6 +175,10 @@ const addLaunchpadApp = (app) => {
     if (!config.launchpadApps) {
       config.launchpadApps = [];
     }
+    // 设置默认类型为应用
+    if (!app.type) {
+      app.type = 'app';
+    }
     config.launchpadApps.push(app);
     config.timestamp = Date.now();
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
@@ -217,20 +222,26 @@ const getLaunchpadApps = () => {
   return config.launchpadApps || [];
 };
 
-// 启动应用函数
-const launchApp = (appPath) => {
+// 启动应用或打开链接函数
+const launchAppOrLink = (app) => {
   try {
-    execFile(appPath, (error) => {
-      if (error) {
-        console.error('启动应用失败:', error);
-        // 可以向渲染进程发送错误信息
-        if (mainWindow) {
-          mainWindow.webContents.send('launch-app-error', error.message);
+    if (app.type === 'link') {
+      // 如果是链接类型，使用shell打开
+      shell.openExternal(app.path);
+    } else {
+      // 如果是应用程序类型，使用execFile启动
+      execFile(app.path, (error) => {
+        if (error) {
+          console.error('启动应用失败:', error);
+          // 可以向渲染进程发送错误信息
+          if (mainWindow) {
+            mainWindow.webContents.send('launch-app-error', error.message);
+          }
         }
-      }
-    });
+      });
+    }
   } catch (error) {
-    console.error('启动应用异常:', error);
+    console.error('启动应用或打开链接异常:', error);
   }
 };
 
@@ -391,8 +402,8 @@ app.whenReady().then(() => {
   });
   
   // 监听启动应用请求
-  ipcMain.on('launch-app', (event, appPath) => {
-    launchApp(appPath);
+  ipcMain.on('launch-app', (event, app) => {
+    launchAppOrLink(app);
   });
 
   app.on('activate', () => {
