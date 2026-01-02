@@ -2,6 +2,7 @@ const { app, BrowserWindow, screen, ipcMain, Tray, Menu } = require('electron/ma
 const path = require('path')
 const fs = require('fs')
 const { nativeImage } = require('electron/common')
+const { execFile } = require('child_process')
 
 const CONFIG_PATH = path.join(__dirname, 'data/config.json')
 
@@ -165,6 +166,74 @@ const handleHomeworkToggle = (isEnabled) => {
   homeworkSettingHandler.handleToggle(isEnabled, mainWindow);
 };
 
+// 启动台应用管理函数
+const addLaunchpadApp = (app) => {
+  try {
+    ensureConfigDir();
+    const config = loadConfig();
+    if (!config.launchpadApps) {
+      config.launchpadApps = [];
+    }
+    config.launchpadApps.push(app);
+    config.timestamp = Date.now();
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+    
+    // 通知所有窗口更新启动台应用列表
+    if (mainWindow) {
+      mainWindow.webContents.send('launchpad-apps-updated', config.launchpadApps);
+    }
+    if (settingsWindow) {
+      settingsWindow.webContents.send('launchpad-apps-updated', config.launchpadApps);
+    }
+  } catch (err) {
+    console.error('添加启动台应用失败:', err);
+  }
+};
+
+const removeLaunchpadApp = (index) => {
+  try {
+    ensureConfigDir();
+    const config = loadConfig();
+    if (config.launchpadApps && config.launchpadApps.length > index) {
+      config.launchpadApps.splice(index, 1);
+      config.timestamp = Date.now();
+      fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+      
+      // 通知所有窗口更新启动台应用列表
+      if (mainWindow) {
+        mainWindow.webContents.send('launchpad-apps-updated', config.launchpadApps);
+      }
+      if (settingsWindow) {
+        settingsWindow.webContents.send('launchpad-apps-updated', config.launchpadApps);
+      }
+    }
+  } catch (err) {
+    console.error('删除启动台应用失败:', err);
+  }
+};
+
+const getLaunchpadApps = () => {
+  const config = loadConfig();
+  return config.launchpadApps || [];
+};
+
+// 启动应用函数
+const launchApp = (appPath) => {
+  try {
+    execFile(appPath, (error) => {
+      if (error) {
+        console.error('启动应用失败:', error);
+        // 可以向渲染进程发送错误信息
+        if (mainWindow) {
+          mainWindow.webContents.send('launch-app-error', error.message);
+        }
+      }
+    });
+  } catch (error) {
+    console.error('启动应用异常:', error);
+  }
+};
+
 // 创建作业输入窗口
 const createHomeworkWindow = () => {
   // 如果窗口已经存在，就聚焦它
@@ -205,10 +274,9 @@ const createSettingsWindow = () => {
   settingsWindow = new BrowserWindow({
     icon: './assets/logo.png',
     frame: true,
-    width: 500,
-    height: 400,
-    frame: false,
-    resizable: false,
+    width: 700,
+    height: 600,
+    resizable: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -241,6 +309,9 @@ app.whenReady().then(() => {
     // 发送时钟和作业的初始状态
     mainWindow.webContents.send('clock-toggle', isClockEnabled);
     mainWindow.webContents.send('homework-toggle', isHomeworkEnabled);
+    
+    // 发送启动台应用列表
+    mainWindow.webContents.send('launchpad-apps-updated', getLaunchpadApps());
   });
 
   tray = new Tray(icon)
@@ -293,7 +364,8 @@ app.whenReady().then(() => {
     if (settingsWindow) {
       settingsWindow.webContents.send('settings-updated', {
         clockEnabled: isClockEnabled,
-        homeworkEnabled: isHomeworkEnabled
+        homeworkEnabled: isHomeworkEnabled,
+        launchpadApps: getLaunchpadApps()
       });
     }
   });
@@ -306,6 +378,21 @@ app.whenReady().then(() => {
   // 监听作业开关变化
   ipcMain.on('toggle-homework', (event, isEnabled) => {
     handleHomeworkToggle(isEnabled);
+  });
+  
+  // 监听添加启动台应用
+  ipcMain.on('add-launchpad-app', (event, app) => {
+    addLaunchpadApp(app);
+  });
+  
+  // 监听删除启动台应用
+  ipcMain.on('remove-launchpad-app', (event, index) => {
+    removeLaunchpadApp(index);
+  });
+  
+  // 监听启动应用请求
+  ipcMain.on('launch-app', (event, appPath) => {
+    launchApp(appPath);
   });
 
   app.on('activate', () => {

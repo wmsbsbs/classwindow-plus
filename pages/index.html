@@ -180,6 +180,46 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* 启动台样式 */
+        .launchpad-card {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 17px; /* 与其他卡片保持一致 */
+            margin: 10px; /* 与其他卡片保持一致 */
+            background: rgba(255, 255, 255, 0.15); /* 与其他卡片保持一致 */
+            border-radius: 8px; /* 与其他卡片保持一致 */
+        }
+        
+        .launchpad-app {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .launchpad-app:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .launchpad-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+        
+        .launchpad-name {
+            font-size: 10px;
+            text-align: center;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -205,6 +245,14 @@
             </div>
             <fluent-button appearance="accent" class="add-homework-btn" id="addHomeworkBtn">添加作业</fluent-button>
         </div>
+
+        <!-- 启动台卡片 -->
+        <div class="card launchpad-card" id="launchpadCard">
+            <h3>启动台</h3>
+            <div class="launchpad-container" id="launchpadContainer">
+                <!-- 启动台应用将在这里显示 -->
+            </div>
+        </div>
     </div>
 
     <script>
@@ -212,6 +260,10 @@
         let isClockVisible = true;
         // 添加作业显示状态变量
         let isHomeworkVisible = true;
+        // 添加启动台显示状态变量
+        let isLaunchpadVisible = true;
+        // 启动台应用列表
+        let launchpadApps = [];
 
         // 更新时间函数
         function updateTime() {
@@ -262,10 +314,63 @@
                 document.getElementById('addHomeworkBtn').style.display = 'inline-block';
                 document.getElementById('homeworkList').style.display = 'block';
                 const homeworkHeaders = document.querySelectorAll('h3');
-                if (homeworkHeaders[1]) {
+                if (homeworkHeaders[1]) { // 注意：这里索引可能需要调整
                     homeworkHeaders[1].style.display = 'block';
                 }
             }
+        }
+
+        // 控制启动台显示的函数
+        function updateLaunchpadVisibility() {
+            if (!isLaunchpadVisible || launchpadApps.length === 0) {
+                // 如果启动台被禁用或没有应用，隐藏启动台
+                document.getElementById('launchpadCard').style.display = 'none';
+            } else {
+                // 如果启动台启用且有应用，确保元素可见
+                document.getElementById('launchpadCard').style.display = 'block';
+                const launchpadHeaders = document.querySelectorAll('h3');
+                if (launchpadHeaders[1]) { // 启动台标题是第二个h3
+                    launchpadHeaders[1].style.display = 'block';
+                }
+            }
+        }
+
+        // 渲染启动台应用
+        function renderLaunchpadApps() {
+            if (!isLaunchpadVisible || launchpadApps.length === 0) {
+                return; // 如果启动台功能被禁用或没有应用，则不渲染
+            }
+
+            const container = document.getElementById('launchpadContainer');
+            container.innerHTML = '';
+
+            launchpadApps.forEach((app, index) => {
+                const appElement = document.createElement('div');
+                appElement.className = 'launchpad-app';
+                appElement.title = app.name;
+                
+                // 获取应用程序名称的首字母作为图标
+                const iconText = app.name.charAt(0).toUpperCase();
+                
+                appElement.innerHTML = `
+                    <div class="launchpad-icon">${iconText}</div>
+                    <div class="launchpad-name">${app.name}</div>
+                `;
+                
+                appElement.addEventListener('click', () => {
+                    // 发送启动应用请求
+                    if (typeof require !== 'undefined') {
+                        try {
+                            const { ipcRenderer } = require('electron');
+                            ipcRenderer.send('launch-app', app.path);
+                        } catch (e) {
+                            console.log('Not in Electron environment');
+                        }
+                    }
+                });
+                
+                container.appendChild(appElement);
+            });
         }
 
         // 立即显示时间
@@ -413,6 +518,14 @@
                         updateHomeworkVisibility();
                         renderHomeworkList(); // 重新渲染作业列表
                     });
+
+                    // 监听启动台应用更新事件
+                    ipcRenderer.on('launchpad-apps-updated', (event, apps) => {
+                        launchpadApps = apps;
+                        updateLaunchpadVisibility();
+                        renderLaunchpadApps();
+                    });
+
                 } catch (e) {
                     console.log('Not in Electron environment');
                 }
@@ -421,6 +534,9 @@
             // 初始化作业列表
             updateHomeworkVisibility(); // 初始化作业可见性
             renderHomeworkList();
+            
+            // 初始化启动台
+            updateLaunchpadVisibility();
         });
     </script>
 </body>
