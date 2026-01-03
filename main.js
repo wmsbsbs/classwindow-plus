@@ -72,6 +72,7 @@ const createWindow = () => {
   const [defaultX, defaultY] = loadWindowPosition();
   
   mainWindow = new BrowserWindow({
+    width: 300,
     x: defaultX,
     y: defaultY,
     // 设置为无边框窗口
