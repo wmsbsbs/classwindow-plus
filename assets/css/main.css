@@ -255,7 +255,7 @@ h3 {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: center;    
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -270,6 +270,12 @@ h3 {
 .launchpad-icon {
     font-size: 24px;
     margin-bottom: 2px;
+}
+
+.launchpad-container {
+    display: flex; /* 启用 Flexbox 布局 */
+    justify-content: space-between; /* 水平分布 */
+    align-items: center; /* 垂直居中 */
 }
 
 .launchpad-name {
