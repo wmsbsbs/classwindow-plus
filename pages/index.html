@@ -130,7 +130,6 @@
 
         const container = document.getElementById('launchpadContainer');
         container.innerHTML = '';
-
         launchpadApps.forEach((app, index) => {
             const appElement = document.createElement('div');
             appElement.className = 'launchpad-app';
@@ -143,11 +142,18 @@
                 appElement.title = `应用: ${app.name}`;
             }
 
-            // 获取应用程序或链接名称的首字母作为图标
-            const iconText = app.name.charAt(0).toUpperCase();
+            let iconElement = '';
+            if (app.icon) {
+                // 如果有自定义图标，使用图片
+                iconElement = `<img class="launchpad-icon" src="${app.icon}" alt="${app.name}">`;
+            } else {
+                // 否则使用首字母
+                const iconText = app.name.charAt(0).toUpperCase();
+                iconElement = `<div class="launchpad-icon">${iconText}</div>`;
+            }
 
             appElement.innerHTML = `
-                    <div class="launchpad-icon">${iconText}</div>
+                    ${iconElement}
                     <div class="launchpad-name">${app.name}</div>
                 `;
 
@@ -281,55 +287,6 @@
                 console.log('Not in Electron environment');
             }
         });
-
-        addHomeworkBtn.addEventListener('mouseenter', () => {
-            // 检查是否在 Electron 环境中
-            if (typeof require !== 'undefined') {
-                try {
-                    const {
-                        ipcRenderer
-                    } = require('electron');
-                    ipcRenderer.send('homework-button-hover');
-                } catch (e) {
-                    console.log('Not in Electron environment');
-                }
-            } else {
-                console.log('Not in Electron environment');
-            }
-        });
-
-        homeworkList.addEventListener('mouseenter', () => {
-            // 检查是否在 Electron 环境中
-            if (typeof require !== 'undefined') {
-                try {
-                    const {
-                        ipcRenderer
-                    } = require('electron');
-                    ipcRenderer.send('homework-delbutton-hover');
-                } catch (e) {
-                    console.log('Not in Electron environment');
-                }
-            } else {
-                console.log('Not in Electron environment');
-            }
-        });
-
-        launchpadCard.addEventListener('mouseenter', () => {
-            // 检查是否在 Electron 环境中
-            if (typeof require !== 'undefined') {
-                try {
-                    const {
-                        ipcRenderer
-                    } = require('electron');
-                    ipcRenderer.send('homework-delbutton-hover');
-                } catch (e) {
-                    console.log('Not in Electron environment');
-                }
-            } else {
-                console.log('Not in Electron environment');
-            }
-        })
-
         // 接收来自新窗口的作业数据和开关状态
         if (typeof require !== 'undefined') {
             try {

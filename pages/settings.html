@@ -9,59 +9,62 @@
     <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
 </head>
 <body>
+    <!-- 标题栏 -->
+    <div class="title-bar">
+        <div class="title">设置</div>
+        <div class="title-bar-buttons">
+            <div class="title-bar-button close-button" title="关闭" id="titleCloseBtn"></div>
+        </div>
+    </div>
+
     <div class="container">
-        <div class="header">
-            <h1>设置</h1>
-        </div>
-        
-        <div class="setting-group">
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">启用时钟</div>
-                    <div class="setting-description">在主窗口显示时钟功能</div>
+        <div class="content">
+            <div class="setting-group">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">启用时钟</div>
+                        <div class="setting-description">在主窗口显示时钟功能</div>
+                    </div>
+                    <div class="actions">
+                        <fluent-switch id="clockToggle" label="时钟"></fluent-switch>
+                    </div>
                 </div>
-                <div class="actions">
-                    <fluent-switch id="clockToggle" label="时钟"></fluent-switch>
+                
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">启用作业</div>
+                        <div class="setting-description">在主窗口显示作业功能</div>
+                    </div>
+                    <div class="actions">
+                        <fluent-switch id="homeworkToggle" label="作业"></fluent-switch>
+                    </div>
                 </div>
             </div>
             
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">启用作业</div>
-                    <div class="setting-description">在主窗口显示作业功能</div>
+            <!-- 启动台设置部分 -->
+            <div class="launchpad-section">
+                <div class="launchpad-header">
+                    <div class="launchpad-title">启动台</div>
                 </div>
-                <div class="actions">
-                    <fluent-switch id="homeworkToggle" label="作业"></fluent-switch>
+                <p style="color: #605e5c; margin-bottom: 16px;">管理快捷启动的应用程序和链接</p>
+                
+                <div class="launchpad-list" id="launchpadList">
+                    <!-- 启动项将在这里显示 -->
+                </div>
+                
+                <div class="add-form">
+                    <div class="form-row">
+                        <input type="text" class="add-input" id="appNameInput" placeholder="名称">
+                        <select class="type-selector" id="appTypeInput">
+                            <option value="app">应用程序</option>
+                            <option value="link">链接</option>
+                        </select>
+                    </div>
+                    <input type="text" class="add-input" id="appPathInput" placeholder="应用程序路径或链接地址">
+                    <input type="text" class="add-input" id="appIconInput" placeholder="图标路径（可选）">
+                    <fluent-button id="addAppBtn" appearance="accent" class="add-btn">添加</fluent-button>
                 </div>
             </div>
-        </div>
-        
-        <!-- 启动台设置部分 -->
-        <div class="launchpad-section">
-            <div class="launchpad-header">
-                <div class="launchpad-title">启动台</div>
-            </div>
-            <p style="color: #605e5c; margin-bottom: 16px;">管理快捷启动的应用程序和链接</p>
-            
-            <div class="launchpad-list" id="launchpadList">
-                <!-- 启动项将在这里显示 -->
-            </div>
-            
-            <div class="add-form">
-                <div class="form-row">
-                    <input type="text" class="add-input" id="appNameInput" placeholder="名称">
-                    <select class="type-selector" id="appTypeInput">
-                        <option value="app">应用程序</option>
-                        <option value="link">链接</option>
-                    </select>
-                </div>
-                <input type="text" class="add-input" id="appPathInput" placeholder="应用程序路径或链接地址">
-                <fluent-button id="addAppBtn" appearance="accent" class="add-btn">添加</fluent-button>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <fluent-button id="closeBtn" appearance="primary">关闭</fluent-button>
         </div>
     </div>
 
@@ -98,10 +101,12 @@
             const nameInput = document.getElementById('appNameInput');
             const pathInput = document.getElementById('appPathInput');
             const typeInput = document.getElementById('appTypeInput');
+            const iconInput = document.getElementById('appIconInput'); // 新增图标输入
             
             const name = nameInput.value.trim();
             const path = pathInput.value.trim();
             const type = typeInput.value;
+            const icon = iconInput.value.trim(); // 获取图标路径
             
             if (!name || !path) {
                 alert('请输入名称和路径/链接');
@@ -114,11 +119,18 @@
                 return;
             }
             
-            ipcRenderer.send('add-launchpad-app', { name, path, type });
+            // 发送包含图标信息的应用数据
+            ipcRenderer.send('add-launchpad-app', { 
+                name, 
+                path, 
+                type,
+                icon: icon || null // 如果没有提供图标，则为null
+            });
             
             // 清空输入框
             nameInput.value = '';
             pathInput.value = '';
+            iconInput.value = ''; // 清空图标输入框
         });
         
         // 验证URL格式
@@ -130,6 +142,7 @@
                 return false;
             }
         }
+        
         
         // 删除启动台应用
         function removeLaunchpadApp(index) {
@@ -175,7 +188,7 @@
         });
         
         // 监听关闭按钮
-        document.querySelector('#closeBtn').addEventListener('click', () => {
+        document.querySelector('#titleCloseBtn').addEventListener('click', () => {
             window.close();
         });
         

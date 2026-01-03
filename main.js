@@ -138,6 +138,7 @@ const addLaunchpadApp = (app) => {
     if (!app.type) {
       app.type = 'app';
     }
+    // 保存图标信息
     config.launchpadApps.push(app);
     config.timestamp = Date.now();
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
@@ -153,7 +154,6 @@ const addLaunchpadApp = (app) => {
     console.error('添加启动台应用失败:', err);
   }
 };
-
 const removeLaunchpadApp = (index) => {
   try {
     ensureConfigDir();
@@ -330,13 +330,10 @@ const icon = nativeImage.createFromPath(iconPath);
 
 // 应用准备就绪时
 app.whenReady().then(() => {
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { height } = primaryDisplay.workAreaSize;
   const createWindow = () => {
     const [defaultX, defaultY] = loadWindowPosition()
     
     mainWindow = new BrowserWindow({
-      height: parseInt(height * 0.9),
       x: defaultX,
       y: defaultY,
       // 设置为无边框窗口
@@ -360,7 +357,6 @@ app.whenReady().then(() => {
       }
     })
 
-    mainWindow.setIgnoreMouseEvents(true, { forward: true });
 
     // 加载页面内容
     mainWindow.loadFile('pages/index.html')
@@ -416,17 +412,6 @@ app.whenReady().then(() => {
   } else {
     createWindow();
   }
-
-  ipcMain.on('homework-button-hover', () => {
-    mainWindow.setIgnoreMouseEvents(false, { forward: false });
-  });
-
-  ipcMain.on('homework-delbutton-hover', () => {
-    mainWindow.setIgnoreMouseEvents(false, { forward: false });
-    setTimeout(() => {
-      mainWindow.setIgnoreMouseEvents(true, { forward: true });
-    }, 2000);
-  });
 
   tray = new Tray(icon)
 
