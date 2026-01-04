@@ -11,6 +11,16 @@ const {
   launchAppOrLink
 } = require('./launchpad');
 
+let iconPath;
+
+let resourcesRoot = path.resolve(app.getAppPath());
+
+if (app.isPackaged) {
+  iconPath = path.join(resourcesRoot, "assets/logo.png");
+} else {
+  iconPath = path.join(__dirname, "assets/logo.png");
+}
+
 const CONFIG_PATH = path.join(__dirname, 'data/config.json');
 
 // 确保配置目录存在
@@ -270,12 +280,6 @@ const handleHomeworkToggle = (isEnabled) => {
 
 // 为 Tray 对象保存一个全局引用以避免被垃圾回收
 let tray;
-
-if (app.isPackaged) {
-  iconPath = path.join(process.resourcesPath, "assets/logo.png");
-} else {
-  iconPath = path.join(__dirname, "assets/logo.png");
-}
 const icon = nativeImage.createFromPath(iconPath);
 
 // 应用准备就绪时

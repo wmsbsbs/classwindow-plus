@@ -18,35 +18,5 @@
     "@electron-forge/maker-squirrel": "^7.10.2",
     "@electron-forge/maker-zip": "^7.10.2",
     "electron": "^39.2.7"
-  },
-  "config": {
-    "forge": {
-      "packagerConfig": {
-        "icon": "./assets/logo",
-        "executableName": "classwindow"
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "electron_quick_start"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {
-            "options": {
-              "icon": "./assets/logo.png"
-            }
-          }
-        }
-      ]
-    }
   }
 }

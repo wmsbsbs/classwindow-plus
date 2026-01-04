@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "班级窗"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "xinghai-smartedu"
 #define MyAppURL "https://github.com/xinghai-smartedu/classwindow"
 #define MyAppExeName "ClassWindow.exe"
