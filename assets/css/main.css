@@ -293,3 +293,7 @@ h3 {
 .launchpad-app.link-type:hover {
     background: rgba(0, 120, 212, 0.4);
 }
+
+fluent-button { 
+    height: 20px;
+}

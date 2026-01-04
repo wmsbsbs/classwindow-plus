@@ -161,6 +161,38 @@ const createHomeworkWindow = () => {
     homeworkWindow = null;
   });
 };
+// 作业列表窗口
+let homeworkListWindow;
+
+const createHomeworkListWindow = () => {
+  // 如果窗口已经存在，就聚焦它
+  if (homeworkListWindow) {
+    homeworkListWindow.focus();
+    return homeworkListWindow;
+  }
+
+  homeworkListWindow = new BrowserWindow({
+    icon: iconPath,
+    frame: false,
+    width: 800,
+    height: 600,
+    resizable: true,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+
+  homeworkListWindow.loadFile('pages/homework.html');
+  homeworkListWindow.setMenu(null);
+
+  // 窗口关闭时清理引用
+  homeworkListWindow.on('closed', () => {
+    homeworkListWindow = null;
+  });
+
+  return homeworkListWindow;
+};
 
 // 设置窗口
 let settingsWindow;
@@ -224,7 +256,6 @@ const createWelcomeWindow = () => {
   });
 };
 
-// 优化后的通用设置处理函数
 const createSettingHandler = (settingName, toggleEvent) => ({
   load: () => {
     try {
@@ -421,6 +452,15 @@ app.whenReady().then(() => {
   ipcMain.on('open-features-window', () => {
     createFeaturesWindow();
   });
+
+ipcMain.on('open-homework-list-window', () => {
+  createHomeworkListWindow();
+});
+
+// 监听作业列表窗口关闭事件
+ipcMain.on('homework-list-window-closed', () => {
+  homeworkListWindow = null;
+});
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

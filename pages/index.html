@@ -30,7 +30,10 @@
             <div class="homework-list" id="homeworkList">
                 <!-- 作业将在这里显示 -->
             </div>
-            <fluent-button appearance="accent" class="add-homework-btn" id="addHomeworkBtn">添加作业</fluent-button>
+            <div class="homework-btn-container">
+                <fluent-button appearance="accent" id="addHomeworkBtn">添加作业</fluent-button>
+                <fluent-button appearance="primary" id="viewAllHomeworkBtn">查看全部</fluent-button>
+            </div>
         </div>
 
         <!-- 启动台卡片 -->
@@ -51,6 +54,23 @@
     let isLaunchpadVisible = true;
     // 启动台应用列表
     let launchpadApps = [];
+    // 在 DOMContentLoaded 事件中添加
+    const viewAllHomeworkBtn = document.getElementById('viewAllHomeworkBtn');
+
+    // 打开全部作业窗口
+    viewAllHomeworkBtn.addEventListener('click', () => {
+        // 检查是否在 Electron 环境中
+        if (typeof require !== 'undefined') {
+            try {
+                const { ipcRenderer } = require('electron');
+                ipcRenderer.send('open-homework-list-window');
+            } catch (e) {
+                console.log('Not in Electron environment');
+            }
+        } else {
+            console.log('Not in Electron environment');
+        }
+    });
 
     // 更新时间函数
     function updateTime() {
