@@ -384,6 +384,12 @@ app.whenReady().then(() => {
 				createAboutWindow();
 			}
 		},
+    {
+			label: '查看作业列表',
+			click: () => {
+				createHomeworkListWindow();
+			}
+		},
 		{
 			label: '退出',
 			role: "quit"
