@@ -138,19 +138,33 @@ const createHomeworkWindow = () => {
 		return;
 	}
 
+	// 获取屏幕尺寸
+	const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+	// 设置窗口尺寸，增大以适应双栏布局
+	const winWidth = 1000;
+	const winHeight = 700;
+
 	homeworkWindow = new BrowserWindow({
 		icon: iconPath,
 		frame: false,
-		alwaysOnTop: true,
+		alwaysOnTop: false,
 		resizable: true,
+		width: winWidth,
+		height: winHeight,
+		// 设置窗口最小尺寸，防止按钮溢出
+		minWidth: 800,
+		minHeight: 600,
+		// 计算并设置窗口居中位置
+		x: Math.round((width - winWidth) / 2),
+		y: Math.round((height - winHeight) / 2),
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false
 		}
 	});
 
-	// 加载作业表单页面
-	homeworkWindow.loadFile('pages/homework-form.html');
+	// 加载新的拖拽式作业表单页面
+	homeworkWindow.loadFile('pages/homework-form-new.html');
 	homeworkWindow.setMenu(null);
 
 	// 窗口关闭时清理引用
@@ -168,11 +182,23 @@ const createHomeworkListWindow = () => {
 		return homeworkListWindow;
 	}
 
+	// 获取屏幕尺寸
+	const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+	// 设置窗口尺寸
+	const winWidth = 800;
+	const winHeight = 600;
+
 	homeworkListWindow = new BrowserWindow({
 		icon: iconPath,
 		frame: false,
-		width: 800,
-		height: 600,
+		width: winWidth,
+		height: winHeight,
+		// 设置窗口最小尺寸，防止元素溢出
+		minWidth: 600,
+		minHeight: 400,
+		// 计算并设置窗口居中位置
+		x: Math.round((width - winWidth) / 2),
+		y: Math.round((height - winHeight) / 2),
 		resizable: true,
 		webPreferences: {
 			nodeIntegration: true,
@@ -191,6 +217,51 @@ const createHomeworkListWindow = () => {
 	return homeworkListWindow;
 };
 
+// 模板设计器窗口
+let templateDesignerWindow;
+
+const createTemplateDesignerWindow = () => {
+	// 如果窗口已经存在，就聚焦它
+	if (templateDesignerWindow) {
+		templateDesignerWindow.focus();
+		return;
+	}
+
+	// 获取屏幕尺寸
+	const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+	// 设置窗口尺寸
+	const winWidth = 1200;
+	const winHeight = 700;
+
+	templateDesignerWindow = new BrowserWindow({
+		icon: iconPath,
+		frame: false,
+		width: winWidth,
+		height: winHeight,
+		// 设置窗口最小尺寸，防止元素溢出
+		minWidth: 1000,
+		minHeight: 600,
+		// 计算并设置窗口居中位置
+		x: Math.round((width - winWidth) / 2),
+		y: Math.round((height - winHeight) / 2),
+		resizable: true,
+		webPreferences: {
+			nodeIntegration: true,
+			contextIsolation: false
+		}
+	});
+
+	templateDesignerWindow.loadFile('pages/template-designer.html');
+	templateDesignerWindow.setMenu(null);
+
+	// 窗口关闭时清理引用
+	templateDesignerWindow.on('closed', () => {
+		templateDesignerWindow = null;
+	});
+
+	return templateDesignerWindow;
+};
+
 // 设置窗口
 let settingsWindow;
 
@@ -206,6 +277,9 @@ const createSettingsWindow = () => {
 		frame: false,
 		width: 700,
 		height: 600,
+		// 设置窗口最小尺寸，防止元素溢出
+		minWidth: 600,
+		minHeight: 500,
 		resizable: true,
 		webPreferences: {
 			nodeIntegration: true,
@@ -260,8 +334,8 @@ const createWelcomeWindow = () => {
 		icon: iconPath,
 		transparent: true,
 		frame: false,
-		width: 600,
-		height: 420,
+		width: 800,
+		height: 900,
 		resizable: false,
 		webPreferences: {
 			nodeIntegration: true,
@@ -365,7 +439,7 @@ app.whenReady().then(() => {
 	tray = new Tray(icon);
 
 	const contextMenu = Menu.buildFromTemplate([{
-			label: '课堂窗 - ClassWindow',
+			label: '课堂窗 - ClassWindow plus',
 			role: "about"
 		},
 		{
@@ -381,10 +455,23 @@ app.whenReady().then(() => {
 		{
 			label: '关于',
 			click: () => {
-				createAboutWindow();
+				createSettingsWindow();
+				// 当设置窗口加载完成后，切换到about标签
+				settingsWindow.webContents.on('did-finish-load', () => {
+					settingsWindow.webContents.executeJavaScript(`
+						// 模拟点击about标签
+						document.querySelector('.nav-item[data-tab="about"]').click();
+					`);
+				});
 			}
 		},
-    {
+		{
+			label: '新手引导',
+			click: () => {
+				createWelcomeWindow();
+			}
+		},
+		{
 			label: '查看作业列表',
 			click: () => {
 				createHomeworkListWindow();
@@ -504,6 +591,16 @@ app.whenReady().then(() => {
 		createHomeworkListWindow();
 	});
 
+	// 监听打开模板设计器窗口的请求
+	ipcMain.on('open-template-designer-window', () => {
+		createTemplateDesignerWindow();
+	});
+
+	// 监听模板设计器窗口关闭事件
+	ipcMain.on('template-designer-window-closed', () => {
+		templateDesignerWindow = null;
+	});
+
 	// 监听作业列表窗口关闭事件
 	ipcMain.on('homework-list-window-closed', () => {
 		homeworkListWindow = null;
@@ -514,6 +611,12 @@ app.whenReady().then(() => {
 			createWindow();
 		}
 	});
-});
 
-app.on('window-all-closed', () => {});
+	app.on('window-all-closed', () => {
+		// 在 macOS 上，除非用户用 Cmd + Q 确定地退出，
+		// 否则绝大部分应用及其菜单栏会保持激活。
+		if (process.platform !== 'darwin') {
+			app.quit();
+		}
+	});
+}); // 闭合 app.whenReady().then() 回调函数
