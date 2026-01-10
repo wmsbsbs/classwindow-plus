@@ -26,9 +26,17 @@
             <div class="template-controls">
                 <fluent-select id="templateSelect">
                     <option value="">选择模板...</option>
+                    <option value="custom">自定义文本</option>
                 </fluent-select>
                 <fluent-button appearance="outline" id="saveTemplateBtn" title="保存当前内容为模板">保存模板</fluent-button>
+                <fluent-button appearance="accent" id="designTemplateBtn" title="设计新模板">设计模板</fluent-button>
             </div>
+        </div>
+        
+        <!-- 模板预览和编辑区域 -->
+        <div id="templatePreview" style="display: none; background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <h3>模板预览</h3>
+            <div id="templateContent" style="background: white; padding: 15px; border-radius: 6px; min-height: 100px;"></div>
         </div>
         
         <div class="input-group">
@@ -62,18 +70,186 @@
 
     <script>
         const { ipcRenderer } = require('electron');
+        
+        // 动态加载模板模块
+        let templateModule;
+        try {
+            templateModule = require('../template.js');
+        } catch (e) {
+            console.error('加载模板模块失败:', e);
+        }
+
+        // 当前选择的模板和模板值
+        let currentTemplate = null;
+        let templateValues = {};
 
         // 设置截止日期为当天
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0]; // 格式: YYYY-MM-DD
             document.getElementById('dueDate').value = today;
+            
+            // 加载模板列表
+            loadTemplates();
         });
+        
+        // 加载模板列表
+        function loadTemplates() {
+            if (!templateModule) return;
+            
+            const templateSelect = document.getElementById('templateSelect');
+            const templates = templateModule.getAllTemplates();
+            
+            // 清空现有选项（保留自定义选项）
+            const customOption = templateSelect.querySelector('option[value="custom"]');
+            templateSelect.innerHTML = '';
+            templateSelect.appendChild(customOption);
+            
+            // 添加模板选项
+            templates.forEach(template => {
+                const option = document.createElement('option');
+                option.value = template.id;
+                option.textContent = template.name;
+                templateSelect.appendChild(option);
+            });
+        }
+        
+        // 模板选择事件
+        document.getElementById('templateSelect').addEventListener('change', (e) => {
+            const templateId = e.target.value;
+            
+            if (templateId === '') {
+                // 清空模板预览
+                document.getElementById('templatePreview').style.display = 'none';
+                document.getElementById('homeworkContent').style.display = 'block';
+                currentTemplate = null;
+                templateValues = {};
+            } else if (templateId === 'custom') {
+                // 显示自定义文本区域
+                document.getElementById('templatePreview').style.display = 'none';
+                document.getElementById('homeworkContent').style.display = 'block';
+                currentTemplate = null;
+                templateValues = {};
+            } else {
+                // 加载并显示模板
+                loadTemplate(templateId);
+            }
+        });
+        
+        // 加载模板
+        function loadTemplate(templateId) {
+            if (!templateModule) return;
+            
+            const template = templateModule.getTemplateById(templateId);
+            if (template) {
+                currentTemplate = template;
+                templateValues = {};
+                
+                // 显示模板预览
+                renderTemplatePreview(template);
+                document.getElementById('templatePreview').style.display = 'block';
+                document.getElementById('homeworkContent').style.display = 'none';
+            }
+        }
+        
+        // 渲染模板预览
+        function renderTemplatePreview(template) {
+            const previewContainer = document.getElementById('templateContent');
+            
+            let previewHTML = '<h4>' + template.name + '</h4>';
+            previewHTML += '<p style="color: #666; margin-bottom: 20px;">' + template.description + '</p>';
+            
+            // 渲染模板组件
+            const sortedComponents = [...template.components].sort((a, b) => a.order - b.order);
+            sortedComponents.forEach(component => {
+                previewHTML += renderComponentPreview(component);
+            });
+            
+            previewContainer.innerHTML = previewHTML;
+        }
+        
+        // 渲染组件预览
+        function renderComponentPreview(component) {
+            let componentHTML = '<div style="margin-bottom: 15px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 6px; background: white;">';
+            
+            switch (component.type) {
+                case templateModule.COMPONENT_TYPES.FIXED_TEXT:
+                    componentHTML += `<p>${component.content}</p>`;
+                    break;
+                    
+                case templateModule.COMPONENT_TYPES.NUMBER_SELECT:
+                    componentHTML += `
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">${component.label}:</label>
+                            <input type="number" 
+                                   data-component-id="${component.id}"
+                                   min="${component.min}" 
+                                   max="${component.max}" 
+                                   step="${component.step}" 
+                                   value="${component.defaultValue}" 
+                                   style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 100%;">
+                        </div>
+                    `;
+                    break;
+                    
+                case templateModule.COMPONENT_TYPES.TEXT_DROPDOWN:
+                    componentHTML += `
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">${component.label}:</label>
+                            <select data-component-id="${component.id}" style="padding: 5px; border: 1px solid #ddd; border-radius: 4px; width: 100%;">
+                                ${component.options.map(option => 
+                                    `<option value="${option}" ${option === component.defaultValue ? 'selected' : ''}>${option}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            componentHTML += '</div>';
+            return componentHTML;
+        }
+        
+        // 设计模板按钮点击事件
+        document.getElementById('designTemplateBtn').addEventListener('click', () => {
+            ipcRenderer.send('open-template-designer-window');
+        });
+        
+        // 保存模板按钮点击事件
+        document.getElementById('saveTemplateBtn').addEventListener('click', () => {
+            if (!templateModule) return;
+            
+            // 这里可以添加保存模板的逻辑
+            // 目前先提示
+            alert('保存模板功能正在开发中');
+        });
+        
+        // 获取模板值
+        function getTemplateValues() {
+            const values = {};
+            
+            // 获取所有模板组件的值
+            document.querySelectorAll('[data-component-id]').forEach(input => {
+                const componentId = input.getAttribute('data-component-id');
+                values[componentId] = input.value;
+            });
+            
+            return values;
+        }
 
         // 保存作业
         document.getElementById('saveBtn').addEventListener('click', () => {
             const subject = document.getElementById('subjectSelect').value;
-            const content = document.getElementById('homeworkContent').value.trim();
             const dueDate = document.getElementById('dueDate').value;
+            let content = '';
+            
+            if (currentTemplate) {
+                // 使用模板生成内容
+                const values = getTemplateValues();
+                content = templateModule.renderTemplateToContent(currentTemplate, values);
+            } else {
+                // 使用自定义内容
+                content = document.getElementById('homeworkContent').value.trim();
+            }
 
             if (content) {
                 ipcRenderer.send('save-homework', {

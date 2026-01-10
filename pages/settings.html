@@ -18,214 +18,521 @@
     </div>
 
     <div class="container">
-        <div class="content">
-            <div class="setting-group">
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div class="setting-title">启用时钟</div>
-                        <div class="setting-description">在主窗口显示时钟功能</div>
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <nav class="nav-menu">
+                <div class="nav-item active" data-tab="general">
+                    <div class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
                     </div>
-                    <div class="actions">
-                        <fluent-switch id="clockToggle" label="时钟"></fluent-switch>
+                    <div class="nav-text">通用设置</div>
+                </div>
+                <div class="nav-item" data-tab="launchpad">
+                    <div class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 15l-6-6-6 6"></path>
+                        </svg>
+                    </div>
+                    <div class="nav-text">启动台</div>
+                </div>
+                <div class="nav-item" data-tab="templates">
+                    <div class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="nav-text">模板管理</div>
+                </div>
+                <div class="nav-item" data-tab="about">
+                    <div class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                    </div>
+                    <div class="nav-text">关于</div>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 通用设置标签 -->
+            <div class="tab-content active" id="general">
+                <div class="setting-section">
+                    <h2>功能设置</h2>
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">启用时钟</div>
+                                <div class="setting-description">在主窗口显示时钟功能</div>
+                            </div>
+                            <div class="actions">
+                                <fluent-switch id="clockToggle" label="时钟"></fluent-switch>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">启用作业</div>
+                                <div class="setting-description">在主窗口显示作业功能</div>
+                            </div>
+                            <div class="actions">
+                                <fluent-switch id="homeworkToggle" label="作业"></fluent-switch>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div class="setting-title">启用作业</div>
-                        <div class="setting-description">在主窗口显示作业功能</div>
-                    </div>
-                    <div class="actions">
-                        <fluent-switch id="homeworkToggle" label="作业"></fluent-switch>
-                    </div>
-                </div>
-                
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div class="setting-title">窗口置顶</div>
-                        <div class="setting-description">主窗口始终保持在最前端</div>
-                    </div>
-                    <div class="actions">
-                        <fluent-switch id="alwaysOnTopToggle" label="置顶"></fluent-switch>
-                    </div>
-                </div>
-                
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <div class="setting-title">使用暗色主题</div>
-                        <div class="setting-description">启用深色模式，使用黑色背景</div>
-                    </div>
-                    <div class="actions">
-                        <fluent-switch id="darkThemeToggle" label="暗色主题"></fluent-switch>
+                <div class="setting-section">
+                    <h2>外观设置</h2>
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">窗口置顶</div>
+                                <div class="setting-description">主窗口始终保持在最前端</div>
+                            </div>
+                            <div class="actions">
+                                <fluent-switch id="alwaysOnTopToggle" label="置顶"></fluent-switch>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">使用暗色主题</div>
+                                <div class="setting-description">启用深色模式，使用黑色背景</div>
+                            </div>
+                            <div class="actions">
+                                <fluent-switch id="darkThemeToggle" label="暗色主题"></fluent-switch>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">作业窗口背景模糊</div>
+                                <div class="setting-description">调整作业窗口的背景模糊程度</div>
+                            </div>
+                            <div class="actions">
+                                <fluent-slider 
+                                    id="windowBlurSlider" 
+                                    min="0" 
+                                    max="20" 
+                                    step="1" 
+                                    value="10"
+                                ></fluent-slider>
+                                <span id="windowBlurValue" style="margin-left: 10px; min-width: 30px; text-align: center;">10</span>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">作业窗口显示位置</div>
+                                <div class="setting-description">设置作业窗口在屏幕上的显示位置</div>
+                            </div>
+                            <div class="actions">
+                                <select id="windowPositionSelect" style="padding: 8px; border: 1px solid #edebe9; border-radius: 4px; font-size: 14px;">
+                                    <option value="center">屏幕居中</option>
+                                    <option value="top-left">屏幕左上</option>
+                                    <option value="top-right">屏幕右上</option>
+                                    <option value="bottom-right">屏幕右下</option>
+                                    <option value="bottom-left">屏幕左下</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- 启动台设置部分 -->
-            <div class="launchpad-section">
-                <div class="launchpad-header">
-                    <div class="launchpad-title">启动台</div>
-                </div>
-                <p style="color: #605e5c; margin-bottom: 16px;">管理快捷启动的应用程序和链接</p>
-                
-                <div class="launchpad-list" id="launchpadList">
-                    <!-- 启动项将在这里显示 -->
-                </div>
-                
-                <div class="add-form">
-                    <div class="form-row">
-                        <input type="text" class="add-input" id="appNameInput" placeholder="名称">
-                        <select class="type-selector" id="appTypeInput">
-                            <option value="app">应用程序</option>
-                            <option value="link">链接</option>
-                        </select>
+            <!-- 启动台标签 -->
+            <div class="tab-content" id="launchpad">
+                <div class="setting-section">
+                    <h2>启动台设置</h2>
+                    <p style="color: #605e5c; margin-bottom: 16px;">管理快捷启动的应用程序和链接</p>
+                    
+                    <div class="launchpad-list" id="launchpadList">
+                        <!-- 启动项将在这里显示 -->
                     </div>
-                    <input type="text" class="add-input" id="appPathInput" placeholder="应用程序路径或链接地址">
-                    <input type="text" class="add-input" id="appIconInput" placeholder="图标路径（可选）">
-                    <fluent-button id="addAppBtn" appearance="accent" class="add-btn">添加</fluent-button>
+                    
+                    <div class="add-form">
+                        <div class="form-row">
+                            <input type="text" class="add-input" id="appNameInput" placeholder="名称">
+                            <select class="type-selector" id="appTypeInput">
+                                <option value="app">应用程序</option>
+                                <option value="link">链接</option>
+                            </select>
+                        </div>
+                        <input type="text" class="add-input" id="appPathInput" placeholder="应用程序路径或链接地址">
+                        <input type="text" class="add-input" id="appIconInput" placeholder="图标路径（可选）">
+                        <fluent-button id="addAppBtn" appearance="accent" class="add-btn">添加</fluent-button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 模板管理标签 -->
+            <div class="tab-content" id="templates">
+                <div class="setting-section">
+                    <h2>模板管理</h2>
+                    <p style="color: #605e5c; margin-bottom: 16px;">管理作业模板，创建、编辑和删除模板</p>
+                    
+                    <div class="template-list" id="templateList">
+                        <!-- 模板列表将在这里显示 -->
+                    </div>
+                    
+                    <div class="template-actions">
+                        <fluent-button id="createTemplateBtn" appearance="accent">创建模板</fluent-button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 关于标签 -->
+            <div class="tab-content" id="about">
+                <div class="about-section">
+                    <div class="header-section">
+                        <div class="promo-text">⚡</div>
+                        <div class="slogan">快如闪电</div>
+                        <div class="app-name">ClassWindow Plus</div>
+                    </div>
+                    
+                    <fluent-card class="info-card">
+                        <div class="about-content">
+                            <div class="about-text">开发者：R3N</div>
+                            <div class="about-text">版本: <fluent-badge>1.1.1</fluent-badge></div>
+                        </div>
+                    </fluent-card>
+                    
+                    <div class="footer">
+                        <div class="adapt-info">基于classwindow改编</div>
+                        <div class="original-info">
+                            原作者 GitHub：
+                            <fluent-anchor href="https://github.com/xinghai-smartedu/classwindow" target="_blank">
+                                https://github.com/xinghai-smartedu/classwindow
+                            </fluent-anchor>
+                        </div>
+                        <div class="copyright">© 2026 ClassWindow Plus. 保留所有权利.</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const { ipcRenderer } = require('electron');
+    const { ipcRenderer, shell } = require('electron');
+    
+    // 动态加载模板模块
+    let templateModule;
+    try {
+        templateModule = require('../template.js');
+    } catch (e) {
+        console.error('加载模板模块失败:', e);
+    }
+    
+    // 页面加载完成后获取当前设置状态
+    window.addEventListener('DOMContentLoaded', () => {
+        // 请求获取当前设置
+        ipcRenderer.send('get-settings');
         
-        // 页面加载完成后获取当前设置状态
-        window.addEventListener('DOMContentLoaded', () => {
-            // 请求获取当前设置
-            ipcRenderer.send('get-settings');
-        });
+        // 初始化标签页切换
+        initTabSwitching();
         
-        // 监听设置状态更新
-        ipcRenderer.on('settings-updated', (event, settings) => {
-            document.querySelector('#clockToggle').checked = settings.clockEnabled;
-            document.querySelector('#homeworkToggle').checked = settings.homeworkEnabled;
-            document.querySelector('#alwaysOnTopToggle').checked = settings.alwaysOnTop; // 添加置顶状态
-            document.querySelector('#darkThemeToggle').checked = settings.darkThemeEnabled || false; // 添加暗色主题状态
-            
-            // 渲染启动台应用列表
-            renderLaunchpadList(settings.launchpadApps || []);
-        });
+        // 初始化模板管理
+        initTemplateManagement();
         
-        // 监听时钟开关变化
-        document.querySelector('#clockToggle').addEventListener('change', function() {
-            ipcRenderer.send('toggle-clock', this.checked);
-        });
+        // 加载模板列表
+        loadTemplateList();
         
-        // 监听作业开关变化
-        document.querySelector('#homeworkToggle').addEventListener('change', function() {
-            ipcRenderer.send('toggle-homework', this.checked);
-        });
+        // 处理外部链接
+        initExternalLinks();
+    });
+    
+    // 初始化标签页切换
+    function initTabSwitching() {
+        const navItems = document.querySelectorAll('.nav-item');
+        const tabContents = document.querySelectorAll('.tab-content');
         
-        // 监听置顶开关变化
-        document.querySelector('#alwaysOnTopToggle').addEventListener('change', function() {
-            ipcRenderer.send('toggle-always-on-top', this.checked);
-        });
-        
-        // 监听暗色主题开关变化
-        document.querySelector('#darkThemeToggle').addEventListener('change', function() {
-            ipcRenderer.send('toggle-dark-theme', this.checked);
-        });
-        
-        // 添加启动台应用
-        document.querySelector('#addAppBtn').addEventListener('click', function() {
-            const nameInput = document.getElementById('appNameInput');
-            const pathInput = document.getElementById('appPathInput');
-            const typeInput = document.getElementById('appTypeInput');
-            const iconInput = document.getElementById('appIconInput'); // 新增图标输入
-            
-            const name = nameInput.value.trim();
-            const path = pathInput.value.trim();
-            const type = typeInput.value;
-            const icon = iconInput.value.trim(); // 获取图标路径
-            
-            if (!name || !path) {
-                alert('请输入名称和路径/链接');
-                return;
-            }
-            
-            // 如果是链接类型，验证URL格式
-            if (type === 'link' && !isValidUrl(path)) {
-                alert('请输入有效的链接地址（以http://或https://开头）');
-                return;
-            }
-            
-            // 发送包含图标信息的应用数据
-            ipcRenderer.send('add-launchpad-app', { 
-                name, 
-                path, 
-                type,
-                icon: icon || null // 如果没有提供图标，则为null
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // 移除所有active类
+                navItems.forEach(nav => nav.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // 添加active类到当前点击的标签
+                const tabId = item.dataset.tab;
+                item.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                
+                // 如果切换到模板标签，重新加载模板列表
+                if (tabId === 'templates') {
+                    loadTemplateList();
+                }
             });
-            
-            // 清空输入框
-            nameInput.value = '';
-            pathInput.value = '';
-            iconInput.value = ''; // 清空图标输入框
         });
+    }
+    
+    // 初始化模板管理
+    function initTemplateManagement() {
+        // 创建模板按钮点击事件
+        const createTemplateBtn = document.getElementById('createTemplateBtn');
+        if (createTemplateBtn) {
+            createTemplateBtn.addEventListener('click', () => {
+                ipcRenderer.send('open-template-designer-window');
+            });
+        }
+    }
+    
+    // 加载模板列表
+    function loadTemplateList() {
+        if (!templateModule) return;
         
-        // 验证URL格式
-        function isValidUrl(string) {
-            try {
-                const url = new URL(string);
-                return url.protocol === 'http:' || url.protocol === 'https:';
-            } catch (_) {
-                return false;
+        const templateList = document.getElementById('templateList');
+        const templates = templateModule.getAllTemplates();
+        
+        if (templates.length === 0) {
+            templateList.innerHTML = '<p style="text-align: center; color: #605e5c; padding: 20px;">暂无模板</p>';
+            return;
+        }
+        
+        templateList.innerHTML = '';
+        
+        templates.forEach(template => {
+            const templateItem = document.createElement('div');
+            templateItem.className = 'template-item';
+            
+            templateItem.innerHTML = `
+                <div class="template-info">
+                    <div class="template-name">${template.name}</div>
+                    <div class="template-desc">${template.description}</div>
+                </div>
+                <div class="template-item-actions">
+                    <button class="edit-btn" onclick="editTemplate('${template.id}')">编辑</button>
+                    <button class="remove-btn" onclick="deleteTemplate('${template.id}')">删除</button>
+                </div>
+            `;
+            
+            templateList.appendChild(templateItem);
+        });
+    }
+    
+    // 编辑模板
+    window.editTemplate = function(templateId) {
+        if (!templateModule) return;
+        
+        // 发送打开模板设计器的事件，并传递模板ID
+        ipcRenderer.send('open-template-designer-window', { templateId });
+    }
+    
+    // 删除模板
+    window.deleteTemplate = function(templateId) {
+        if (!templateModule) return;
+        
+        if (confirm('确定要删除这个模板吗？')) {
+            const success = templateModule.deleteTemplate(templateId);
+            if (success) {
+                loadTemplateList();
+            } else {
+                alert('删除模板失败');
             }
         }
+    }
+    
+    // 初始化外部链接处理
+    function initExternalLinks() {
+        // 处理所有外部链接点击，确保在外部浏览器打开
+        document.addEventListener('click', (event) => {
+            const anchor = event.target.closest('fluent-anchor');
+            if (anchor && anchor.href) {
+                event.preventDefault();
+                shell.openExternal(anchor.href);
+            }
+        });
+    }
+    
+    // 监听设置状态更新
+    ipcRenderer.on('settings-updated', (event, settings) => {
+        document.querySelector('#clockToggle').checked = settings.clockEnabled;
+        document.querySelector('#homeworkToggle').checked = settings.homeworkEnabled;
+        document.querySelector('#alwaysOnTopToggle').checked = settings.alwaysOnTop; // 添加置顶状态
+        document.querySelector('#darkThemeToggle').checked = settings.darkThemeEnabled || false; // 添加暗色主题状态
         
-        
-        // 删除启动台应用
-        function removeLaunchpadApp(index) {
-            ipcRenderer.send('remove-launchpad-app', index);
+        // 设置窗口背景模糊度
+        const windowBlurSlider = document.querySelector('#windowBlurSlider');
+        const windowBlurValue = document.querySelector('#windowBlurValue');
+        if (windowBlurSlider && windowBlurValue) {
+            windowBlurSlider.value = settings.windowBlur || 10;
+            windowBlurValue.textContent = settings.windowBlur || 10;
         }
+        
+        // 设置窗口位置
+        const windowPositionSelect = document.querySelector('#windowPositionSelect');
+        if (windowPositionSelect) {
+            windowPositionSelect.value = settings.windowPosition || 'center';
+        }
+        
+        // 应用暗色主题
+        applyDarkTheme(settings.darkThemeEnabled || false);
         
         // 渲染启动台应用列表
-        function renderLaunchpadList(apps) {
-            const listContainer = document.getElementById('launchpadList');
-            listContainer.innerHTML = '';
-            
-            if (apps.length === 0) {
-                listContainer.innerHTML = '<p style="text-align: center; color: #605e5c; padding: 10px;">暂无启动项</p>';
-                return;
-            }
-            
-            apps.forEach((app, index) => {
-                const item = document.createElement('div');
-                item.className = 'launchpad-item';
-                
-                const typeLabel = app.type === 'link' ? '链接' : '应用';
-                const typeClass = app.type === 'link' ? 'link' : 'app';
-                
-                item.innerHTML = `
-                    <div class="launchpad-item-info">
-                        <div class="launchpad-item-name">
-                            ${app.name}
-                            <span class="launchpad-item-type" data-type="${typeClass}">${typeLabel}</span>
-                        </div>
-                        <div class="launchpad-item-path">${app.path}</div>
-                    </div>
-                    <div class="launchpad-item-actions">
-                        <button class="remove-btn" onclick="removeLaunchpadApp(${index})">删除</button>
-                    </div>
-                `;
-                listContainer.appendChild(item);
-            });
+        renderLaunchpadList(settings.launchpadApps || []);
+    });
+    
+    // 应用暗色主题
+    function applyDarkTheme(enabled) {
+        if (enabled) {
+            document.body.classList.add('dark-theme');
+        } else {
+            document.body.classList.remove('dark-theme');
+        }
+    }
+    
+    // 监听时钟开关变化
+    document.querySelector('#clockToggle').addEventListener('change', function() {
+        ipcRenderer.send('toggle-clock', this.checked);
+    });
+    
+    // 监听作业开关变化
+    document.querySelector('#homeworkToggle').addEventListener('change', function() {
+        ipcRenderer.send('toggle-homework', this.checked);
+    });
+    
+    // 监听置顶开关变化
+    document.querySelector('#alwaysOnTopToggle').addEventListener('change', function() {
+        ipcRenderer.send('toggle-always-on-top', this.checked);
+    });
+    
+    // 监听暗色主题开关变化
+    document.querySelector('#darkThemeToggle').addEventListener('change', function() {
+        ipcRenderer.send('toggle-dark-theme', this.checked);
+        // 立即应用主题变化
+        applyDarkTheme(this.checked);
+    });
+    
+    // 监听窗口背景模糊滑块变化
+    const windowBlurSlider = document.querySelector('#windowBlurSlider');
+    const windowBlurValue = document.querySelector('#windowBlurValue');
+    if (windowBlurSlider && windowBlurValue) {
+        // 实时更新显示的数值
+        windowBlurSlider.addEventListener('input', function() {
+            windowBlurValue.textContent = this.value;
+        });
+        
+        // 保存设置
+        windowBlurSlider.addEventListener('change', function() {
+            ipcRenderer.send('set-window-blur', parseInt(this.value));
+        });
+    }
+    
+    // 监听窗口位置选择变化
+    const windowPositionSelect = document.querySelector('#windowPositionSelect');
+    if (windowPositionSelect) {
+        windowPositionSelect.addEventListener('change', function() {
+            ipcRenderer.send('set-window-position', this.value);
+        });
+    }
+    
+    // 添加启动台应用
+    document.querySelector('#addAppBtn').addEventListener('click', function() {
+        const nameInput = document.getElementById('appNameInput');
+        const pathInput = document.getElementById('appPathInput');
+        const typeInput = document.getElementById('appTypeInput');
+        const iconInput = document.getElementById('appIconInput'); // 新增图标输入
+        
+        const name = nameInput.value.trim();
+        const path = pathInput.value.trim();
+        const type = typeInput.value;
+        const icon = iconInput.value.trim(); // 获取图标路径
+        
+        if (!name || !path) {
+            alert('请输入名称和路径/链接');
+            return;
         }
         
-        // 监听启动台应用更新
-        ipcRenderer.on('launchpad-apps-updated', (event, apps) => {
-            renderLaunchpadList(apps);
+        // 如果是链接类型，验证URL格式
+        if (type === 'link' && !isValidUrl(path)) {
+            alert('请输入有效的链接地址（以http://或https://开头）');
+            return;
+        }
+        
+        // 发送包含图标信息的应用数据
+        ipcRenderer.send('add-launchpad-app', { 
+            name, 
+            path, 
+            type,
+            icon: icon || null // 如果没有提供图标，则为null
         });
         
-        // 监听关闭按钮
-        document.querySelector('#titleCloseBtn').addEventListener('click', () => {
-            window.close();
-        });
+        // 清空输入框
+        nameInput.value = '';
+        pathInput.value = '';
+        iconInput.value = ''; // 清空图标输入框
+    });
+    
+    // 验证URL格式
+    function isValidUrl(string) {
+        try {
+            const url = new URL(string);
+            return url.protocol === 'http:' || url.protocol === 'https:';
+        } catch (_) {
+            return false;
+        }
+    }
+    
+    
+    // 删除启动台应用
+    function removeLaunchpadApp(index) {
+        ipcRenderer.send('remove-launchpad-app', index);
+    }
+    
+    // 渲染启动台应用列表
+    function renderLaunchpadList(apps) {
+        const listContainer = document.getElementById('launchpadList');
+        listContainer.innerHTML = '';
         
-        // 使 removeLaunchpadApp 函数全局可用
-        window.removeLaunchpadApp = removeLaunchpadApp;
+        if (apps.length === 0) {
+            listContainer.innerHTML = '<p style="text-align: center; color: #605e5c; padding: 10px;">暂无启动项</p>';
+            return;
+        }
+        
+        apps.forEach((app, index) => {
+            const item = document.createElement('div');
+            item.className = 'launchpad-item';
+            
+            const typeLabel = app.type === 'link' ? '链接' : '应用';
+            const typeClass = app.type === 'link' ? 'link' : 'app';
+            
+            item.innerHTML = `
+                <div class="launchpad-item-info">
+                    <div class="launchpad-item-name">
+                        ${app.name}
+                        <span class="launchpad-item-type" data-type="${typeClass}">${typeLabel}</span>
+                    </div>
+                    <div class="launchpad-item-path">${app.path}</div>
+                </div>
+                <div class="launchpad-item-actions">
+                    <button class="remove-btn" onclick="removeLaunchpadApp(${index})">删除</button>
+                </div>
+            `;
+            listContainer.appendChild(item);
+        });
+    }
+    
+    // 监听启动台应用更新
+    ipcRenderer.on('launchpad-apps-updated', (event, apps) => {
+        renderLaunchpadList(apps);
+    });
+    
+    // 监听关闭按钮
+    document.querySelector('#titleCloseBtn').addEventListener('click', () => {
+        window.close();
+    });
+    
+    // 使 removeLaunchpadApp 函数全局可用
+    window.removeLaunchpadApp = removeLaunchpadApp;
     </script>
 </body>
 </html>

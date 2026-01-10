@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>添加作业</title>
+    <link rel="stylesheet" href="../assets/css/homework-form.css"></link>
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
+    <style>
+        /* 新的作业表单样式 */
+        .form-container {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 32px);
+            padding: 20px;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* 模板库区域 */
+        .template-library {
+            width: 250px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            flex-shrink: 0; /* 防止模板库被压缩 */
+        }
+        
+        .template-library h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .template-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: move;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        
+        .template-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .template-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+        
+        .template-item .template-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .template-item .template-desc {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .template-item .template-type {
+            font-size: 11px;
+            color: #999;
+            text-align: right;
+        }
+        
+        /* 作业编辑区域 */
+        .homework-editor {
+            flex: 1;
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-width: 0; /* 确保flex子项能正确收缩 */
+            box-sizing: border-box;
+        }
+        
+        .homework-editor.drag-over {
+            border-color: #3498db;
+            background-color: #f0f8ff;
+        }
+        
+        /* 作业头部信息 */
+        .homework-header {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .header-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .header-row > div {
+            flex: 1;
+            min-width: 150px;
+            box-sizing: border-box;
+        }
+        
+        /* 确保科目和日期输入框能正确显示 */
+        .header-row select,
+        .header-row input[type="date"] {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* 作业列表区域 */
+        .homework-list {
+            flex: 1;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            align-items: center;
+            padding: 20px 0;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        /* 单个作业条目 - 积木式布局 */
+        .template-component {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: -10px;
+            position: relative;
+            transition: all 0.2s;
+            min-width: 300px;
+            max-width: 100%;
+            width: 90%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            /* 积木连接效果 - 顶部凹槽 */
+            background-image: radial-gradient(circle at 50% 0%, transparent 12px, white 12px, white 100%);
+            background-size: 100% calc(100% + 10px);
+            background-position: 0 -10px;
+            background-repeat: no-repeat;
+            z-index: 1;
+            box-sizing: border-box;
+        }
+        
+        /* 第一个组件没有顶部凹槽 */
+        .homework-list > .template-component:first-child {
+            background-image: none;
+            margin-top: 0;
+            z-index: 2;
+        }
+        
+        /* 最后一个组件没有底部连接 */
+        .homework-list > .template-component:last-child {
+            margin-bottom: 0;
+            z-index: 0;
+        }
+        
+        /* 模板预览内部组件自适应 */
+        .template-preview {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .preview-component {
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
+        /* 下拉选择框自适应 */
+        .text-dropdown-container select {
+            max-width: 150px;
+            box-sizing: border-box;
+        }
+        
+        /* 数字选择组件自适应 */
+        .number-input-wrapper {
+            max-width: 200px;
+            box-sizing: border-box;
+        }
+        
+        /* 单个作业条目 */
+        .homework-entry {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .homework-entry:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .homework-entry.selected {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+        }
+        
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .entry-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .entry-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        
+        .action-btn:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .action-btn.delete-btn:hover {
+            color: #e74c3c;
+        }
+        
+        /* 作业内容区域 */
+        .entry-content {
+            margin-bottom: 15px;
+        }
+        
+        .template-preview {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .preview-component {
+            padding: 6px 10px;
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            max-width: calc(100% - 20px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0;
+        }
+        
+        /* 数字选择组件 */
+        .number-select-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .number-select-container label {
+            margin-bottom: 0 !important;
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .number-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .number-input-wrapper input[type="number"] {
+            width: 45px !important;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 4px 6px;
+            font-size: 12px;
+        }
+        
+        .number-input-wrapper input[type="range"] {
+            width: 80px;
+            min-width: 80px;
+        }
+        
+        /* 文本下拉组件 */
+        .text-dropdown-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .text-dropdown-container label {
+            margin-bottom: 0 !important;
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .text-dropdown-container select {
+            width: 100px;
+            min-width: 100px;
+            font-size: 12px;
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        
+        /* 固定文本组件 */
+        .fixed-text-component {
+            font-style: italic;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+        
+        .empty-state p {
+            margin-bottom: 20px;
+        }
+        
+        /* 底部操作按钮 - 固定在窗口右下角 */
+        .editor-actions {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.15);
+            z-index: 1000;
+            border: 1px solid #e0e0e0;
+        }
+        
+        /* 调整作业编辑器布局，确保底部按钮不会被挤压 */
+        .homework-editor {
+            flex: 1;
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 作业计数器 */
+        .homework-count {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 标题栏 -->
+    <div class="title-bar">
+        <div class="title">添加作业</div>
+        <div class="title-bar-buttons">
+            <div class="title-bar-button close-button" title="关闭" id="titleCloseBtn"></div>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <!-- 模板库区域 -->
+        <div class="template-library">
+            <h3>作业模板库</h3>
+            
+            <!-- 自定义文本模板 -->
+            <div class="template-item" draggable="true" data-template-id="custom">
+                <div class="template-name">自定义文本</div>
+                <div class="template-desc">直接输入作业内容</div>
+                <div class="template-type">基础</div>
+            </div>
+            
+            <!-- 模板列表将动态加载 -->
+            <div id="templateList">
+                <!-- 模板将通过JS动态添加 -->
+            </div>
+            
+            <!-- 设计模板按钮 -->
+            <button id="designTemplateBtn" title="设计新模板" style="margin-top: auto; padding: 10px 16px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 14px;">设计模板</button>
+        </div>
+        
+        <!-- 作业编辑区域 -->
+        <div class="homework-editor" id="homeworkEditor">
+            <!-- 作业头部信息 -->
+            <div class="homework-header">
+                <h3>作业信息</h3>
+                <div class="header-row">
+                    <div>
+                        <label>科目:</label>
+                        <select id="subjectSelect" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                            <option value="chinese">语文</option>
+                            <option value="math">数学</option>
+                            <option value="english">英语</option>
+                            <option value="physics">物理</option>
+                            <option value="chemistry">化学</option>
+                            <option value="biology">生物</option>
+                            <option value="history">历史</option>
+                            <option value="geography">地理</option>
+                            <option value="politics">道德与法治</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>截止日期:</label>
+                        <input type="date" id="dueDate" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 作业列表 -->
+            <div class="homework-count">
+                <strong>作业数量:</strong> <span id="homeworkCount">0</span>
+            </div>
+            
+            <div class="homework-list" id="homeworkList">
+                <div class="empty-state" id="emptyState">
+                    <p>从左侧拖拽模板到此处添加作业</p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- 窗口右下角固定操作按钮 -->
+    <div class="editor-actions">
+        <button id="cancelBtn" style="padding: 10px 16px; background: #f0f0f0; color: #333; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 14px;">取消</button>
+        <button id="saveBtn" style="padding: 10px 16px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 14px;">保存所有作业</button>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // 动态加载模板模块
+        let templateModule;
+        try {
+            templateModule = require('../template.js');
+        } catch (e) {
+            console.error('加载模板模块失败:', e);
+        }
+
+        // 当前作业列表
+        let homeworkEntries = [];
+        let currentTemplate = null;
+        
+        // DOM元素
+        const templateList = document.getElementById('templateList');
+        const homeworkEditor = document.getElementById('homeworkEditor');
+        const homeworkList = document.getElementById('homeworkList');
+        const homeworkCount = document.getElementById('homeworkCount');
+        const emptyState = document.getElementById('emptyState');
+        
+        // 设置截止日期为当天
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0]; // 格式: YYYY-MM-DD
+            document.getElementById('dueDate').value = today;
+            
+            // 加载模板列表
+            loadTemplates();
+            
+            // 初始化拖拽功能
+            initDragAndDrop();
+            
+            // 请求获取当前设置，特别是暗色主题设置
+            ipcRenderer.send('get-settings');
+        });
+        
+        // 监听设置状态更新
+        ipcRenderer.on('settings-updated', (event, settings) => {
+            // 应用暗色主题
+            if (settings.darkThemeEnabled) {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+        });
+        
+        // 加载模板列表
+        function loadTemplates() {
+            if (!templateModule) return;
+            
+            const templates = templateModule.getAllTemplates();
+            templateList.innerHTML = '';
+            
+            // 添加模板选项
+            templates.forEach(template => {
+                const templateElement = document.createElement('div');
+                templateElement.className = 'template-item';
+                templateElement.draggable = true;
+                templateElement.dataset.templateId = template.id;
+                
+                templateElement.innerHTML = `
+                    <div class="template-name">${template.name}</div>
+                    <div class="template-desc">${template.description}</div>
+                    <div class="template-type">自定义</div>
+                `;
+                
+                templateList.appendChild(templateElement);
+            });
+        }
+        
+        // 初始化拖拽功能
+        function initDragAndDrop() {
+            // 模板拖拽开始
+            document.querySelectorAll('.template-item').forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+            });
+            
+            // 作业编辑区域拖拽事件
+            homeworkEditor.addEventListener('dragover', handleDragOver);
+            homeworkEditor.addEventListener('dragenter', handleDragEnter);
+            homeworkEditor.addEventListener('dragleave', handleDragLeave);
+            homeworkEditor.addEventListener('drop', handleDrop);
+        }
+        
+        // 拖拽开始
+        function handleDragStart(e) {
+            e.dataTransfer.setData('templateId', e.target.dataset.templateId);
+            e.target.classList.add('dragging');
+        }
+        
+        // 拖拽经过
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+        
+        // 拖拽进入
+        function handleDragEnter(e) {
+            e.preventDefault();
+            homeworkEditor.classList.add('drag-over');
+        }
+        
+        // 拖拽离开
+        function handleDragLeave(e) {
+            if (!homeworkEditor.contains(e.relatedTarget)) {
+                homeworkEditor.classList.remove('drag-over');
+            }
+        }
+        
+        // 拖拽放置
+        function handleDrop(e) {
+            e.preventDefault();
+            homeworkEditor.classList.remove('drag-over');
+            
+            const templateId = e.dataTransfer.getData('templateId');
+            if (templateId) {
+                addHomeworkEntry(templateId);
+            }
+            
+            // 移除拖拽状态
+            document.querySelectorAll('.dragging').forEach(item => {
+                item.classList.remove('dragging');
+            });
+        }
+        
+        // 添加作业条目
+        function addHomeworkEntry(templateId) {
+            if (!templateModule) return;
+            
+            const subject = document.getElementById('subjectSelect').value;
+            const dueDate = document.getElementById('dueDate').value;
+            
+            let template = null;
+            let entryType = 'custom';
+            
+            if (templateId !== 'custom') {
+                template = templateModule.getTemplateById(templateId);
+                entryType = 'template';
+            }
+            
+            // 创建作业条目
+            const entry = {
+                id: `entry-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                templateId: templateId,
+                template: template,
+                type: entryType,
+                subject: subject,
+                dueDate: dueDate,
+                values: {},
+                content: ''
+            };
+            
+            // 添加到作业列表
+            homeworkEntries.push(entry);
+            
+            // 渲染作业条目
+            renderHomeworkEntry(entry);
+            
+            // 更新作业数量
+            updateHomeworkCount();
+            
+            // 隐藏空状态
+            emptyState.style.display = 'none';
+        }
+        
+        // 渲染作业条目
+        function renderHomeworkEntry(entry) {
+            const entryElement = document.createElement('div');
+            entryElement.className = 'template-component';
+            entryElement.dataset.entryId = entry.id;
+            
+            let entryHTML = `
+                <div class="component-header">
+                    <div class="component-type">
+                        ${entry.template ? entry.template.name : '自定义作业'}
+                    </div>
+                </div>
+                <!-- 删除按钮移到卡片右上角 -->
+                <button class="action-btn delete-btn" title="删除" onclick="deleteHomeworkEntry('${entry.id}')" style="position: absolute; top: 8px; right: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="entry-content">
+            `;
+            
+            if (entry.template) {
+                // 渲染模板预览
+                entryHTML += renderTemplatePreview(entry);
+            } else {
+                // 渲染自定义文本输入
+                entryHTML += `
+                    <div class="custom-content">
+                        <label>作业内容:</label>
+                        <textarea 
+                            class="custom-textarea" 
+                            data-entry-id="${entry.id}" 
+                            placeholder="输入作业内容..." 
+                            resize="vertical"
+                            style="width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; min-height: 100px; resize: vertical;">
+                        </textarea>
+                    </div>
+                `;
+            }
+            
+            entryHTML += `
+                </div>
+            `;
+            
+            entryElement.innerHTML = entryHTML;
+            homeworkList.appendChild(entryElement);
+            
+            // 添加数字输入框和滑块的双向绑定
+            setupNumberInputBindings(entryElement);
+        }
+        
+        // 设置数字输入框和滑块的双向绑定
+        function setupNumberInputBindings(entryElement) {
+            const numberInputs = entryElement.querySelectorAll('.number-input');
+            
+            numberInputs.forEach(input => {
+                const componentId = input.getAttribute('data-component-id');
+                const slider = entryElement.querySelector(`.number-slider[data-component-id="${componentId}"]`);
+                
+                if (slider) {
+                    // 确保初始值一致
+                    input.value = input.getAttribute('value') || input.value;
+                    slider.value = input.value;
+                    
+                    // 输入框变化时更新滑块
+                    input.addEventListener('input', function() {
+                        slider.value = this.value;
+                    });
+                    
+                    // 滑块变化时更新输入框
+                    slider.addEventListener('input', function() {
+                        input.value = this.value;
+                    });
+                    
+                    // 添加change事件处理，确保所有输入都能被捕获
+                    input.addEventListener('change', function() {
+                        slider.value = this.value;
+                    });
+                    
+                    slider.addEventListener('change', function() {
+                        input.value = this.value;
+                    });
+                }
+            });
+        }
+        
+        // 渲染模板预览
+        function renderTemplatePreview(entry) {
+            if (!entry.template) return '';
+            
+            let previewHTML = '<div class="template-preview">';
+            
+            // 渲染模板组件 - 移除了重复的模板名称显示
+            const sortedComponents = [...entry.template.components].sort((a, b) => a.order - b.order);
+            sortedComponents.forEach(component => {
+                previewHTML += renderComponentPreview(component, entry.id);
+            });
+            
+            previewHTML += '</div>';
+            return previewHTML;
+        }
+        
+        // 渲染组件预览
+        function renderComponentPreview(component, entryId) {
+            let componentHTML = '<div class="preview-component">';
+            
+            switch (component.type) {
+                case templateModule.COMPONENT_TYPES.FIXED_TEXT:
+                    componentHTML += `<div class="fixed-text-component">${component.content}</div>`;
+                    break;
+                    
+                case templateModule.COMPONENT_TYPES.NUMBER_SELECT:
+                    componentHTML += `
+                        <div class="number-select-container">
+                            <label style="font-weight: bold;">${component.label}:</label>
+                            <div class="number-input-wrapper">
+                                <input type="number" 
+                                       data-entry-id="${entryId}" 
+                                       data-component-id="${component.id}"
+                                       min="${component.min}" 
+                                       max="${component.max}" 
+                                       step="${component.step}" 
+                                       value="${component.defaultValue}" 
+                                       class="number-input">
+                                <input type="range" 
+                                       data-entry-id="${entryId}" 
+                                       data-component-id="${component.id}"
+                                       min="${component.min}" 
+                                       max="${component.max}" 
+                                       step="${component.step}" 
+                                       value="${component.defaultValue}" 
+                                       class="number-slider">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case templateModule.COMPONENT_TYPES.TEXT_DROPDOWN:
+                    componentHTML += `
+                        <div class="text-dropdown-container">
+                            <label style="font-weight: bold;">${component.label}:</label>
+                            <select data-entry-id="${entryId}" data-component-id="${component.id}">
+                                ${component.options.map(option => 
+                                    `<option value="${option}" ${option === component.defaultValue ? 'selected' : ''}>${option}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            componentHTML += '</div>';
+            return componentHTML;
+        }
+        
+        // 删除作业条目
+        window.deleteHomeworkEntry = function(entryId) {
+            if (confirm('确定要删除这个作业吗？')) {
+                // 从数组中删除
+                homeworkEntries = homeworkEntries.filter(entry => entry.id !== entryId);
+                
+                // 从DOM中删除
+                const entryElement = document.querySelector(`[data-entry-id="${entryId}"]`);
+                if (entryElement) {
+                    entryElement.remove();
+                }
+                
+                // 更新作业数量
+                updateHomeworkCount();
+                
+                // 检查是否为空
+                if (homeworkEntries.length === 0) {
+                    emptyState.style.display = 'block';
+                }
+            }
+        };
+        
+        // 更新作业数量
+        function updateHomeworkCount() {
+            homeworkCount.textContent = homeworkEntries.length;
+        }
+        
+        // 设计模板按钮点击事件
+        document.getElementById('designTemplateBtn').addEventListener('click', () => {
+            ipcRenderer.send('open-template-designer-window');
+        });
+        
+        // 获取作业数据
+        function getHomeworkData() {
+            const subject = document.getElementById('subjectSelect').value;
+            const dueDate = document.getElementById('dueDate').value;
+            const homeworkData = [];
+            
+            // 遍历所有作业条目
+            homeworkEntries.forEach(entry => {
+                let content = '';
+                
+                if (entry.type === 'template' && entry.template) {
+                    // 使用模板生成内容
+                    const values = {};
+                    
+                    // 获取所有模板组件的值
+                    document.querySelectorAll(`[data-entry-id="${entry.id}"][data-component-id]`).forEach(input => {
+                        const componentId = input.getAttribute('data-component-id');
+                        values[componentId] = input.value;
+                    });
+                    
+                    content = templateModule.renderTemplateToContent(entry.template, values);
+                } else {
+                    // 使用自定义内容
+                    const textarea = document.querySelector(`.custom-textarea[data-entry-id="${entry.id}"]`);
+                    content = textarea ? textarea.value.trim() : '';
+                }
+                
+                if (content) {
+                    homeworkData.push({
+                        subject: subject,
+                        content: content,
+                        dueDate: dueDate || null,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            });
+            
+            return homeworkData;
+        }
+        
+        // 保存所有作业
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const homeworkData = getHomeworkData();
+            
+            if (homeworkData.length === 0) {
+                alert('请添加至少一个作业');
+                return;
+            }
+            
+            // 发送作业数据到主进程
+            homeworkData.forEach(homework => {
+                ipcRenderer.send('save-homework', homework);
+            });
+            
+            alert(`成功保存 ${homeworkData.length} 个作业`);
+            window.close();
+        });
+        
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.close();
+        });
+        
+        // 标题栏按钮事件
+        document.getElementById('titleCloseBtn').addEventListener('click', () => {
+            window.close();
+        });
+        
+        // 关闭窗口时清理引用
+        window.addEventListener('beforeunload', () => {
+            ipcRenderer.send('homework-window-closed');
+        });
+    </script>
+</body>
+</html>

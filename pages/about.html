@@ -18,40 +18,51 @@
     </div>
 
     <div class="container">
-        <img src="../assets/images/banner.png" width="100%">
-        <div class="about-content">
-            <fluent-card class="info-card">
-                <div class="about-content">
-                    <div class="about-text">一个美丽，精巧的桌面悬浮窗。</div>
-                    <div class="about-text">作者: <fluent-anchor href="https://github.com/yeying-xingchen">夜影星辰</fluent-anchor></div>
-                    <div class="about-text">版本: <fluent-badge>1.1.1</fluent-badge></div>
-                    <div class="about-text">相关地址： 
-                        <fluent-anchor href="https://github.com/xinghai-smartedu/classwindow">GitHub 仓库</fluent-anchor>
-                    </div>
-                    
-                    <div class="about-text" style="margin-top: 20px;">
-                        <fluent-button appearance="accent" onclick="openGitHub()">
-                            访问项目页面
-                        </fluent-button>
-                    </div>
-                </div>
-            </fluent-card>
-            
-            <div class="about-text" style="margin-top: 30px; font-size: 12px; opacity: 0.7;">
-                © 2026 星海智教. 保留所有权利.
+        <div class="header-section">
+            <div class="promo-text">⚡</div>
+            <div class="slogan">快如闪电</div>
+            <div class="app-name">ClassWindow Plus</div>
+        </div>
+        
+        <fluent-card class="info-card">
+            <div class="about-content">
+                <div class="about-text">开发者：R3N</div>
+                <div class="about-text">版本: <fluent-badge>1.1.1</fluent-badge></div>
             </div>
+        </fluent-card>
+        
+        <div class="footer">
+            <div class="adapt-info">基于 ClassWindow 改编</div>
+            <div class="original-info">
+                原作者 GitHub：
+                <fluent-anchor href="https://github.com/xinghai-smartedu/classwindow" target="_blank">
+                    https://github.com/xinghai-smartedu/classwindow
+                </fluent-anchor>
+            </div>
+            <div class="copyright">© 2026 ClassWindow Plus. 保留所有权利.</div>
         </div>
     </div>
 </body>
 
 <script>
+    const { shell } = require('electron');
+    
     // 监听关闭按钮
     document.querySelector('#titleCloseBtn').addEventListener('click', () => {
         window.close();
     });
     
+    // 处理所有外部链接点击，确保在外部浏览器打开
+    document.addEventListener('click', (event) => {
+        const anchor = event.target.closest('fluent-anchor');
+        if (anchor && anchor.href) {
+            event.preventDefault();
+            shell.openExternal(anchor.href);
+        }
+    });
+    
     function openGitHub() {
-        window.open('https://github.com/xinghai-smartedu/classwindow', '_blank');
+        shell.openExternal('https://github.com/xinghai-smartedu/classwindow');
     }
-</script>
+    </script>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ClassWindow - 欢迎</title>
+  <title>ClassWindow plus - 欢迎</title>
   <link rel="stylesheet" href="../assets/css/welcome.css"></link>
   <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
 </head>
@@ -12,7 +12,7 @@
   <div class="title-bar">
     <div class="app-name">
       <span class="app-icon"></span>
-      <span>ClassWindow</span>
+      <span>ClassWindow plus</span>
     </div>
   </div>
 
@@ -20,14 +20,16 @@
   <div class="nav-tabs">
     <div class="tab active" data-page="welcome">欢迎</div>
     <div class="tab" data-page="settings">设置</div>
-    <div class="tab" data-page="start">开始使用</div>
+    <div class="tab" data-page="create-template">创建模板</div>
+    <div class="tab" data-page="assign-homework">布置作业</div>
+    <div class="tab" data-page="start">完成</div>
   </div>
 
   <!-- 主体内容 -->
   <div class="main-content">
     <!-- 欢迎页面 -->
     <div id="welcome-page" class="page active">
-      <h1 class="title">欢迎使用 ClassWindow</h1>
+      <h1 class="title">欢迎使用 ClassWindow plus</h1>
       <p class="description">
         您可以在此处进行语言、主题、快捷键等基础配置。设置完成后，您可以随时在"选项"中进行调整。
       </p>
@@ -40,21 +42,75 @@
     <div id="settings-page" class="page">
       <h1 class="title">选项设置</h1>
       <p class="description">
-        个性化配置您的 ClassWindow 体验
+        个性化配置您的 ClassWindow plus 体验
       </p>
       
       <button class="btn btn-primary" id="openSettingsWindow">打开设置窗口</button>
       
       <div class="button-container" style="margin-top: 30px;">
-        <button class="btn btn-primary" onclick="showPage('start')">下一步</button>
+        <button class="btn btn-primary" onclick="showPage('create-template')">下一步</button>
         <button class="btn btn-secondary" onclick="showPage('welcome')">返回</button>
       </div>
     </div>
 
-    <!-- 关于页面 -->
+    <!-- 创建模板页面 -->
+    <div id="create-template-page" class="page">
+      <h1 class="title">创建作业模板</h1>
+      <p class="description">
+        首先，让我们创建您的第一个作业模板。作业模板可以帮助您快速布置作业，提高工作效率。
+      </p>
+      
+      <div class="info-card">
+        <h3>什么是作业模板？</h3>
+        <p>作业模板是作业的预设结构，包含固定文本、可选择的数字范围或文本选项。创建模板后，您可以在布置作业时重复使用。</p>
+      </div>
+      
+      <button class="btn btn-primary" id="createTemplateBtn">创建模板</button>
+      
+      <div class="button-container" style="margin-top: 30px;">
+        <button class="btn btn-primary" onclick="showPage('assign-homework')">下一步</button>
+        <button class="btn btn-secondary" onclick="showPage('settings')">返回</button>
+      </div>
+    </div>
+
+    <!-- 布置作业页面 -->
+    <div id="assign-homework-page" class="page">
+      <h1 class="title">布置作业</h1>
+      <p class="description">
+        现在您可以使用刚刚创建的模板来布置作业了。您可以选择科目、截止日期，并添加多个作业条目。
+      </p>
+      
+      <div class="info-card">
+        <h3>如何布置作业？</h3>
+        <p>1. 选择科目和截止日期</p>
+        <p>2. 从模板库中拖拽模板到作业编辑区域</p>
+        <p>3. 编辑作业内容</p>
+        <p>4. 可以添加多个作业条目</p>
+      </div>
+      
+      <button class="btn btn-primary" id="assignHomeworkBtn">布置作业</button>
+      
+      <div class="button-container" style="margin-top: 30px;">
+        <button class="btn btn-primary" onclick="showPage('start')">下一步</button>
+        <button class="btn btn-secondary" onclick="showPage('create-template')">返回</button>
+      </div>
+    </div>
+
+    <!-- 完成页面 -->
     <div id="start-page" class="page">
       <h1 class="title">开始使用！</h1>
-      您已经完成了初始设置，欢迎使用 ClassWindow！您可以通过系统托盘图标访问更多功能和设置。
+      <p class="description">
+        您已经完成了初始引导，欢迎使用 ClassWindow plus！
+      </p>
+      
+      <div class="info-card">
+        <h3>后续操作建议：</h3>
+        <p>• 通过系统托盘图标访问更多功能</p>
+        <p>• 继续创建更多作业模板</p>
+        <p>• 定期布置和管理作业</p>
+        <p>• 随时在设置中调整偏好</p>
+      </div>
+      
       <div class="button-container" style="margin-top: 30px;">
         <button class="btn btn-primary" id="startBtn">开始使用！</button>
       </div>
@@ -71,23 +127,61 @@
     openSettingsWindow.addEventListener('click', () => {
         ipcRenderer.send('open-settings-window');
     });
+
+    createTemplateBtn.addEventListener('click', () => {
+        ipcRenderer.send('open-template-designer-window');
+    });
+
+    assignHomeworkBtn.addEventListener('click', () => {
+        ipcRenderer.send('open-homework-window');
+    });
+    
+    // 页面顺序数组，用于确定切换方向
+    const pageOrder = ['welcome', 'settings', 'create-template', 'assign-homework', 'start'];
+    let currentPage = 'welcome';
     
     // 页面切换功能
     function showPage(pageName) {
-      // 隐藏所有页面
-      document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-      });
+      // 防止重复点击同一页面
+      if (currentPage === pageName) return;
       
-      // 显示指定页面
-      document.getElementById(`${pageName}-page`).classList.add('active');
+      const currentIndex = pageOrder.indexOf(currentPage);
+      const targetIndex = pageOrder.indexOf(pageName);
+      const direction = targetIndex > currentIndex ? 'right' : 'left';
+      
+      // 获取当前页面和目标页面元素
+      const currentPageElement = document.getElementById(`${currentPage}-page`);
+      const targetPageElement = document.getElementById(`${pageName}-page`);
+      
+      // 设置进入动画方向
+      if (direction === 'left') {
+        targetPageElement.classList.add('slide-in-left');
+      }
+      
+      // 移除当前页面的active类，添加离开动画
+      currentPageElement.classList.remove('active');
+      currentPageElement.classList.add(direction === 'right' ? 'slide-out-left' : 'slide-out-right');
+      
+      // 触发重排，确保动画生效
+      void currentPageElement.offsetWidth;
+      
+      // 添加目标页面的active类，触发进入动画
+      targetPageElement.classList.add('active');
+      
+      // 更新当前页面
+      currentPage = pageName;
       
       // 更新导航标签状态
       document.querySelectorAll('.tab').forEach(tab => {
         tab.classList.remove('active');
       });
-      
       document.querySelector(`[data-page="${pageName}"]`).classList.add('active');
+      
+      // 清理动画类
+      setTimeout(() => {
+        currentPageElement.classList.remove('slide-out-left', 'slide-out-right');
+        targetPageElement.classList.remove('slide-in-left');
+      }, 400);
     }
     
     // 为导航标签添加点击事件
