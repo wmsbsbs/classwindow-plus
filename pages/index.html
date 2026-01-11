@@ -277,9 +277,39 @@
         const addHomeworkBtn = document.getElementById('addHomeworkBtn');
         const homeworkList = document.getElementById('homeworkList');
         const launchpadCard = document.getElementById('launchpadCard');
+        // 从json加载作业数据
+        let homeworkData = [];
 
-        // 从localStorage加载作业数据
-        let homeworkData = JSON.parse(localStorage.getItem('homeworkData')) || [];
+        // 获取作业列表
+        function fetchHomeworkList() {
+            const { ipcRenderer } = require('electron');
+            // 请求作业列表
+            ipcRenderer.send('get-homework-list');
+            
+            // 监听响应
+            ipcRenderer.on('homework-list-response', (event, homeworkList) => {
+                homeworkData = homeworkList;
+                renderHomeworkList();
+            });
+        }
+
+        // 添加获取科目名称的函数
+        function getSubjectName(subjectKey) {
+            const subjectNames = {
+                'chinese': '语文',
+                'math': '数学',
+                'english': '英语',
+                'physics': '物理',
+                'chemistry': '化学',
+                'biology': '生物',
+                'politics': '政治',
+                'history': '历史',
+                'geography': '地理',
+                'technology': '技术'
+            };
+            
+            return subjectNames[subjectKey] || subjectKey; // 如果找不到对应名称，则返回原始键值
+        }
 
         // 显示作业列表
         function renderHomeworkList() {
@@ -327,28 +357,18 @@
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
-                    homeworkData.splice(index, 1);
-                    localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
-                    renderHomeworkList();
+                    if (typeof require !== 'undefined') {
+                        try {
+                            const { ipcRenderer } = require('electron');
+                            ipcRenderer.send('delete-homework', index);
+                        } catch (e) {
+                            console.log('Not in Electron environment');
+                        }
+                    } else {
+                        console.log('Not in Electron environment');
+                    }
                 });
             });
-        }
-
-        // 获取科目名称
-        function getSubjectName(subjectValue) {
-            const subjects = {
-                'chinese': '语文',
-                'math': '数学',
-                'english': '英语',
-                'physics': '物理',
-                'chemistry': '化学',
-                'biology': '生物',
-                'history': '历史',
-                'geography': '地理',
-                'politics': '道法',
-                'other': '其他'
-            };
-            return subjects[subjectValue] || subjectValue;
         }
 
         // 打开新窗口添加作业
@@ -367,6 +387,7 @@
                 console.log('Not in Electron environment');
             }
         });
+
         // 接收来自新窗口的作业数据和开关状态
         if (typeof require !== 'undefined') {
             try {
@@ -376,14 +397,13 @@
 
                 // 监听新作业数据
                 ipcRenderer.on('new-homework', (event, homework) => {
-                    // 添加新作业
-                    homeworkData.push(homework);
+                    // 重新获取最新的作业列表
+                    fetchHomeworkList();
+                });
 
-                    // 保存到localStorage
-                    localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
-
-                    // 重新渲染作业列表
-                    renderHomeworkList();
+                // 监听作业列表刷新
+                ipcRenderer.on('refresh-homework-list', (event) => {
+                    fetchHomeworkList();
                 });
 
                 // 监听时钟开关事件
@@ -424,7 +444,7 @@
 
         // 初始化作业列表
         updateHomeworkVisibility(); // 初始化作业可见性
-        renderHomeworkList();
+        fetchHomeworkList(); // 改为从主进程获取作业列表
 
         // 初始化启动台
         updateLaunchpadVisibility();

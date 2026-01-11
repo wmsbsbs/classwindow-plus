@@ -62,7 +62,6 @@
 
     <script>
         const { ipcRenderer } = require('electron');
-
         // 作业数据
         let homeworkData = [];
         let filteredHomework = [];
@@ -79,11 +78,29 @@
         // 获取所有作业数据
         function getAllHomework() {
             try {
-                const data = localStorage.getItem('homeworkData');
-                return data ? JSON.parse(data) : [];
+                // 请求作业列表
+                ipcRenderer.send('get-homework-list');
+                
+                // 监听响应
+                ipcRenderer.on('homework-list-response', (event, homeworkList) => {
+                    homeworkData = homeworkList;
+                    filterAndSortHomework();
+                });
             } catch (e) {
                 console.error('获取作业数据失败:', e);
                 return [];
+            }
+        }
+
+        // 删除作业
+        function deleteHomework(index) {
+            if (confirm('确定要删除这个作业吗？')) {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    ipcRenderer.send('delete-homework', index);
+                } catch (e) {
+                    console.error('删除作业失败:', e);
+                }
             }
         }
 
@@ -235,15 +252,6 @@
             });
         }
 
-        // 删除作业
-        function deleteHomework(index) {
-            if (confirm('确定要删除这个作业吗？')) {
-                homeworkData.splice(index, 1);
-                localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
-                filterAndSortHomework();
-            }
-        }
-
         // 打开作业详情
         function openHomeworkDetail(homework) {
             ipcRenderer.send('open-homework-detail-window', homework);
@@ -259,10 +267,9 @@
 
         // 初始化
         function init() {
-            homeworkData = getAllHomework();
-            filterAndSortHomework();
-
-            // 事件监听器
+            getAllHomework(); // 改为从主进程获取作业数据
+            
+            // 其他初始化代码保持不变
             searchInput.addEventListener('input', filterAndSortHomework);
             subjectFilter.addEventListener('change', filterAndSortHomework);
             sortOrder.addEventListener('change', filterAndSortHomework);
@@ -277,15 +284,12 @@
 
             // 监听来自主进程的新作业通知
             ipcRenderer.on('new-homework', (event, homework) => {
-                homeworkData.unshift(homework); // 添加到开头
-                localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
-                filterAndSortHomework();
+                getAllHomework(); // 重新获取作业列表
             });
 
             // 监听作业更新通知
             ipcRenderer.on('refresh-homework-list', () => {
-                homeworkData = getAllHomework();
-                filterAndSortHomework();
+                getAllHomework(); // 重新获取作业列表
             });
         }
 

@@ -19,6 +19,15 @@ const {
 	createSettingHandler,
 } = require('./config');
 
+// 作业数据管理
+const {
+	initHomeworkPath,
+	loadHomework,
+	addHomework,
+	deleteHomework,
+	updateHomework
+} = require('./homework');
+
 // 启动台
 const {
 	addLaunchpadApp,
@@ -32,6 +41,9 @@ let resourcesRoot = path.resolve(app.getAppPath());
 
 // 初始化配置路径
 initConfigPath(resourcesRoot);
+
+// 初始化作业数据路径
+initHomeworkPath();
 
 if (app.isPackaged) {
 	iconPath = path.join(resourcesRoot, "assets/logo.png");
@@ -423,9 +435,36 @@ app.whenReady().then(() => {
 
 	// 监听保存作业的请求
 	ipcMain.on('save-homework', (event, homework) => {
+		// 添加新作业到JSON文件
+		const updatedHomeworkList = addHomework(homework);
+		
 		// 将作业数据发送回主窗口
 		if (mainWindow) {
 			mainWindow.webContents.send('new-homework', homework);
+		}
+		
+		// 通知作业列表窗口刷新数据
+		if (homeworkListWindow) {
+			homeworkListWindow.webContents.send('refresh-homework-list');
+		}
+	});
+
+	// 监听获取作业列表的请求
+	ipcMain.on('get-homework-list', (event) => {
+		const homeworkList = loadHomework();
+		event.reply('homework-list-response', homeworkList);
+	});
+
+	// 监听删除作业的请求
+	ipcMain.on('delete-homework', (event, index) => {
+		const updatedHomeworkList = deleteHomework(index);
+		
+		// 通知所有相关窗口更新作业列表
+		if (mainWindow) {
+			mainWindow.webContents.send('refresh-homework-list');
+		}
+		if (homeworkListWindow) {
+			homeworkListWindow.webContents.send('refresh-homework-list');
 		}
 	});
 
