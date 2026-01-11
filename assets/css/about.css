@@ -4,6 +4,11 @@
     padding: 20px;
     height: calc(100vh - 60px);
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 /* 标题栏样式 */
@@ -57,40 +62,95 @@ body {
     background: transparent;
 }
 
+/* 头部区域样式 */
+.header-section {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* 闪电emoji样式 */
+.promo-text {
+    font-size: 80px;
+    margin: 0;
+    line-height: 1;
+    color: #ffcc00;
+    text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+}
+
+/* 口号样式 */
+.slogan {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 10px 0;
+}
+
+/* 应用名称样式 */
+.app-name {
+    font-size: 28px;
+    font-weight: bold;
+    color: #3498db;
+    margin: 10px 0 20px 0;
+}
+
+/* 信息卡片样式 */
+.info-card {
+    margin: 20px 0;
+    padding: 20px 40px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border: none;
+}
+
+/* 关于内容样式 */
 .about-content {
     max-width: 600px;
     margin: 0 auto;
     text-align: center;
 }
 
-h1 {
-    color: var(--text-color);
-    margin-bottom: 20px;
-}
-
+/* 关于文本样式 */
 .about-text {
-    margin: 10px 0;
-    color: var(--text-color-secondary);
-}
-
-.logo-section {
-    margin: 20px 0;
+    margin: 15px 0;
+    color: #666;
+    font-size: 16px;
     text-align: center;
 }
 
-.app-logo {
+/* 页脚样式 */
+.footer {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 14px;
+    color: #999;
+}
+
+/* 改编信息样式 */
+.adapt-info {
     margin-bottom: 10px;
+    font-style: italic;
 }
 
-.info-card {
-    margin: 20px 0;
+/* 原作者信息样式 */
+.original-info {
+    margin-bottom: 15px;
+    font-size: 13px;
 }
 
-.logo-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 20px 0;
-    background-image: url("../image/banner.png");
-    background-size: cover;
+/* GitHub链接样式 */
+.original-info fluent-anchor {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.original-info fluent-anchor:hover {
+    text-decoration: underline;
+}
+
+/* 版权信息样式 */
+.copyright {
+    margin-top: 20px;
+    font-size: 12px;
+    opacity: 0.8;
 }

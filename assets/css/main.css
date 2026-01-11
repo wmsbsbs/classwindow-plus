@@ -77,8 +77,54 @@ h3 {
 
 .homework-list {
     margin-top: 8px;
-    max-height: 300px;
     overflow-y: auto;
+}
+
+/* 科目容器样式 */
+.subject-container {
+    margin-bottom: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.subject-title {
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+    text-align: left;
+}
+
+.subject-homework-list {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px;
+}
+
+.subject-homework-item {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    margin: 6px 0;
+    border-radius: 6px;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.subject-homework-item:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.subject-homework-content {
+    flex: 1;
+    word-wrap: break-word;
+    word-break: break-word;
+    margin-right: 12px;
 }
 
 .homework-item {

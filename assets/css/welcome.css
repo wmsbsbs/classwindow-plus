@@ -89,13 +89,17 @@ body {
 /* 主体内容 */
 .main-content {
     flex: 1; /* 占据剩余空间 */
+    position: relative;
+    padding: 50px 40px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.main-content > .page {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 50px 40px;
-    text-align: center;
-    overflow-y: auto; /* 如果内容过多，允许滚动 */
 }
 
 .emoji {
@@ -163,15 +167,38 @@ body {
 
 /* 页面容器 */
 .page {
-    display: none;
+    position: absolute;
+    top: 80px;
+    left: 0;
     width: 100%;
-    height: 100%;
+    height: calc(100vh - 80px);
     padding: 20px;
     box-sizing: border-box;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.4s ease-in-out;
+    z-index: 1;
 }
 
 .page.active {
-    display: block;
+    transform: translateX(0);
+    opacity: 1;
+    z-index: 2;
+}
+
+/* 页面切换动画方向 */
+.page.slide-in-left {
+    transform: translateX(-100%);
+}
+
+.page.slide-out-left {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+.page.slide-out-right {
+    transform: translateX(100%);
+    opacity: 0;
 }
 
 /* 设置页面 */
@@ -270,4 +297,34 @@ select, input[type="text"] {
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
+}
+
+/* 信息卡片样式 */
+.info-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    text-align: left;
+    max-width: 500px;
+}
+
+.info-card h3 {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.info-card p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+.info-card p:last-child {
+    margin-bottom: 0;
 }
