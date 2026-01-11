@@ -1,5 +1,20 @@
 # ClassWindow plus
+本项目基于classwindow开发
+行业首个模板添加作业
+## 快如闪电从此开始
 
+
+
+
+
+
+
+
+
+
+
+
+以下为classwindow原版介绍
 ## 介绍
 
 课堂窗是一个美丽，精巧的用于班级的桌面悬浮窗，基于Electron构建，用于显示信息等。
