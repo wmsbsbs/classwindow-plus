@@ -25,7 +25,12 @@ const {
 	loadHomework,
 	addHomework,
 	deleteHomework,
-	updateHomework
+	updateHomework,
+	loadTemplates,
+	saveTemplates,
+	addTemplate,
+	deleteTemplate,
+	getAllTemplates
 } = require('./homework');
 
 // 启动台
@@ -641,6 +646,32 @@ app.whenReady().then(() => {
 	// 监听作业窗口关闭事件
 	ipcMain.on('homework-window-closed', () => {
 		homeworkAddWindow = null;
+	});
+
+	// 监听获取模板列表的请求
+	ipcMain.on('get-template-list', (event) => {
+		const templateList = getAllTemplates();
+		event.reply('template-list-response', templateList);
+	});
+
+	// 监听保存模板的请求
+	ipcMain.on('save-template', (event, template) => {
+		const updatedTemplateList = addTemplate(template);
+
+		// 通知作业表单窗口刷新模板列表（如果存在）
+		if (homeworkAddWindow && !homeworkAddWindow.isDestroyed()) {
+			homeworkAddWindow.webContents.send('template-saved');
+		}
+	});
+
+	// 监听删除模板的请求
+	ipcMain.on('delete-template', (event, index) => {
+		const updatedTemplateList = deleteTemplate(index);
+		
+		// 通知作业表单窗口刷新模板列表（如果存在）
+		if (homeworkAddWindow && !homeworkAddWindow.isDestroyed()) {
+			homeworkAddWindow.webContents.send('template-deleted');
+		}
 	});
 
 	// 监听获取设置的请求

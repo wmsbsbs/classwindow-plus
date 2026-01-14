@@ -66,23 +66,104 @@
     <script>
         const { ipcRenderer } = require('electron');
 
+        // DOM 元素
+        const templateSelect = document.getElementById('templateSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+        const homeworkContent = document.getElementById('homeworkContent');
+        const dueDate = document.getElementById('dueDate');
+        const saveBtn = document.getElementById('saveBtn');
+        const saveTemplateBtn = document.getElementById('saveTemplateBtn');
+
         // 设置截止日期为当天
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0]; // 格式: YYYY-MM-DD
-            document.getElementById('dueDate').value = today;
+            dueDate.value = today;
+
+            // 加载模板列表
+            loadTemplateList();
+        });
+
+        // 加载模板列表
+        function loadTemplateList() {
+            ipcRenderer.send('get-template-list');
+            
+            ipcRenderer.once('template-list-response', (event, templateList) => {
+                // 清空现有选项（保留第一个"选择模板..."选项）
+                while (templateSelect.options.length > 1) {
+                    templateSelect.remove(1);
+                }
+
+                // 添加模板选项
+                templateList.forEach((template, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = template.name;
+                    templateSelect.appendChild(option);
+                });
+            });
+        }
+
+        // 模板选择改变事件
+        templateSelect.addEventListener('change', () => {
+            const selectedIndex = templateSelect.value;
+            if (selectedIndex !== '') {
+                ipcRenderer.send('get-template-list');
+                
+                ipcRenderer.once('template-list-response', (event, templateList) => {
+                    const selectedTemplate = templateList[parseInt(selectedIndex)];
+                    if (selectedTemplate) {
+                        // 填充表单字段
+                        subjectSelect.value = selectedTemplate.subject;
+                        homeworkContent.value = selectedTemplate.content;
+                        
+                        // 如果模板中有截止日期，使用模板的日期，否则使用今天
+                        if (selectedTemplate.dueDate) {
+                            dueDate.value = selectedTemplate.dueDate;
+                        } else {
+                            const today = new Date().toISOString().split('T')[0];
+                            dueDate.value = today;
+                        }
+                    }
+                });
+            }
+        });
+
+        // 保存模板按钮点击事件
+        saveTemplateBtn.addEventListener('click', () => {
+            const subject = subjectSelect.value;
+            const content = homeworkContent.value.trim();
+            
+            if (!content) {
+                alert('请先输入作业内容再保存模板');
+                return;
+            }
+
+            // 弹出对话框获取模板名称
+            const templateName = prompt('请输入模板名称:');
+            if (templateName) {
+                const template = {
+                    name: templateName,
+                    subject: subject,
+                    content: content,
+                    dueDate: dueDate.value || null
+                };
+
+                ipcRenderer.send('save-template', template);
+                alert('模板已保存！');
+            }
         });
 
         // 保存作业
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            const subject = document.getElementById('subjectSelect').value;
-            const content = document.getElementById('homeworkContent').value.trim();
-            const dueDate = document.getElementById('dueDate').value;
+        saveBtn.addEventListener('click', () => {
+            const subject = subjectSelect.value;
+            const content = homeworkContent.value.trim();
+            const dueDateValue = dueDate.value;
 
             if (content) {
                 ipcRenderer.send('save-homework', {
                     subject: subject,
                     content: content,
-                    dueDate: dueDate || null,
+                    dueDate: dueDateValue || null,
                     timestamp: new Date().toISOString()
                 });
 
@@ -107,5 +188,4 @@
         });
     </script>
 </body>
-
 </html>
