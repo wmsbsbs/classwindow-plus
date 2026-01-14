@@ -94,12 +94,12 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.event.inputs.release_version }}
-          release_name: ${{ github.event.inputs.release_title }}
+          name: ${{ github.event.inputs.release_title }}
           body: |
             ## Changelog
             
@@ -111,18 +111,4 @@ jobs:
             此版本包含以下文件:
           draft: false
           prerelease: false
-
-      - name: Upload release assets
-        run: |
-          # 上传所有release assets
-          for file in ./release_assets/*; do
-            if [ -f "$file" ]; then
-              asset_name=$(basename "$file")
-              echo "Uploading $asset_name..."
-              
-              # 使用GitHub CLI上传资产
-              gh release upload ${{ github.event.inputs.release_version }} "$file" --repo ${{ github.repository }} || echo "Failed to upload $asset_name"
-            fi
-          done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: ./release_assets/*
