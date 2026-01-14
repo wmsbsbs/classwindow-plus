@@ -38,10 +38,38 @@ jobs:
        if: matrix.os != 'windows-latest'
        run: rm -rf README.md && rm -rf .github && rm -rf .gitignore && rm -rf .gitattributes && rm -rf .vscode && rm -rf readme && rm -rf installer && rm -rf changelog
        shell: bash
-     - name: Generate changelog
+     - name: Generate changelog (Windows)
+       if: matrix.os == 'windows-latest'
        run: |
          # 生成 changelog
-         LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+         # 检查是否有标签
+         $LATEST_TAG = $(git describe --tags $(git rev-list --tags --max-count=1) 2>$null)
+         Write-Output "Latest tag: $LATEST_TAG"
+         
+         # 如果没有标签，则使用所有提交
+         if (-not $LATEST_TAG) {
+           # 为首次发布创建初始标签
+           git config --global user.name 'GitHub Action'
+           git config --global user.email 'action@github.com'
+           git tag v0.0.0
+           $LATEST_TAG = "v0.0.0"
+         }
+         
+         # 使用自定义脚本生成 changelog
+         node .github/generate-conventional-changelog.js
+         
+         # 复制 changelog 到输出目录（如果存在）
+         if (Test-Path "temp_changelog.md") {
+           New-Item -ItemType Directory -Force -Path "./out/"
+           Copy-Item "temp_changelog.md" -Destination "./out/changelog.md"
+         }
+       shell: pwsh
+     - name: Generate changelog (Unix)
+       if: matrix.os != 'windows-latest'
+       run: |
+         # 生成 changelog
+         # 检查是否有标签
+         LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null)
          echo "Latest tag: $LATEST_TAG"
          
          # 如果没有标签，则使用所有提交
@@ -61,6 +89,7 @@ jobs:
            mkdir -p ./out/
            cp temp_changelog.md ./out/changelog.md
          fi
+       shell: bash
          
      - name: Build with electron-forge
        run: "yarn make"
