@@ -20,6 +20,8 @@ jobs:
        run: npm install -g yarn
      - name: Install Dependencies
        run: yarn
+     - name: Install conventional-changelog
+       run: npm install -g conventional-changelog-cli conventional-changelog-angular
      - name: Delete Unnecessary Files on Windows
        if: matrix.os == 'windows-latest'
        run: |
@@ -37,6 +39,30 @@ jobs:
        if: matrix.os != 'windows-latest'
        run: rm -rf README.md && rm -rf .git && rm -rf .github && rm -rf .gitignore && rm -rf .gitattributes && rm -rf .vscode && rm -rf readme && rm -rf installer && rm -rf changelog
        shell: bash
+     - name: Generate changelog
+       run: |
+         # 生成 changelog
+         LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+         echo "Latest tag: $LATEST_TAG"
+         
+         # 如果没有标签，则使用所有提交
+         if [ -z "$LATEST_TAG" ]; then
+           # 为首次发布创建初始标签
+           git config --global user.name 'GitHub Action'
+           git config --global user.email 'action@github.com'
+           git tag v0.0.0
+           LATEST_TAG="v0.0.0"
+         fi
+         
+         # 使用自定义脚本生成 changelog
+         node .github/generate-conventional-changelog.js
+         
+         # 复制 changelog 到输出目录（如果存在）
+         if [ -f temp_changelog.md ]; then
+           mkdir -p ./out/
+           cp temp_changelog.md ./out/changelog.md
+         fi
+         
      - name: Build with electron-forge
        run: "yarn make"
      - name: Upload Build Artifacts (Windows)

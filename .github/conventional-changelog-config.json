@@ -1,0 +1,15 @@
+{
+  "types": [
+    {"type": "feat", "section": "✨ 新功能"},
+    {"type": "feature", "section": "✨ 新功能"},
+    {"type": "fix", "section": "🐛 问题修复"},
+    {"type": "perf", "section": "⚡ 性能优化"},
+    {"type": "docs", "section": "📚 文档"},
+    {"type": "style", "section": "🎨 样式调整"},
+    {"type": "refactor", "section": "🔨 重构"},
+    {"type": "test", "section": "🧪 测试"},
+    {"type": "build", "section": "📦 构建系统"},
+    {"type": "ci", "section": "🔄 CI/CD"},
+    {"type": "chore", "section": "🧹 其他变更"}
+  ]
+}

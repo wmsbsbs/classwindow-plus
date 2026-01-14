@@ -1,0 +1,128 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release Version (e.g., v1.2.0)'
+        required: true
+        default: 'v1.0.0'
+      release_title:
+        description: 'Release Title'
+        required: true
+        default: 'New Release'
+      build_run_id:
+        description: 'Build Run ID to download artifacts from'
+        required: true
+        default: ''
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 获取所有历史记录以便生成changelog
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install conventional-changelog
+        run: |
+          npm install -g conventional-changelog-cli conventional-changelog-angular
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # 生成 changelog
+          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          echo "Latest tag: $LATEST_TAG"
+          
+          # 如果没有标签，则使用所有提交
+          if [ -z "$LATEST_TAG" ]; then
+            # 为首次发布创建初始标签
+            git config --global user.name 'GitHub Action'
+            git config --global user.email 'action@github.com'
+            git tag v0.0.0
+            LATEST_TAG="v0.0.0"
+          fi
+          
+          # 使用自定义脚本生成 changelog
+          node .github/generate-conventional-changelog.js
+          
+          # 检查是否生成了有效的 changelog
+          if [ -f temp_changelog.md ] && [ -s temp_changelog.md ]; then
+            echo "Custom changelog generated successfully"
+          else
+            echo "Custom changelog generation failed, using manual approach"
+            if [ "$LATEST_TAG" = "v0.0.0" ]; then
+              COMMITS=$(git log --pretty=format:"- %h %s (%an)" --reverse HEAD)
+            else
+              COMMITS=$(git log --pretty=format:"- %h %s (%an)" --reverse $LATEST_TAG..HEAD)
+            fi
+            echo "$COMMITS" > temp_changelog.md
+          fi
+          
+          # 读取changelog内容并设置输出
+          CHANGELOG_CONTENT=$(cat temp_changelog.md)
+          echo "changelog_content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.inputs.build_run_id }}
+          merge-multiple: true
+          path: ./downloaded_artifacts
+
+      - name: Display downloaded artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          find ./downloaded_artifacts -type f
+
+      - name: Organize assets for release
+        run: |
+          mkdir -p ./release_assets
+          find ./downloaded_artifacts -name "*.exe" -o -name "*.deb" -o -name "*.rpm" -o -name "*.zip" -o -name "*.dmg" -o -name "*.nupkg" -o -name "*.AppImage" | xargs -I {} cp {} ./release_assets/
+          echo "Release assets prepared:"
+          ls -la ./release_assets/
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.release_version }}
+          release_name: ${{ github.event.inputs.release_title }}
+          body: |
+            ## Changelog
+            
+            ${{ steps.changelog.outputs.changelog_content }}
+            
+            ## Assets
+            本次发布使用的构建产物来自构建运行 #${{ github.event.inputs.build_run_id }}:
+            
+            此版本包含以下文件:
+          draft: false
+          prerelease: false
+
+      - name: Upload release assets
+        run: |
+          # 上传所有release assets
+          for file in ./release_assets/*; do
+            if [ -f "$file" ]; then
+              asset_name=$(basename "$file")
+              echo "Uploading $asset_name..."
+              
+              # 使用GitHub CLI上传资产
+              gh release upload ${{ github.event.inputs.release_version }} "$file" --repo ${{ github.repository }} || echo "Failed to upload $asset_name"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
