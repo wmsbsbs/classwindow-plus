@@ -1,310 +1,295 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
-    <title>全部作业</title>
+    <title>作业</title>
     <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
-    <link rel="stylesheet" href="../assets/css/homework-list.css">
-    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
 </head>
 
 <body>
-    <!-- 标题栏 -->
-    <div class="title-bar">
-        <div class="title">全部作业</div>
-        <div class="title-bar-buttons">
-            <div class="title-bar-button close-button" title="关闭" id="titleCloseBtn"></div>
-        </div>
+    <!-- 加载动画 -->
+    <div id="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>加载中...</p>
     </div>
 
-    <div class="container">
-        <div class="header">
-            <h2>作业列表</h2>
-            <fluent-button appearance="accent" id="addHomeworkBtn">添加作业</fluent-button>
-        </div>
-        
-        <div class="search-bar">
-            <fluent-text-field id="searchInput" placeholder="搜索作业..." type="text"></fluent-text-field>
-        </div>
-        
-        <div class="filter-controls">
-            <fluent-select id="subjectFilter">
-                <option value="">全部科目</option>
-                <option value="chinese">语文</option>
-                <option value="math">数学</option>
-                <option value="english">英语</option>
-                <option value="physics">物理</option>
-                <option value="chemistry">化学</option>
-                <option value="biology">生物</option>
-                <option value="history">历史</option>
-                <option value="geography">地理</option>
-                <option value="politics">道德与法治</option>
-                <option value="other">其他</option>
-            </fluent-select>
-            
-            <fluent-select id="sortOrder">
-                <option value="newest">按最新添加</option>
-                <option value="oldest">按最早添加</option>
-                <option value="dueDateAsc">按截止日期（升序）</option>
-                <option value="dueDateDesc">按截止日期（降序）</option>
-            </fluent-select>
-        </div>
-        
-        <div class="homework-list-container" id="homeworkListContainer">
-            <!-- 作业列表将在这里显示 -->
-        </div>
-        
-        <div class="empty-state" id="emptyState" style="display: none;">
-            <p>暂无作业</p>
-            <fluent-button appearance="accent" id="emptyAddBtn">添加第一个作业</fluent-button>
+    <div class="content">
+        <!-- 作业卡片 -->
+        <div class="card homework-card" id="homeworkCard">
+            <h3>作业</h3>
+            <div class="homework-list" id="homeworkList">
+                <!-- 作业将在这里显示 -->
+            </div>
+            <div class="homework-btn-container">
+                <fluent-button appearance="accent" id="addHomeworkBtn">添加作业</fluent-button>
+                <fluent-button appearance="primary" id="viewAllHomeworkBtn">查看全部</fluent-button>
+            </div>
         </div>
     </div>
+</body>
+<script>
+    // 导入 IPC 通信
+    const { ipcRenderer } = require('electron');
 
-    <script>
-        const { ipcRenderer } = require('electron');
-        // 作业数据
-        let homeworkData = [];
-        let filteredHomework = [];
+    // 防止click事件在空白区域时被拦截
+    const homeworkCard = document.getElementById('homeworkCard');
+    if (homeworkCard) {
+        homeworkCard.addEventListener('mouseenter', () => 
+            ipcRenderer.send('set-ignore-mouse-events', { ignore: false })
+        );
+        
+        homeworkCard.addEventListener('mouseleave', () => 
+            ipcRenderer.send('set-ignore-mouse-events', { 
+                ignore: true,
+                forward: true
+            })
+        );
+    }
 
-        // DOM 元素
-        const homeworkListContainer = document.getElementById('homeworkListContainer');
-        const emptyState = document.getElementById('emptyState');
-        const searchInput = document.getElementById('searchInput');
-        const subjectFilter = document.getElementById('subjectFilter');
-        const sortOrder = document.getElementById('sortOrder');
-        const addHomeworkBtn = document.getElementById('addHomeworkBtn');
-        const emptyAddBtn = document.getElementById('emptyAddBtn');
+    // 添加作业显示状态变量
+    let isHomeworkVisible = true;
+    // 添加暗色主题状态变量
+    let isDarkThemeEnabled = false;
+    // 在 DOMContentLoaded 事件中添加
+    const viewAllHomeworkBtn = document.getElementById('viewAllHomeworkBtn');
 
-        // 获取所有作业数据
-        function getAllHomework() {
+    // 打开全部作业窗口
+    viewAllHomeworkBtn.addEventListener('click', () => {
+        // 检查是否在 Electron 环境中
+        if (typeof require !== 'undefined') {
             try {
-                // 请求作业列表
-                ipcRenderer.send('get-homework-list');
-                
-                // 监听响应
-                ipcRenderer.on('homework-list-response', (event, homeworkList) => {
-                    homeworkData = homeworkList;
-                    filterAndSortHomework();
-                });
+                ipcRenderer.send('open-homework-list-window');
             } catch (e) {
-                console.error('获取作业数据失败:', e);
-                return [];
+                console.log('Not in Electron environment');
+            }
+        } else {
+            console.log('Not in Electron environment');
+        }
+    });
+
+    // 控制作业显示的函数
+    function updateHomeworkVisibility() {
+        if (!isHomeworkVisible) {
+            // 如果作业被禁用，隐藏作业相关元素
+            document.getElementById('homeworkCard').style.display = 'none';
+        } else {
+            // 如果作业启用，确保元素可见
+            document.getElementById('homeworkCard').style.display = 'block';
+            document.getElementById('addHomeworkBtn').style.display = 'inline-block';
+            document.getElementById('homeworkList').style.display = 'block';
+            const homeworkHeaders = document.querySelectorAll('h3');
+            if (homeworkHeaders[0]) {
+                homeworkHeaders[0].style.display = 'block';
             }
         }
+    }
 
-        // 删除作业
-        function deleteHomework(index) {
-            if (confirm('确定要删除这个作业吗？')) {
-                try {
-                    const { ipcRenderer } = require('electron');
-                    ipcRenderer.send('delete-homework', index);
-                } catch (e) {
-                    console.error('删除作业失败:', e);
-                }
+    // 添加切换主题的函数
+    function toggleTheme(enabled) {
+        isDarkThemeEnabled = enabled;
+        
+        if (enabled) {
+            // 使用暗色主题CSS
+            const darkThemeLink = document.createElement('link');
+            darkThemeLink.rel = 'stylesheet';
+            darkThemeLink.href = '../assets/css/main-dark.css';
+            darkThemeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
+            
+            // 移除现有的主题链接
+            const existingTheme = document.querySelector('link[href*="main.css"]');
+            if (existingTheme && !existingTheme.href.includes('main-dark.css')) {
+                existingTheme.remove();
             }
+            
+            // 添加暗色主题链接
+            document.head.appendChild(darkThemeLink);
+        } else {
+            // 使用默认主题CSS
+            const lightThemeLink = document.createElement('link');
+            lightThemeLink.rel = 'stylesheet';
+            lightThemeLink.href = '../assets/css/main.css';
+            lightThemeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
+            
+            // 移除现有的主题链接
+            const existingTheme = document.querySelector('link[href*="main-dark.css"]');
+            if (existingTheme) {
+                existingTheme.remove();
+            }
+            
+            // 添加浅色主题链接
+            document.head.appendChild(lightThemeLink);
         }
+    }
 
-        // 渲染作业列表
-        function renderHomeworkList(homeworkList) {
-            if (homeworkList.length === 0) {
-                homeworkListContainer.innerHTML = '';
-                emptyState.style.display = 'flex';
-                return;
-            }
+    // DOM加载完成后的初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        // 隐藏加载动画并显示内容
+        const loadingOverlay = document.getElementById('loading');
+        const content = document.querySelector('.content');
 
-            emptyState.style.display = 'none';
-            homeworkListContainer.innerHTML = '';
+        // 稍微延迟隐藏加载动画，让用户看到加载过程
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+            content.classList.add('loaded');
+        }, 500);
 
-            homeworkList.forEach((item, index) => {
-                const homeworkItem = document.createElement('div');
-                homeworkItem.className = 'homework-item';
+        // 获取DOM元素
+        const addHomeworkBtn = document.getElementById('addHomeworkBtn');
+        const homeworkList = document.getElementById('homeworkList');
+        // 从json加载作业数据
+        let homeworkData = [];
 
-                // 格式化截止日期
-                let dueDateStr = '无截止日期';
-                let isOverdue = false;
-                if (item.dueDate) {
-                    const dueDate = new Date(item.dueDate);
-                    const now = new Date();
-                    // 检查是否过期
-                    if (dueDate < now) {
-                        isOverdue = true;
-                    }
-                    
-                    const formattedDate = `${dueDate.getFullYear()}-${String(dueDate.getMonth()+1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`;
-                    dueDateStr = `截止: ${formattedDate}`;
-                }
-
-                // 格式化时间戳
-                const timestamp = item.timestamp ? new Date(item.timestamp) : new Date();
-                const timeStr = `${timestamp.getFullYear()}-${String(timestamp.getMonth()+1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}`;
-
-                // 将换行符替换为<br>标签
-                const contentWithLineBreaks = item.content.replace(/\n/g, '<br>');
-
-                homeworkItem.innerHTML = `
-                    <div class="item-header">
-                        <span class="subject-tag ${item.subject}">${getSubjectName(item.subject)}</span>
-                        <div class="item-meta">
-                            <span class="item-date">${timeStr}</span>
-                            <span class="due-date ${isOverdue ? 'overdue' : ''}">${dueDateStr}</span>
-                        </div>
-                    </div>
-                    <div class="item-content">${contentWithLineBreaks}</div>
-                    <div class="item-actions">
-                        <fluent-button appearance="neutral" class="detail-btn" data-index="${index}">详情</fluent-button>
-                        <fluent-button appearance="neutral" class="edit-btn" data-index="${index}">编辑</fluent-button>
-                        <fluent-button appearance="accent" class="delete-btn" data-index="${index}">删除</fluent-button>
-                    </div>
-                `;
-
-                homeworkListContainer.appendChild(homeworkItem);
+        // 获取作业列表
+        function fetchHomeworkList() {
+            const { ipcRenderer } = require('electron');
+            // 请求作业列表
+            ipcRenderer.send('get-homework-list');
+            
+            // 监听响应
+            ipcRenderer.on('homework-list-response', (event, homeworkList) => {
+                homeworkData = homeworkList;
+                renderHomeworkList();
             });
-
-            // 添加事件监听器
-            addEventListeners();
         }
 
-        // 获取科目名称
-        function getSubjectName(subjectValue) {
-            const subjects = {
+        // 添加获取科目名称的函数
+        function getSubjectName(subjectKey) {
+            const subjectNames = {
                 'chinese': '语文',
                 'math': '数学',
                 'english': '英语',
                 'physics': '物理',
                 'chemistry': '化学',
                 'biology': '生物',
+                'politics': '政治',
                 'history': '历史',
                 'geography': '地理',
-                'politics': '道法',
-                'other': '其他'
+                'technology': '技术'
             };
-            return subjects[subjectValue] || subjectValue;
+            
+            return subjectNames[subjectKey] || subjectKey; // 如果找不到对应名称，则返回原始键值
         }
 
-        // 过滤和排序作业
-        function filterAndSortHomework() {
-            let result = [...homeworkData];
-
-            // 搜索过滤
-            const searchTerm = searchInput.value.trim().toLowerCase();
-            if (searchTerm) {
-                result = result.filter(item => 
-                    item.content.toLowerCase().includes(searchTerm) ||
-                    getSubjectName(item.subject).toLowerCase().includes(searchTerm)
-                );
+        // 显示作业列表
+        function renderHomeworkList() {
+            if (!isHomeworkVisible) {
+                return; // 如果作业功能被禁用，则不渲染
             }
 
-            // 科目过滤
-            const selectedSubject = subjectFilter.value;
-            if (selectedSubject) {
-                result = result.filter(item => item.subject === selectedSubject);
+            homeworkList.innerHTML = '';
+            if (homeworkData.length === 0) {
+                homeworkList.innerHTML = '<p style="text-align:center; opacity:0.7;">暂无作业</p>';
+                return;
             }
 
-            // 排序
-            const order = sortOrder.value;
-            result.sort((a, b) => {
-                switch (order) {
-                    case 'newest':
-                        return new Date(b.timestamp || b.dateAdded || 0) - new Date(a.timestamp || a.dateAdded || 0);
-                    case 'oldest':
-                        return new Date(a.timestamp || a.dateAdded || 0) - new Date(b.timestamp || b.dateAdded || 0);
-                    case 'dueDateAsc':
-                        const dateA = a.dueDate ? new Date(a.dueDate) : new Date(8640000000000000); // 最大日期
-                        const dateB = b.dueDate ? new Date(b.dueDate) : new Date(8640000000000000);
-                        return dateA - dateB;
-                    case 'dueDateDesc':
-                        const dateA2 = a.dueDate ? new Date(a.dueDate) : new Date(-8640000000000000); // 最小日期
-                        const dateB2 = b.dueDate ? new Date(b.dueDate) : new Date(-8640000000000000);
-                        return dateB2 - dateA2;
-                    default:
-                        return 0;
+            homeworkData.forEach((item, index) => {
+                const homeworkItem = document.createElement('div');
+                homeworkItem.className = 'homework-item';
+
+                // 格式化截止日期
+                let dueDateStr = '';
+                if (item.dueDate) {
+                    const date = new Date(item.dueDate);
+                    // 检查是否是当天
+                    const today = new Date();
+                    if (!(date.getFullYear() === today.getFullYear() &&
+                            date.getMonth() === today.getMonth() &&
+                            date.getDate() === today.getDate())) {
+                        dueDateStr = `<br> 截止: ${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                    }
                 }
+
+                // 将换行符替换为<br>标签
+                const contentWithLineBreaks = item.content.replace(/\n/g, '<br>');
+
+                homeworkItem.innerHTML = `
+          <div>
+            <span class="subject-tag ${item.subject}">${getSubjectName(item.subject)}</span>
+            ${contentWithLineBreaks}${dueDateStr}
+          </div>
+          <button class="delete-btn" id="delete-btn" data-index="${index}">删除</button>
+        `;
+                homeworkList.appendChild(homeworkItem);
             });
 
-            filteredHomework = result;
-            renderHomeworkList(filteredHomework);
-        }
-
-        // 添加事件监听器
-        function addEventListeners() {
-            // 删除按钮
+            // 添加删除按钮事件监听
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
-                    deleteHomework(index);
-                });
-            });
-
-            // 详情按钮
-            document.querySelectorAll('.detail-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    openHomeworkDetail(homeworkData[index]);
-                });
-            });
-
-            // 编辑按钮
-            document.querySelectorAll('.edit-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    editHomework(index);
+                    if (typeof require !== 'undefined') {
+                        try {
+                            const { ipcRenderer } = require('electron');
+                            ipcRenderer.send('delete-homework', index);
+                        } catch (e) {
+                            console.log('Not in Electron environment');
+                        }
+                    } else {
+                        console.log('Not in Electron environment');
+                    }
                 });
             });
         }
 
-        // 打开作业详情
-        function openHomeworkDetail(homework) {
-            ipcRenderer.send('open-homework-detail-window', homework);
-        }
-
-        // 编辑作业（目前先打开添加窗口并传入数据）
-        function editHomework(index) {
-            // 这里可以实现编辑功能，暂时先提示
-            alert('编辑功能正在开发中');
-            // 实际实现时，可以发送作业数据到编辑窗口
-            // ipcRenderer.send('edit-homework', homeworkData[index]);
-        }
-
-        // 初始化
-        function init() {
-            getAllHomework(); // 改为从主进程获取作业数据
-            
-            // 其他初始化代码保持不变
-            searchInput.addEventListener('input', filterAndSortHomework);
-            subjectFilter.addEventListener('change', filterAndSortHomework);
-            sortOrder.addEventListener('change', filterAndSortHomework);
-            
-            addHomeworkBtn.addEventListener('click', () => {
-                ipcRenderer.send('open-homework-window');
-            });
-            
-            emptyAddBtn.addEventListener('click', () => {
-                ipcRenderer.send('open-homework-window');
-            });
-
-            // 监听来自主进程的新作业通知
-            ipcRenderer.on('new-homework', (event, homework) => {
-                getAllHomework(); // 重新获取作业列表
-            });
-
-            // 监听作业更新通知
-            ipcRenderer.on('refresh-homework-list', () => {
-                getAllHomework(); // 重新获取作业列表
-            });
-        }
-
-        // 标题栏按钮事件
-        document.getElementById('titleCloseBtn').addEventListener('click', () => {
-            window.close();
+        // 打开新窗口添加作业
+        addHomeworkBtn.addEventListener('click', () => {
+            // 检查是否在 Electron 环境中
+            if (typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    ipcRenderer.send('open-homework-window');
+                } catch (e) {
+                    console.log('Not in Electron environment');
+                }
+            } else {
+                console.log('Not in Electron environment');
+            }
         });
 
-        // 关闭窗口时清理引用
-        window.addEventListener('beforeunload', () => {
-            ipcRenderer.send('homework-list-window-closed');
-        });
+        // 接收来自新窗口的作业数据和开关状态
+        if (typeof require !== 'undefined') {
+            try {
+                const { ipcRenderer } = require('electron');
 
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
-</body>
+                // 监听新作业数据
+                ipcRenderer.on('new-homework', (event, homework) => {
+                    // 重新获取最新的作业列表
+                    fetchHomeworkList();
+                });
+
+                // 监听作业列表刷新
+                ipcRenderer.on('refresh-homework-list', (event) => {
+                    fetchHomeworkList();
+                });
+
+                // 监听作业开关事件
+                ipcRenderer.on('homework-toggle', (event, isEnabled) => {
+                    isHomeworkVisible = isEnabled;
+                    updateHomeworkVisibility();
+                    renderHomeworkList(); // 重新渲染作业列表
+                });
+
+                // 监听启动台应用更新事件（从主进程传递过来）
+                ipcRenderer.on('launchpad-apps-updated', (event, apps) => {
+                    launchpadApps = apps;
+                    // 这里不需要做任何操作，因为作业窗口不显示启动台
+                });
+
+                // 监听暗色主题切换事件
+                ipcRenderer.on('dark-theme-toggle', (event, isEnabled) => {
+                    toggleTheme(isEnabled);
+                });
+
+            } catch (e) {
+                console.log('Not in Electron environment');
+            }
+        }
+
+        // 初始化作业列表
+        updateHomeworkVisibility(); // 初始化作业可见性
+        fetchHomeworkList(); // 改为从主进程获取作业列表
+    });
+</script>
 </html>

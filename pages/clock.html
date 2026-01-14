@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>时钟</title>
+    <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
+</head>
+
+<body>
+    <!-- 加载动画 -->
+    <div id="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>加载中...</p>
+    </div>
+
+    <div class="content">
+        <!-- 时钟卡片 -->
+        <div class="card time-card" id="timeCard">
+            <h3>时间</h3>
+            <div class="time" id="time">00:00:00</div>
+            <div class="date" id="date">加载中</div>
+        </div>
+    </div>
+</body>
+<script>
+    // 导入 IPC 通信
+    const { ipcRenderer } = require('electron');
+
+    // 防止click事件在空白区域时被拦截
+    const timeCard = document.getElementById('timeCard');
+    if (timeCard) {
+        timeCard.addEventListener('mouseenter', () => 
+            ipcRenderer.send('set-ignore-mouse-events', { ignore: false })
+        );
+        
+        timeCard.addEventListener('mouseleave', () => 
+            ipcRenderer.send('set-ignore-mouse-events', { 
+                ignore: true,
+                forward: true
+            })
+        );
+    }
+
+    // 添加时钟显示状态变量
+    let isClockVisible = true;
+    // 添加暗色主题状态变量
+    let isDarkThemeEnabled = false;
+
+    // 更新时间函数
+    function updateTime() {
+        if (!isClockVisible) {
+            // 如果时钟被禁用，隐藏时间元素
+            document.getElementById('timeCard').style.display = 'none';
+            return;
+        }
+
+        // 如果时钟启用，确保元素可见
+        document.getElementById('timeCard').style.display = 'block';
+        document.getElementById('time').style.display = 'block';
+        document.getElementById('date').style.display = 'block';
+        const timeHeaders = document.querySelectorAll('h3');
+        if (timeHeaders[0]) {
+            timeHeaders[0].style.display = 'block';
+        }
+
+        const now = new Date();
+
+        // 格式化时间
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeString = `${hours}:${minutes}:${seconds}`;
+
+        // 格式化日期
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const weekday = weekdays[now.getDay()];
+        const dateString = `${year}年${month}月${day}日 ${weekday}`;
+
+        // 更新显示
+        document.getElementById('time').textContent = timeString;
+        document.getElementById('date').textContent = dateString;
+    }
+
+    // 添加切换主题的函数
+    function toggleTheme(enabled) {
+        isDarkThemeEnabled = enabled;
+        
+        if (enabled) {
+            // 使用暗色主题CSS
+            const darkThemeLink = document.createElement('link');
+            darkThemeLink.rel = 'stylesheet';
+            darkThemeLink.href = '../assets/css/main-dark.css';
+            darkThemeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
+            
+            // 移除现有的主题链接
+            const existingTheme = document.querySelector('link[href*="main.css"]');
+            if (existingTheme && !existingTheme.href.includes('main-dark.css')) {
+                existingTheme.remove();
+            }
+            
+            // 添加暗色主题链接
+            document.head.appendChild(darkThemeLink);
+        } else {
+            // 使用默认主题CSS
+            const lightThemeLink = document.createElement('link');
+            lightThemeLink.rel = 'stylesheet';
+            lightThemeLink.href = '../assets/css/main.css';
+            lightThemeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
+            
+            // 移除现有的主题链接
+            const existingTheme = document.querySelector('link[href*="main-dark.css"]');
+            if (existingTheme) {
+                existingTheme.remove();
+            }
+            
+            // 添加浅色主题链接
+            document.head.appendChild(lightThemeLink);
+        }
+    }
+
+    // 立即显示时间
+    updateTime();
+
+    // 每秒更新时间
+    const timeInterval = setInterval(updateTime, 1000);
+
+    // DOM加载完成后的初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        // 隐藏加载动画并显示内容
+        const loadingOverlay = document.getElementById('loading');
+        const content = document.querySelector('.content');
+
+        // 稍微延迟隐藏加载动画，让用户看到加载过程
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+            content.classList.add('loaded');
+        }, 500);
+
+        // 接收来自主进程的开关状态
+        if (typeof require !== 'undefined') {
+            try {
+                const { ipcRenderer } = require('electron');
+
+                // 监听时钟开关事件
+                ipcRenderer.on('clock-toggle', (event, isEnabled) => {
+                    isClockVisible = isEnabled;
+                    // 重新设置时间更新逻辑
+                    if (isClockVisible) {
+                        updateTime(); // 立即更新一次显示
+                    } else {
+                        // 隐藏时间元素
+                        document.getElementById('timeCard').style.display = 'none';
+                    }
+                });
+
+                // 监听暗色主题切换事件
+                ipcRenderer.on('dark-theme-toggle', (event, isEnabled) => {
+                    toggleTheme(isEnabled);
+                });
+
+            } catch (e) {
+                console.log('Not in Electron environment');
+            }
+        }
+    });
+</script>
+</html>

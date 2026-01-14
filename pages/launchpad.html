@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>启动台</title>
+    <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
+</head>
+
+<body>
+    <!-- 加载动画 -->
+    <div id="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>加载中...</p>
+    </div>
+
+    <div class="content">
+        <!-- 启动台卡片 -->
+        <div class="card launchpad-card" id="launchpadCard">
+            <h3>启动台</h3>
+            <div class="launchpad-container" id="launchpadContainer">
+                <!-- 启动台应用将在这里显示 -->
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    // 导入 IPC 通信
+    const { ipcRenderer } = require('electron');
+
+    // 防止click事件在空白区域时被拦截
+    const launchpadCard = document.getElementById('launchpadCard');
+    if (launchpadCard) {
+        launchpadCard.addEventListener('mouseenter', () => 
+            ipcRenderer.send('set-ignore-mouse-events', { ignore: false })
+        );
+        
+        launchpadCard.addEventListener('mouseleave', () => 
+            ipcRenderer.send('set-ignore-mouse-events', { 
+                ignore: true,
+                forward: true
+            })
+        );
+    }
+
+    // 添加启动台显示状态变量
+    let isLaunchpadVisible = true;
+    // 添加暗色主题状态变量
+    let isDarkThemeEnabled = false;
+    // 启动台应用列表
+    let launchpadApps = [];
+
+    // 控制启动台显示的函数
+    function updateLaunchpadVisibility() {
+        if (!isLaunchpadVisible || launchpadApps.length === 0) {
+            // 如果启动台被禁用或没有应用，隐藏启动台
+            document.getElementById('launchpadCard').style.display = 'none';
+        } else {
+            // 如果启动台启用且有应用，确保元素可见
+            document.getElementById('launchpadCard').style.display = 'block';
+            const launchpadHeaders = document.querySelectorAll('h3');
+            if (launchpadHeaders[0]) {
+                launchpadHeaders[0].style.display = 'block';
+            }
+        }
+    }
+
+    // 添加切换主题的函数
+    function toggleTheme(enabled) {
+        isDarkThemeEnabled = enabled;
+        
+        if (enabled) {
+            // 使用暗色主题CSS
+            const darkThemeLink = document.createElement('link');
+            darkThemeLink.rel = 'stylesheet';
+            darkThemeLink.href = '../assets/css/main-dark.css';
+            darkThemeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
+            
+            // 移除现有的主题链接
+            const existingTheme = document.querySelector('link[href*="main.css"]');
+            if (existingTheme && !existingTheme.href.includes('main-dark.css')) {
+                existingTheme.remove();
+            }
+            
+            // 添加暗色主题链接
+            document.head.appendChild(darkThemeLink);
+        } else {
+            // 使用默认主题CSS
+            const lightThemeLink = document.createElement('link');
+            lightThemeLink.rel = 'stylesheet';
+            lightThemeLink.href = '../assets/css/main.css';
+            lightThemeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
+            
+            // 移除现有的主题链接
+            const existingTheme = document.querySelector('link[href*="main-dark.css"]');
+            if (existingTheme) {
+                existingTheme.remove();
+            }
+            
+            // 添加浅色主题链接
+            document.head.appendChild(lightThemeLink);
+        }
+    }
+
+    // 渲染启动台应用
+    function renderLaunchpadApps() {
+        if (!isLaunchpadVisible || launchpadApps.length === 0) {
+            return; // 如果启动台功能被禁用或没有应用，则不渲染
+        }
+
+        const container = document.getElementById('launchpadContainer');
+        container.innerHTML = '';
+        launchpadApps.forEach((app, index) => {
+            const appElement = document.createElement('div');
+            appElement.className = 'launchpad-app';
+
+            // 为链接类型添加特殊类名
+            if (app.type === 'link') {
+                appElement.classList.add('link-type');
+                appElement.title = `链接: ${app.name}`;
+            } else {
+                appElement.title = `应用: ${app.name}`;
+            }
+
+            let iconElement = '';
+            if (app.icon) {
+                // 如果有自定义图标，使用图片
+                iconElement = `<img class="launchpad-icon" src="${app.icon}" alt="${app.name}">`;
+            } else {
+                // 否则使用首字母
+                const iconText = app.name.charAt(0).toUpperCase();
+                iconElement = `<div class="launchpad-icon">${iconText}</div>`;
+            }
+
+            appElement.innerHTML = `
+                    ${iconElement}
+                    <div class="launchpad-name">${app.name}</div>
+                `;
+
+            appElement.addEventListener('click', () => {
+                // 发送启动应用或打开链接请求
+                if (typeof require !== 'undefined') {
+                    try {
+                        const { ipcRenderer } = require('electron');
+                        ipcRenderer.send('launch-app', app);
+                    } catch (e) {
+                        console.log('Not in Electron environment');
+                    }
+                }
+            });
+
+            container.appendChild(appElement);
+        });
+    }
+
+    // DOM加载完成后的初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        // 隐藏加载动画并显示内容
+        const loadingOverlay = document.getElementById('loading');
+        const content = document.querySelector('.content');
+
+        // 稍微延迟隐藏加载动画，让用户看到加载过程
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+            content.classList.add('loaded');
+        }, 500);
+
+        // 接收来自主进程的开关状态
+        if (typeof require !== 'undefined') {
+            try {
+                const { ipcRenderer } = require('electron');
+
+                // 监听启动台应用更新事件
+                ipcRenderer.on('launchpad-apps-updated', (event, apps) => {
+                    launchpadApps = apps;
+                    updateLaunchpadVisibility();
+                    renderLaunchpadApps();
+                });
+
+                // 监听暗色主题切换事件
+                ipcRenderer.on('dark-theme-toggle', (event, isEnabled) => {
+                    toggleTheme(isEnabled);
+                });
+
+            } catch (e) {
+                console.log('Not in Electron environment');
+            }
+        }
+
+        // 初始化启动台
+        updateLaunchpadVisibility();
+    });
+</script>
+</html>

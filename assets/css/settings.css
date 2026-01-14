@@ -1,7 +1,60 @@
 .container {
     background: white;
-    padding: 24px;
+    padding-top: 40px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: calc(100vh - 32px); /* 调整高度以适应标题栏 */
+}
+
+.settings-layout {
+    display: flex;
+    height: 100%;
+    gap: 24px;
+}
+
+.sidebar {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tab {
+    height: 50px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #605e5c;
+    transition: all 0.2s ease;
+}
+
+.tab:hover {
+    background-color: #f3f2f1;
+}
+
+.tab.active {
+    background-color: #0078d4;
+    color: #323130;
+    font-weight: 600;
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* 标题栏样式 */
