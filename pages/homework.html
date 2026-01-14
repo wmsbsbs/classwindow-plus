@@ -6,7 +6,8 @@
     <title>作业</title>
     <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
     <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css">
+    </link>
 </head>
 
 <body>
@@ -37,12 +38,12 @@
     // 防止click事件在空白区域时被拦截
     const homeworkCard = document.getElementById('homeworkCard');
     if (homeworkCard) {
-        homeworkCard.addEventListener('mouseenter', () => 
+        homeworkCard.addEventListener('mouseenter', () =>
             ipcRenderer.send('set-ignore-mouse-events', { ignore: false })
         );
-        
-        homeworkCard.addEventListener('mouseleave', () => 
-            ipcRenderer.send('set-ignore-mouse-events', { 
+
+        homeworkCard.addEventListener('mouseleave', () =>
+            ipcRenderer.send('set-ignore-mouse-events', {
                 ignore: true,
                 forward: true
             })
@@ -90,20 +91,20 @@
     // 添加切换主题的函数
     function toggleTheme(enabled) {
         isDarkThemeEnabled = enabled;
-        
+
         if (enabled) {
             // 使用暗色主题CSS
             const darkThemeLink = document.createElement('link');
             darkThemeLink.rel = 'stylesheet';
             darkThemeLink.href = '../assets/css/main-dark.css';
             darkThemeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
-            
+
             // 移除现有的主题链接
             const existingTheme = document.querySelector('link[href*="main.css"]');
             if (existingTheme && !existingTheme.href.includes('main-dark.css')) {
                 existingTheme.remove();
             }
-            
+
             // 添加暗色主题链接
             document.head.appendChild(darkThemeLink);
         } else {
@@ -112,13 +113,13 @@
             lightThemeLink.rel = 'stylesheet';
             lightThemeLink.href = '../assets/css/main.css';
             lightThemeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
-            
+
             // 移除现有的主题链接
             const existingTheme = document.querySelector('link[href*="main-dark.css"]');
             if (existingTheme) {
                 existingTheme.remove();
             }
-            
+
             // 添加浅色主题链接
             document.head.appendChild(lightThemeLink);
         }
@@ -147,7 +148,7 @@
             const { ipcRenderer } = require('electron');
             // 请求作业列表
             ipcRenderer.send('get-homework-list');
-            
+
             // 监听响应
             ipcRenderer.on('homework-list-response', (event, homeworkList) => {
                 homeworkData = homeworkList;
@@ -169,7 +170,7 @@
                 'geography': '地理',
                 'technology': '技术'
             };
-            
+
             return subjectNames[subjectKey] || subjectKey; // 如果找不到对应名称，则返回原始键值
         }
 
@@ -196,9 +197,9 @@
                     // 检查是否是当天
                     const today = new Date();
                     if (!(date.getFullYear() === today.getFullYear() &&
-                            date.getMonth() === today.getMonth() &&
-                            date.getDate() === today.getDate())) {
-                        dueDateStr = `<br> 截止: ${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                        date.getMonth() === today.getMonth() &&
+                        date.getDate() === today.getDate())) {
+                        dueDateStr = `<br> 截止: ${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                     }
                 }
 
@@ -217,7 +218,7 @@
 
             // 添加删除按钮事件监听
             document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const index = parseInt(this.getAttribute('data-index'));
                     if (typeof require !== 'undefined') {
                         try {
@@ -292,4 +293,5 @@
         fetchHomeworkList(); // 改为从主进程获取作业列表
     });
 </script>
+
 </html>

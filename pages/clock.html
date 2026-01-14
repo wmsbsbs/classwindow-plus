@@ -6,7 +6,8 @@
     <title>时钟</title>
     <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
     <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css">
+    </link>
 </head>
 
 <body>
@@ -32,12 +33,12 @@
     // 防止click事件在空白区域时被拦截
     const timeCard = document.getElementById('timeCard');
     if (timeCard) {
-        timeCard.addEventListener('mouseenter', () => 
+        timeCard.addEventListener('mouseenter', () =>
             ipcRenderer.send('set-ignore-mouse-events', { ignore: false })
         );
-        
-        timeCard.addEventListener('mouseleave', () => 
-            ipcRenderer.send('set-ignore-mouse-events', { 
+
+        timeCard.addEventListener('mouseleave', () =>
+            ipcRenderer.send('set-ignore-mouse-events', {
                 ignore: true,
                 forward: true
             })
@@ -90,20 +91,20 @@
     // 添加切换主题的函数
     function toggleTheme(enabled) {
         isDarkThemeEnabled = enabled;
-        
+
         if (enabled) {
             // 使用暗色主题CSS
             const darkThemeLink = document.createElement('link');
             darkThemeLink.rel = 'stylesheet';
             darkThemeLink.href = '../assets/css/main-dark.css';
             darkThemeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
-            
+
             // 移除现有的主题链接
             const existingTheme = document.querySelector('link[href*="main.css"]');
             if (existingTheme && !existingTheme.href.includes('main-dark.css')) {
                 existingTheme.remove();
             }
-            
+
             // 添加暗色主题链接
             document.head.appendChild(darkThemeLink);
         } else {
@@ -112,13 +113,13 @@
             lightThemeLink.rel = 'stylesheet';
             lightThemeLink.href = '../assets/css/main.css';
             lightThemeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
-            
+
             // 移除现有的主题链接
             const existingTheme = document.querySelector('link[href*="main-dark.css"]');
             if (existingTheme) {
                 existingTheme.remove();
             }
-            
+
             // 添加浅色主题链接
             document.head.appendChild(lightThemeLink);
         }
@@ -170,4 +171,5 @@
         }
     });
 </script>
+
 </html>

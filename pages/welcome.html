@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ClassWindow - 欢迎</title>
-  <link rel="stylesheet" href="../assets/css/welcome.css"></link>
-  <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
+  <link rel="stylesheet" href="../assets/css/welcome.css">
+  </link>
+  <link rel="stylesheet" href="../assets/css/hide-scrollbar.css">
+  </link>
 </head>
+
 <body>
   <!-- 标题栏 -->
   <div class="title-bar">
@@ -42,9 +46,9 @@
       <p class="description">
         个性化配置您的 ClassWindow 体验
       </p>
-      
+
       <button class="btn btn-primary" id="openSettingsWindow">打开设置窗口</button>
-      
+
       <div class="button-container" style="margin-top: 30px;">
         <button class="btn btn-primary" onclick="showPage('start')">下一步</button>
         <button class="btn btn-secondary" onclick="showPage('welcome')">返回</button>
@@ -65,41 +69,39 @@
     const { ipcRenderer } = require('electron');
 
     startBtn.addEventListener('click', () => {
-        ipcRenderer.send('first-run-complete');
+      ipcRenderer.send('first-run-complete');
     });
 
     openSettingsWindow.addEventListener('click', () => {
-        ipcRenderer.send('open-settings-window');
+      ipcRenderer.send('open-settings-window');
     });
-    
+
     // 页面切换功能
     function showPage(pageName) {
       // 隐藏所有页面
       document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
       });
-      
+
       // 显示指定页面
       document.getElementById(`${pageName}-page`).classList.add('active');
-      
+
       // 更新导航标签状态
       document.querySelectorAll('.tab').forEach(tab => {
         tab.classList.remove('active');
       });
-      
+
       document.querySelector(`[data-page="${pageName}"]`).classList.add('active');
     }
-    
+
     // 为导航标签添加点击事件
     document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', function() {
+      tab.addEventListener('click', function () {
         const pageName = this.getAttribute('data-page');
         showPage(pageName);
       });
     });
   </script>
 </body>
+
 </html>
-
-
-

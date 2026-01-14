@@ -151,7 +151,7 @@ let homeworkWindowSplit;
 const createHomeworkWindowSplit = () => {
 	const config = loadConfig();
 	let defaultX, defaultY;
-	
+
 	// 尝试从配置中读取作业窗口位置，如果没有则使用默认位置
 	if (config.homeworkWindow?.x !== undefined && config.homeworkWindow?.y !== undefined) {
 		defaultX = config.homeworkWindow.x;
@@ -229,7 +229,7 @@ let launchpadWindow;
 const createLaunchpadWindow = () => {
 	const config = loadConfig();
 	let defaultX, defaultY;
-	
+
 	// 尝试从配置中读取启动台窗口位置，如果没有则使用默认位置
 	if (config.launchpadWindow?.x !== undefined && config.launchpadWindow?.y !== undefined) {
 		defaultX = config.launchpadWindow.x;
@@ -510,12 +510,12 @@ let tray;
 const icon = nativeImage.createFromPath(iconPath);
 
 // 应用准备就绪时
-	app.whenReady().then(() => {
-		isClockEnabled = clockSettingHandler.load();
-		isHomeworkEnabled = homeworkSettingHandler.load();
-		isAlwaysOnTop = alwaysOnTopSettingHandler.load(); // 加载置顶设置
-		isDarkThemeEnabled = darkThemeSettingHandler.load(); // 加载暗色主题设置
-		isStartupEnabled = startupSettingHandler.load(); // 加载开机自启设置
+app.whenReady().then(() => {
+	isClockEnabled = clockSettingHandler.load();
+	isHomeworkEnabled = homeworkSettingHandler.load();
+	isAlwaysOnTop = alwaysOnTopSettingHandler.load(); // 加载置顶设置
+	isDarkThemeEnabled = darkThemeSettingHandler.load(); // 加载暗色主题设置
+	isStartupEnabled = startupSettingHandler.load(); // 加载开机自启设置
 
 	// 如果是首次运行，显示欢迎页；否则直接创建主窗口
 	const appConfig = loadConfig();
@@ -547,35 +547,35 @@ const icon = nativeImage.createFromPath(iconPath);
 	tray = new Tray(icon);
 
 	const contextMenu = Menu.buildFromTemplate([{
-			label: '课堂窗 - ClassWindow',
-			role: "about"
-		},
-		{
-			label: '设置',
-			click: () => {
-				createSettingsWindow();
-			}
-		},
-		{
-			label: '重新加载页面',
-			role: "forceReload"
-		},
-		{
-			label: '关于',
-			click: () => {
-				createAboutWindow();
-			}
-		},
-    {
-			label: '查看作业列表',
-			click: () => {
-				createHomeworkListWindow();
-			}
-		},
-		{
-			label: '退出',
-			role: "quit"
-		},
+		label: '课堂窗 - ClassWindow',
+		role: "about"
+	},
+	{
+		label: '设置',
+		click: () => {
+			createSettingsWindow();
+		}
+	},
+	{
+		label: '重新加载页面',
+		role: "forceReload"
+	},
+	{
+		label: '关于',
+		click: () => {
+			createAboutWindow();
+		}
+	},
+	{
+		label: '查看作业列表',
+		click: () => {
+			createHomeworkListWindow();
+		}
+	},
+	{
+		label: '退出',
+		role: "quit"
+	},
 	]);
 
 	tray.setContextMenu(contextMenu);
@@ -607,12 +607,12 @@ const icon = nativeImage.createFromPath(iconPath);
 	ipcMain.on('save-homework', (event, homework) => {
 		// 添加新作业到JSON文件
 		const updatedHomeworkList = addHomework(homework);
-		
+
 		// 将作业数据发送回作业窗口
 		if (homeworkWindowSplit) {
 			homeworkWindowSplit.webContents.send('new-homework', homework);
 		}
-		
+
 		// 通知作业列表窗口刷新数据
 		if (homeworkListWindow) {
 			homeworkListWindow.webContents.send('refresh-homework-list');
@@ -628,7 +628,7 @@ const icon = nativeImage.createFromPath(iconPath);
 	// 监听删除作业的请求
 	ipcMain.on('delete-homework', (event, index) => {
 		const updatedHomeworkList = deleteHomework(index);
-		
+
 		// 通知所有相关窗口更新作业列表
 		if (homeworkWindowSplit) {
 			homeworkWindowSplit.webContents.send('refresh-homework-list');
@@ -702,7 +702,7 @@ const icon = nativeImage.createFromPath(iconPath);
 	ipcMain.on('toggle-startup', (event, isEnabled) => {
 		isStartupEnabled = isEnabled;
 		startupSettingHandler.handleToggle(isEnabled);
-		
+
 		if (isEnabled) {
 			// 启用开机自启
 			app.setLoginItemSettings({
@@ -773,4 +773,4 @@ const icon = nativeImage.createFromPath(iconPath);
 	});
 });
 
-app.on('window-all-closed', () => {});
+app.on('window-all-closed', () => { });

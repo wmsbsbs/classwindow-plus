@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>全部作业</title>
@@ -22,11 +23,11 @@
             <h2>作业列表</h2>
             <fluent-button appearance="accent" id="addHomeworkBtn">添加作业</fluent-button>
         </div>
-        
+
         <div class="search-bar">
             <fluent-text-field id="searchInput" placeholder="搜索作业..." type="text"></fluent-text-field>
         </div>
-        
+
         <div class="filter-controls">
             <fluent-select id="subjectFilter">
                 <option value="">全部科目</option>
@@ -41,7 +42,7 @@
                 <option value="politics">道德与法治</option>
                 <option value="other">其他</option>
             </fluent-select>
-            
+
             <fluent-select id="sortOrder">
                 <option value="newest">按最新添加</option>
                 <option value="oldest">按最早添加</option>
@@ -49,11 +50,11 @@
                 <option value="dueDateDesc">按截止日期（降序）</option>
             </fluent-select>
         </div>
-        
+
         <div class="homework-list-container" id="homeworkListContainer">
             <!-- 作业列表将在这里显示 -->
         </div>
-        
+
         <div class="empty-state" id="emptyState" style="display: none;">
             <p>暂无作业</p>
             <fluent-button appearance="accent" id="emptyAddBtn">添加第一个作业</fluent-button>
@@ -80,7 +81,7 @@
             try {
                 // 请求作业列表
                 ipcRenderer.send('get-homework-list');
-                
+
                 // 监听响应
                 ipcRenderer.on('homework-list-response', (event, homeworkList) => {
                     homeworkData = homeworkList;
@@ -129,14 +130,14 @@
                     if (dueDate < now) {
                         isOverdue = true;
                     }
-                    
-                    const formattedDate = `${dueDate.getFullYear()}-${String(dueDate.getMonth()+1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`;
+
+                    const formattedDate = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`;
                     dueDateStr = `截止: ${formattedDate}`;
                 }
 
                 // 格式化时间戳
                 const timestamp = item.timestamp ? new Date(item.timestamp) : new Date();
-                const timeStr = `${timestamp.getFullYear()}-${String(timestamp.getMonth()+1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}`;
+                const timeStr = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}`;
 
                 // 将换行符替换为<br>标签
                 const contentWithLineBreaks = item.content.replace(/\n/g, '<br>');
@@ -188,7 +189,7 @@
             // 搜索过滤
             const searchTerm = searchInput.value.trim().toLowerCase();
             if (searchTerm) {
-                result = result.filter(item => 
+                result = result.filter(item =>
                     item.content.toLowerCase().includes(searchTerm) ||
                     getSubjectName(item.subject).toLowerCase().includes(searchTerm)
                 );
@@ -229,7 +230,7 @@
         function addEventListeners() {
             // 删除按钮
             document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const index = parseInt(this.getAttribute('data-index'));
                     deleteHomework(index);
                 });
@@ -237,7 +238,7 @@
 
             // 详情按钮
             document.querySelectorAll('.detail-btn').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const index = parseInt(this.getAttribute('data-index'));
                     openHomeworkDetail(homeworkData[index]);
                 });
@@ -245,7 +246,7 @@
 
             // 编辑按钮
             document.querySelectorAll('.edit-btn').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const index = parseInt(this.getAttribute('data-index'));
                     editHomework(index);
                 });
@@ -268,16 +269,16 @@
         // 初始化
         function init() {
             getAllHomework(); // 改为从主进程获取作业数据
-            
+
             // 其他初始化代码保持不变
             searchInput.addEventListener('input', filterAndSortHomework);
             subjectFilter.addEventListener('change', filterAndSortHomework);
             sortOrder.addEventListener('change', filterAndSortHomework);
-            
+
             addHomeworkBtn.addEventListener('click', () => {
                 ipcRenderer.send('open-homework-window');
             });
-            
+
             emptyAddBtn.addEventListener('click', () => {
                 ipcRenderer.send('open-homework-window');
             });
@@ -307,4 +308,5 @@
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
+
 </html>

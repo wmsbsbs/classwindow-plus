@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>关于 - 课堂窗</title>
     <!-- 引入 Fluent UI Web Components -->
     <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
-    <link rel="stylesheet" href="../assets/css/about.css"></link>
-    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
+    <link rel="stylesheet" href="../assets/css/about.css">
+    </link>
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css">
+    </link>
 </head>
+
 <body>
     <!-- 标题栏 -->
     <div class="title-bar">
@@ -23,12 +27,13 @@
             <fluent-card class="info-card">
                 <div class="about-content">
                     <div class="about-text">一个美丽，精巧的桌面悬浮窗。</div>
-                    <div class="about-text">作者: <fluent-anchor href="https://github.com/yeying-xingchen">夜影星辰</fluent-anchor></div>
+                    <div class="about-text">作者: <fluent-anchor
+                            href="https://github.com/yeying-xingchen">夜影星辰</fluent-anchor></div>
                     <div class="about-text">版本: <fluent-badge>1.1.1</fluent-badge></div>
-                    <div class="about-text">相关地址： 
+                    <div class="about-text">相关地址：
                         <fluent-anchor href="https://github.com/xinghai-smartedu/classwindow">GitHub 仓库</fluent-anchor>
                     </div>
-                    
+
                     <div class="about-text" style="margin-top: 20px;">
                         <fluent-button appearance="accent" onclick="openGitHub()">
                             访问项目页面
@@ -36,7 +41,7 @@
                     </div>
                 </div>
             </fluent-card>
-            
+
             <div class="about-text" style="margin-top: 30px; font-size: 12px; opacity: 0.7;">
                 © 2026 星海智教. 保留所有权利.
             </div>
@@ -49,9 +54,10 @@
     document.querySelector('#titleCloseBtn').addEventListener('click', () => {
         window.close();
     });
-    
+
     function openGitHub() {
         window.open('https://github.com/xinghai-smartedu/classwindow', '_blank');
     }
 </script>
+
 </html>

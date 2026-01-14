@@ -53,7 +53,7 @@ const addLaunchpadApp = (app) => {
     config.launchpadApps.push(app);
     config.timestamp = Date.now();
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
-    
+
     return config.launchpadApps;
   } catch (err) {
     console.error('添加启动台应用失败:', err);
@@ -69,7 +69,7 @@ const removeLaunchpadApp = (index) => {
       config.launchpadApps.splice(index, 1);
       config.timestamp = Date.now();
       fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
-      
+
       return config.launchpadApps;
     }
     return null;
