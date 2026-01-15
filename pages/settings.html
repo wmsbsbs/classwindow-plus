@@ -17,7 +17,12 @@
     <div class="title-bar">
         <div class="title">设置</div>
         <div class="title-bar-buttons">
-            <div class="title-bar-button close-button" title="关闭" id="titleCloseBtn"></div>
+            <fluent-button id="titleCloseBtn" appearance="stealth" aria-label="关闭">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </fluent-button>
         </div>
     </div>
 
@@ -25,17 +30,29 @@
         <div class="settings-layout">
             <!-- 左侧选项卡 -->
             <div class="sidebar">
-                <fluent-card class="tab active" data-tab="general"><i>⚙️</i>常规</fluent-card>
-                <fluent-card class="tab" data-tab="appearance"><i>🎨</i>外观</fluent-card>
-                <fluent-card class="tab" data-tab="launchpad"><i>🚀</i>启动台</fluent-card>
-                <fluent-card class="tab" data-tab="advanced"><i>🔧</i>高级</fluent-card>
+                <fluent-card class="tab active" data-tab="general">
+                    <fluent-badge appearance="accent">⚙️</fluent-badge>
+                    <span>常规</span>
+                </fluent-card>
+                <fluent-card class="tab" data-tab="appearance">
+                    <fluent-badge appearance="accent">🎨</fluent-badge>
+                    <span>外观</span>
+                </fluent-card>
+                <fluent-card class="tab" data-tab="launchpad">
+                    <fluent-badge appearance="accent">🚀</fluent-badge>
+                    <span>启动台</span>
+                </fluent-card>
+                <fluent-card class="tab" data-tab="advanced">
+                    <fluent-badge appearance="accent">🔧</fluent-badge>
+                    <span>高级</span>
+                </fluent-card>
             </div>
 
             <!-- 右侧内容区域 -->
             <div class="content">
                 <!-- 常规设置 -->
                 <div class="tab-content active" id="general-tab">
-                    <div class="setting-group">
+                    <fluent-card class="setting-group">
                         <div class="setting-item">
                             <div class="setting-info">
                                 <div class="setting-title">启用时钟</div>
@@ -55,12 +72,12 @@
                                 <fluent-switch id="homeworkToggle" label="作业"></fluent-switch>
                             </div>
                         </div>
-                    </div>
+                    </fluent-card>
                 </div>
 
                 <!-- 外观设置 -->
                 <div class="tab-content" id="appearance-tab">
-                    <div class="setting-group">
+                    <fluent-card class="setting-group">
                         <div class="setting-item">
                             <div class="setting-info">
                                 <div class="setting-title">使用暗色主题</div>
@@ -80,17 +97,16 @@
                                 <fluent-switch id="alwaysOnTopToggle" label="置顶"></fluent-switch>
                             </div>
                         </div>
-                    </div>
+                    </fluent-card>
                 </div>
 
                 <!-- 启动台设置 -->
                 <div class="tab-content" id="launchpad-tab">
-                    <!-- 启动台设置部分 -->
-                    <div class="launchpad-section">
+                    <fluent-card class="setting-group">
                         <div class="launchpad-header">
                             <div class="launchpad-title">启动台</div>
                         </div>
-                        <p style="color: #605e5c; margin-bottom: 16px;">管理快捷启动的应用程序和链接</p>
+                        <p class="launchpad-description">管理快捷启动的应用程序和链接</p>
 
                         <div class="launchpad-list" id="launchpadList">
                             <!-- 启动项将在这里显示 -->
@@ -98,22 +114,22 @@
 
                         <div class="add-form">
                             <div class="form-row">
-                                <input type="text" class="add-input" id="appNameInput" placeholder="名称">
-                                <select class="type-selector" id="appTypeInput">
-                                    <option value="app">应用程序</option>
-                                    <option value="link">链接</option>
-                                </select>
+                                <fluent-text-field id="appNameInput" placeholder="名称" class="add-input"></fluent-text-field>
+                                <fluent-select id="appTypeInput" class="type-selector">
+                                    <fluent-option value="app">应用程序</fluent-option>
+                                    <fluent-option value="link">链接</fluent-option>
+                                </fluent-select>
                             </div>
-                            <input type="text" class="add-input" id="appPathInput" placeholder="应用程序路径或链接地址">
-                            <input type="text" class="add-input" id="appIconInput" placeholder="图标路径（可选）">
+                            <fluent-text-field id="appPathInput" placeholder="应用程序路径或链接地址" class="add-input"></fluent-text-field>
+                            <fluent-text-field id="appIconInput" placeholder="图标路径（可选）" class="add-input"></fluent-text-field>
                             <fluent-button id="addAppBtn" appearance="accent" class="add-btn">添加</fluent-button>
                         </div>
-                    </div>
+                    </fluent-card>
                 </div>
 
                 <!-- 高级设置 -->
                 <div class="tab-content" id="advanced-tab">
-                    <div class="setting-group">
+                    <fluent-card class="setting-group">
                         <div class="setting-item">
                             <div class="setting-info">
                                 <div class="setting-title">开机自启</div>
@@ -123,7 +139,7 @@
                                 <fluent-switch id="startupToggle" label="开机自启"></fluent-switch>
                             </div>
                         </div>
-                    </div>
+                    </fluent-card>
                 </div>
             </div>
         </div>
@@ -142,9 +158,9 @@
         ipcRenderer.on('settings-updated', (event, settings) => {
             document.querySelector('#clockToggle').checked = settings.clockEnabled;
             document.querySelector('#homeworkToggle').checked = settings.homeworkEnabled;
-            document.querySelector('#alwaysOnTopToggle').checked = settings.alwaysOnTop; // 添加置顶状态
-            document.querySelector('#darkThemeToggle').checked = settings.darkThemeEnabled || false; // 添加暗色主题状态
-            document.querySelector('#startupToggle').checked = settings.startupEnabled || false; // 添加开机自启状态
+            document.querySelector('#alwaysOnTopToggle').checked = settings.alwaysOnTop; // 置顶状态
+            document.querySelector('#darkThemeToggle').checked = settings.darkThemeEnabled || false; // 暗色主题状态
+            document.querySelector('#startupToggle').checked = settings.startupEnabled || false; // 开机自启状态
 
             // 渲染启动台应用列表
             renderLaunchpadList(settings.launchpadApps || []);
@@ -249,12 +265,12 @@
                     <div class="launchpad-item-info">
                         <div class="launchpad-item-name">
                             ${app.name}
-                            <span class="launchpad-item-type" data-type="${typeClass}">${typeLabel}</span>
+                            <fluent-badge appearance="accent" size="small" class="launchpad-item-type" data-type="${typeClass}">${typeLabel}</fluent-badge>
                         </div>
                         <div class="launchpad-item-path">${app.path}</div>
                     </div>
                     <div class="launchpad-item-actions">
-                        <button class="remove-btn" onclick="removeLaunchpadApp(${index})">删除</button>
+                        <fluent-button appearance="lightweight" class="remove-btn" onclick="removeLaunchpadApp(${index})">删除</fluent-button>
                     </div>
                 `;
                 listContainer.appendChild(item);
