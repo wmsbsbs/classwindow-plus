@@ -23,19 +23,28 @@ jobs:
      - name: Delete Unnecessary Files on Windows
        if: matrix.os == 'windows-latest'
        run: |
-         del /f /q README.md
-         rmdir /S /Q .github
-         del /f /q .gitignore
-         del /f /q .gitattributes
-         rmdir /S /Q .vscode
-         rmdir /S /Q readme
-         rmdir /S /Q installer
-         rmdir /S /Q changelog
-         rmdir /S /Q node_modules/.cache
+         if exist README.md del /f /q README.md
+         if exist .github rmdir /S /Q .github
+         if exist .gitignore del /f /q .gitignore
+         if exist .gitattributes del /f /q .gitattributes
+         if exist .vscode rmdir /S /Q .vscode
+         if exist readme rmdir /S /Q readme
+         if exist installer rmdir /S /Q installer
+         if exist changelog rmdir /S /Q changelog
+         if exist node_modules/.cache rmdir /S /Q node_modules/.cache
        shell: cmd
      - name: Delete Unnecessary Files on Unix
        if: matrix.os != 'windows-latest'
-       run: rm -rf README.md && rm -rf .github && rm -rf .gitignore && rm -rf .gitattributes && rm -rf .vscode && rm -rf readme && rm -rf installer && rm -rf changelog && rm -rf node_modules/.cache
+       run: |
+         [ -f README.md ] && rm -rf README.md || true
+         [ -d .github ] && rm -rf .github || true
+         [ -f .gitignore ] && rm -rf .gitignore || true
+         [ -f .gitattributes ] && rm -rf .gitattributes || true
+         [ -d .vscode ] && rm -rf .vscode || true
+         [ -d readme ] && rm -rf readme || true
+         [ -d installer ] && rm -rf installer || true
+         [ -d changelog ] && rm -rf changelog || true
+         [ -d node_modules/.cache ] && rm -rf node_modules/.cache || true
        shell: bash
      - name: Build with electron-forge
        run: "yarn make"
