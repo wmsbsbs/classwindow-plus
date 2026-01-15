@@ -1,0 +1,63 @@
+/* 启动台样式 */
+.launchpad-card {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 17px;
+    margin: 10px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.launchpad-app {
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;    
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.launchpad-app:hover {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.launchpad-icon {
+    font-size: 24px;
+    margin-bottom: 2px;
+}
+
+.launchpad-container {
+    display: flex; /* 启用 Flexbox 布局 */
+    justify-content: space-between; /* 水平分布 */
+    align-items: center; /* 垂直居中 */
+}
+
+.launchpad-name {
+    font-size: 10px;
+    text-align: center;
+    word-break: break-all;
+}
+
+/* 链接类型应用的特殊样式 */
+.launchpad-app.link-type {
+    background: rgba(0, 120, 212, 0.3);
+    /* 蓝色背景表示链接 */
+}
+
+.launchpad-app.link-type:hover {
+    background: rgba(0, 120, 212, 0.4);
+}

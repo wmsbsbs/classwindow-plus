@@ -1,0 +1,119 @@
+.homework-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.homework-list {
+    margin-top: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.homework-item {
+    background: rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 6px;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.homework-item:hover {
+    background: rgba(0, 0, 0, 0.18);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.homework-item > div:first-child {
+    flex: 1;
+    word-wrap: break-word;
+    word-break: break-word;
+    margin-right: 12px;
+}
+
+.subject-tag {
+    display: inline-block;
+    padding: 3px 8px; /* 标签内边距 */
+    border-radius: 12px; /* 圆角标签 */
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 6px; /* 右边距 */
+    vertical-align: middle;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.chinese {
+    background-color: #E74C3C; /* 深红色 - 语文课本的红色 */
+    color: white;
+}
+
+.math {
+    background-color: #3498DB; /* 深蓝色 - 数学课本的蓝色 */
+    color: white;
+}
+
+.english {
+    background-color: #F39C12;
+    color: white;
+}
+
+.physics {
+    background-color: #2980B9;
+    color: white;
+}
+
+.chemistry {
+    background-color: #9B59B6;
+    color: white;
+}
+
+.biology {
+    background-color: #27AE60;
+    color: white;
+}
+
+.history {
+    background-color: #E67E22;
+    color: white;
+}
+
+.geography {
+    background-color: #27AE60;
+    color: white;
+}
+
+.politics {
+    background-color: #1ABC9C;
+    color: white;
+}
+
+.other {
+    background-color: #95A5A6;
+}
+
+.delete-btn {
+    background: rgba(255, 107, 107, 0.3);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    color: white;
+    border: 1px solid rgba(255, 107, 107, 0.5);
+    padding: 3px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: rgba(255, 107, 107, 0.5);
+    border-color: rgba(255, 107, 107, 0.7);
+}
+
+fluent-button { 
+    height: 20px;
+}
