@@ -1,19 +1,22 @@
 /* 启动台样式 */
 .launchpad-card {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 17px;
-    /* 与其他卡片保持一致 */
+    flex-direction: column;
+    padding: 20px;
     margin: 10px;
-    /* 与其他卡片保持一致 */
     background: rgba(255, 255, 255, 0.15);
-    /* 与其他卡片保持一致 */
-    border-radius: 8px;
-    /* 与其他卡片保持一致 */
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.1),
+        inset 0 0 15px rgba(255, 255, 255, 0.1),
+        0 0 10px rgba(255, 255, 255, 0.15);
+    min-width: 280px;
+    width: auto;
+    position: relative;
+    overflow: hidden;
 }
 
 .launchpad-app {
