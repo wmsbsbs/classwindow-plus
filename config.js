@@ -24,16 +24,37 @@ const ensureConfigDir = () => {
   }
 };
 
+// 缓存配置对象，减少文件I/O操作
+let configCache = null;
+let lastModifiedTime = 0;
+
 // 读取配置文件
 const loadConfig = () => {
   try {
-    if (fs.existsSync(CONFIG_PATH)) {
-      return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    // 检查文件是否存在
+    if (!fs.existsSync(CONFIG_PATH)) {
+      return {};
     }
+    
+    // 检查文件是否被修改过
+    const stats = fs.statSync(CONFIG_PATH);
+    const currentModifiedTime = stats.mtimeMs;
+    
+    // 如果缓存存在且文件未修改，直接返回缓存
+    if (configCache && currentModifiedTime === lastModifiedTime) {
+      return configCache;
+    }
+    
+    // 读取并解析配置文件
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    // 更新缓存和修改时间
+    configCache = config;
+    lastModifiedTime = currentModifiedTime;
+    return config;
   } catch (err) {
     console.warn('读取配置文件失败:', err);
+    return {};
   }
-  return {};
 };
 
 // 保存配置文件
@@ -42,6 +63,10 @@ const saveConfig = (config) => {
     ensureConfigDir();
     config.timestamp = Date.now();
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+    // 更新缓存和修改时间
+    configCache = config;
+    const stats = fs.statSync(CONFIG_PATH);
+    lastModifiedTime = stats.mtimeMs;
   } catch (err) {
     console.error('保存配置文件失败:', err);
   }
@@ -51,10 +76,9 @@ const saveConfig = (config) => {
 const createSettingHandler = (settingName, toggleEvent) => ({
   load: () => {
     try {
-      if (fs.existsSync(CONFIG_PATH)) {
-        const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-        return config[settingName] !== undefined ? config[settingName] : true;
-      }
+      // 使用loadConfig()函数获取配置，利用缓存机制
+      const config = loadConfig();
+      return config[settingName] !== undefined ? config[settingName] : true;
     } catch (err) {
       console.warn(`读取${settingName}设置失败:`, err);
     }
@@ -63,11 +87,11 @@ const createSettingHandler = (settingName, toggleEvent) => ({
   
   save: (isEnabled) => {
     try {
-      ensureConfigDir();
+      // 使用loadConfig()函数获取配置，利用缓存机制
       const config = loadConfig();
       config[settingName] = isEnabled;
-      config.timestamp = Date.now();
-      fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+      // 使用saveConfig()函数保存配置，更新缓存
+      saveConfig(config);
     } catch (err) {
       console.error(`保存${settingName}设置失败:`, err);
     }

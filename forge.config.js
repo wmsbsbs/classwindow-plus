@@ -1,19 +1,14 @@
 module.exports = {
   packagerConfig: {
-    icon: "assets/logo",
+    icon: "assets/logo.jpg",
     executableName: "classwindow-plus",
     asar: true
   },
   makers: [
     {
-      name: "@electron-forge/maker-squirrel",
-      config: {
-        name: "electron_quick_start"
-      }
-    },
-    {
       name: "@electron-forge/maker-zip",
       platforms: [
+        "win32",
         "darwin"
       ]
     },
@@ -21,7 +16,7 @@ module.exports = {
       name: "@electron-forge/maker-deb",
       config: {
         options: {
-          icon: "./assets/logo.png"
+          icon: "./assets/logo.jpg"
         }
       }
     }
