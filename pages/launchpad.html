@@ -31,6 +31,22 @@
     // 导入 IPC 通信
     const { ipcRenderer } = require('electron');
 
+        // 防止click事件在空白区域时被拦截
+    const launchpadCard = document.getElementById('launchpadCard');
+    if (launchpadCard) {
+        launchpadCard.addEventListener('mouseenter', () =>
+            ipcRenderer.send('set-ignore-mouse-events', { ignore: false })
+        );
+
+        launchpadCard.addEventListener('mouseleave', () =>
+            ipcRenderer.send('set-ignore-mouse-events', {
+                ignore: true,
+                forward: true
+            })
+        );
+    }
+
+
     // 添加启动台显示状态变量
     let isLaunchpadVisible = true;
     // 添加暗色主题状态变量
