@@ -56,28 +56,63 @@ if (app.isPackaged) {
 	iconPath = path.join(__dirname, "assets/logo.png");
 }
 
-// 获取默认位置（右上角）
-const getDefaultPosition = () => {
-	const {
-		width
-	} = screen.getPrimaryDisplay().workAreaSize;
-	return [width - 320, 20];
-};
-
-// 读取/保存窗口位置
-const loadWindowPosition = () => {
+// 读取/保存窗口位置和大小
+const loadWindowSize = (windowType) => {
 	const config = loadConfig();
-	if (config.window?.x !== undefined && config.window?.y !== undefined) {
-		return [config.window.x, config.window.y];
+	
+	// 默认尺寸
+	const defaultSizes = {
+		clockWindow: { width: 300, height: 150 },
+		homeworkWindow: { width: 300, height: 300 },
+		launchpadWindow: { width: 300, height: 200 },
+		homeworkAddWindow: { width: 400, height: 300 },
+		homeworkListWindow: { width: 800, height: 600 },
+		settingsWindow: { width: 700, height: 600 },
+		aboutWindow: { width: 500, height: 400 },
+		welcomeWindow: { width: 600, height: 420 }
+	};
+	
+	const defaultSize = defaultSizes[windowType] || { width: 300, height: 300 };
+	
+	if (config[windowType]?.width !== undefined && config[windowType]?.height !== undefined) {
+		return {
+			width: config[windowType].width,
+			height: config[windowType].height
+		};
 	}
-	return getDefaultPosition();
+	
+	return defaultSize;
 };
 
-const saveWindowPosition = (x, y) => {
+const loadWindowPosition = (windowType) => {
 	const config = loadConfig();
-	config.window = {
+	const { width } = screen.getPrimaryDisplay().workAreaSize;
+	
+	// 如果配置中有该窗口的位置信息，则使用配置中的位置
+	if (config[windowType]?.x !== undefined && config[windowType]?.y !== undefined) {
+		return [config[windowType].x, config[windowType].y];
+	}
+	
+	// 否则返回默认位置
+	switch(windowType) {
+		case 'clockWindow':
+			return [width - 320, 20];
+		case 'homeworkWindow':
+			return [width - 320, 180]; // 在时钟窗口下方
+		case 'launchpadWindow':
+			return [width - 320, 480]; // 在作业窗口下方
+		default:
+			return [width - 320, 20];
+	}
+};
+
+const saveWindowBounds = (windowType, x, y, width, height) => {
+	const config = loadConfig();
+	config[windowType] = {
 		x,
-		y
+		y,
+		width,
+		height
 	};
 	saveConfig(config);
 };
@@ -86,7 +121,8 @@ const saveWindowPosition = (x, y) => {
 let clockWindow;
 
 const createClockWindow = () => {
-	const [defaultX, defaultY] = loadWindowPosition();
+	const size = loadWindowSize('clockWindow');
+	const [defaultX, defaultY] = loadWindowPosition('clockWindow');
 
 	// 读取置顶设置
 	const config = loadConfig();
@@ -94,8 +130,8 @@ const createClockWindow = () => {
 	const isDarkThemeEnabled = config.darkThemeEnabled !== undefined ? config.darkThemeEnabled : false; // 读取暗色主题设置
 
 	clockWindow = new BrowserWindow({
-		width: 300,
-		height: 150,
+		width: size.width,
+		height: size.height,
 		x: defaultX,
 		y: defaultY,
 		// 设置为无边框窗口
@@ -120,7 +156,7 @@ const createClockWindow = () => {
 	});
 
 	// 加载时钟页面内容
-	clockWindow.loadFile('pages/clock.html');
+	clockWindow.loadFile('pages/cards/clock.html');
 
 	// 当窗口 DOM 就绪时发送初始状态
 	clockWindow.webContents.once('dom-ready', () => {
@@ -129,22 +165,27 @@ const createClockWindow = () => {
 		clockWindow.webContents.send('dark-theme-toggle', isDarkThemeEnabled); // 发送暗色主题状态
 	});
 
-	// 监听窗口移动事件，保存位置
+	// 监听窗口移动和调整大小事件，保存位置和大小
 	clockWindow.on('moved', () => {
 		const [x, y] = clockWindow.getPosition();
-		// 保存时钟窗口位置
-		const config = loadConfig();
-		config.clockWindow = { x, y };
-		saveConfig(config);
+		const [width, height] = clockWindow.getSize();
+		// 保存时钟窗口位置和大小
+		saveWindowBounds('clockWindow', x, y, width, height);
 	});
 
-	// 监听窗口关闭事件，保存位置
+	clockWindow.on('resize', () => {
+		const [x, y] = clockWindow.getPosition();
+		const [width, height] = clockWindow.getSize();
+		// 保存时钟窗口位置和大小
+		saveWindowBounds('clockWindow', x, y, width, height);
+	});
+
+	// 监听窗口关闭事件，保存位置和大小
 	clockWindow.on('close', () => {
 		const [x, y] = clockWindow.getPosition();
-		// 保存时钟窗口位置
-		const config = loadConfig();
-		config.clockWindow = { x, y };
-		saveConfig(config);
+		const [width, height] = clockWindow.getSize();
+		// 保存时钟窗口位置和大小
+		saveWindowBounds('clockWindow', x, y, width, height);
 	});
 
 	return clockWindow;
@@ -155,24 +196,15 @@ let homeworkWindowSplit;
 
 const createHomeworkWindowSplit = () => {
 	const config = loadConfig();
-	let defaultX, defaultY;
-
-	// 尝试从配置中读取作业窗口位置，如果没有则使用默认位置
-	if (config.homeworkWindow?.x !== undefined && config.homeworkWindow?.y !== undefined) {
-		defaultX = config.homeworkWindow.x;
-		defaultY = config.homeworkWindow.y;
-	} else {
-		const [origX, origY] = loadWindowPosition(); // 使用原始默认位置作为基础
-		defaultX = origX;
-		defaultY = origY + 160; // 在时钟窗口下方
-	}
+	const size = loadWindowSize('homeworkWindow');
+	const [defaultX, defaultY] = loadWindowPosition('homeworkWindow');
 
 	const isAlwaysOnTop = config.alwaysOnTop !== undefined ? config.alwaysOnTop : false;
 	const isDarkThemeEnabled = config.darkThemeEnabled !== undefined ? config.darkThemeEnabled : false; // 读取暗色主题设置
 
 	homeworkWindowSplit = new BrowserWindow({
-		width: 300,
-		height: 300,
+		width: size.width,
+		height: size.height,
 		x: defaultX,
 		y: defaultY,
 		// 设置为无边框窗口
@@ -197,7 +229,7 @@ const createHomeworkWindowSplit = () => {
 	});
 
 	// 加载作业页面内容
-	homeworkWindowSplit.loadFile('pages/homework.html');
+	homeworkWindowSplit.loadFile('pages/cards/homework.html');
 
 	// 当窗口 DOM 就绪时发送初始状态
 	homeworkWindowSplit.webContents.once('dom-ready', () => {
@@ -207,22 +239,27 @@ const createHomeworkWindowSplit = () => {
 		homeworkWindowSplit.webContents.send('launchpad-apps-updated', getLaunchpadApps()); // 发送启动台应用数据
 	});
 
-	// 监听窗口移动事件，保存位置
+	// 监听窗口移动和调整大小事件，保存位置和大小
 	homeworkWindowSplit.on('moved', () => {
 		const [x, y] = homeworkWindowSplit.getPosition();
-		// 保存作业窗口位置
-		const config = loadConfig();
-		config.homeworkWindow = { x, y };
-		saveConfig(config);
+		const [width, height] = homeworkWindowSplit.getSize();
+		// 保存作业窗口位置和大小
+		saveWindowBounds('homeworkWindow', x, y, width, height);
 	});
 
-	// 监听窗口关闭事件，保存位置
+	homeworkWindowSplit.on('resize', () => {
+		const [x, y] = homeworkWindowSplit.getPosition();
+		const [width, height] = homeworkWindowSplit.getSize();
+		// 保存作业窗口位置和大小
+		saveWindowBounds('homeworkWindow', x, y, width, height);
+	});
+
+	// 监听窗口关闭事件，保存位置和大小
 	homeworkWindowSplit.on('close', () => {
 		const [x, y] = homeworkWindowSplit.getPosition();
-		// 保存作业窗口位置
-		const config = loadConfig();
-		config.homeworkWindow = { x, y };
-		saveConfig(config);
+		const [width, height] = homeworkWindowSplit.getSize();
+		// 保存作业窗口位置和大小
+		saveWindowBounds('homeworkWindow', x, y, width, height);
 	});
 
 	return homeworkWindowSplit;
@@ -233,24 +270,15 @@ let launchpadWindow;
 
 const createLaunchpadWindow = () => {
 	const config = loadConfig();
-	let defaultX, defaultY;
-
-	// 尝试从配置中读取启动台窗口位置，如果没有则使用默认位置
-	if (config.launchpadWindow?.x !== undefined && config.launchpadWindow?.y !== undefined) {
-		defaultX = config.launchpadWindow.x;
-		defaultY = config.launchpadWindow.y;
-	} else {
-		const [origX, origY] = loadWindowPosition(); // 使用原始默认位置作为基础
-		defaultX = origX;
-		defaultY = origY + 470; // 在作业窗口下方
-	}
+	const size = loadWindowSize('launchpadWindow');
+	const [defaultX, defaultY] = loadWindowPosition('launchpadWindow');
 
 	const isAlwaysOnTop = config.alwaysOnTop !== undefined ? config.alwaysOnTop : false;
 	const isDarkThemeEnabled = config.darkThemeEnabled !== undefined ? config.darkThemeEnabled : false; // 读取暗色主题设置
 
 	launchpadWindow = new BrowserWindow({
-		width: 300,
-		height: 200,
+		width: size.width,
+		height: size.height,
 		x: defaultX,
 		y: defaultY,
 		// 设置为无边框窗口
@@ -275,7 +303,7 @@ const createLaunchpadWindow = () => {
 	});
 
 	// 加载启动台页面内容
-	launchpadWindow.loadFile('pages/launchpad.html');
+	launchpadWindow.loadFile('pages/cards/launchpad.html');
 
 	// 当窗口 DOM 就绪时发送初始状态
 	launchpadWindow.webContents.once('dom-ready', () => {
@@ -284,22 +312,27 @@ const createLaunchpadWindow = () => {
 		launchpadWindow.webContents.send('launchpad-apps-updated', getLaunchpadApps()); // 发送启动台应用数据
 	});
 
-	// 监听窗口移动事件，保存位置
+	// 监听窗口移动和调整大小事件，保存位置和大小
 	launchpadWindow.on('moved', () => {
 		const [x, y] = launchpadWindow.getPosition();
-		// 保存启动台窗口位置
-		const config = loadConfig();
-		config.launchpadWindow = { x, y };
-		saveConfig(config);
+		const [width, height] = launchpadWindow.getSize();
+		// 保存启动台窗口位置和大小
+		saveWindowBounds('launchpadWindow', x, y, width, height);
 	});
 
-	// 监听窗口关闭事件，保存位置
+	launchpadWindow.on('resize', () => {
+		const [x, y] = launchpadWindow.getPosition();
+		const [width, height] = launchpadWindow.getSize();
+		// 保存启动台窗口位置和大小
+		saveWindowBounds('launchpadWindow', x, y, width, height);
+	});
+
+	// 监听窗口关闭事件，保存位置和大小
 	launchpadWindow.on('close', () => {
 		const [x, y] = launchpadWindow.getPosition();
-		// 保存启动台窗口位置
-		const config = loadConfig();
-		config.launchpadWindow = { x, y };
-		saveConfig(config);
+		const [width, height] = launchpadWindow.getSize();
+		// 保存启动台窗口位置和大小
+		saveWindowBounds('launchpadWindow', x, y, width, height);
 	});
 
 	return launchpadWindow;
@@ -327,15 +360,37 @@ const createHomeworkAddWindow = () => {
 		return;
 	}
 
+	const size = loadWindowSize('homeworkAddWindow');
+	const [defaultX, defaultY] = loadWindowPosition('homeworkAddWindow');
+
 	homeworkAddWindow = new BrowserWindow({
 		icon: iconPath,
 		frame: false,
+		width: size.width,
+		height: size.height,
+		x: defaultX,
+		y: defaultY,
 		alwaysOnTop: true,
 		resizable: true,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false
 		}
+	});
+
+	// 监听窗口移动和调整大小事件，保存位置和大小
+	homeworkAddWindow.on('moved', () => {
+		const [x, y] = homeworkAddWindow.getPosition();
+		const [width, height] = homeworkAddWindow.getSize();
+		// 保存作业添加窗口位置和大小
+		saveWindowBounds('homeworkAddWindow', x, y, width, height);
+	});
+
+	homeworkAddWindow.on('resize', () => {
+		const [x, y] = homeworkAddWindow.getPosition();
+		const [width, height] = homeworkAddWindow.getSize();
+		// 保存作业添加窗口位置和大小
+		saveWindowBounds('homeworkAddWindow', x, y, width, height);
 	});
 
 	// 加载作业表单页面
@@ -357,16 +412,36 @@ const createHomeworkListWindow = () => {
 		return homeworkListWindow;
 	}
 
+	const size = loadWindowSize('homeworkListWindow');
+	const [defaultX, defaultY] = loadWindowPosition('homeworkListWindow');
+
 	homeworkListWindow = new BrowserWindow({
 		icon: iconPath,
 		frame: false,
-		width: 800,
-		height: 600,
+		width: size.width,
+		height: size.height,
+		x: defaultX,
+		y: defaultY,
 		resizable: true,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false
 		}
+	});
+
+	// 监听窗口移动和调整大小事件，保存位置和大小
+	homeworkListWindow.on('moved', () => {
+		const [x, y] = homeworkListWindow.getPosition();
+		const [width, height] = homeworkListWindow.getSize();
+		// 保存作业列表窗口位置和大小
+		saveWindowBounds('homeworkListWindow', x, y, width, height);
+	});
+
+	homeworkListWindow.on('resize', () => {
+		const [x, y] = homeworkListWindow.getPosition();
+		const [width, height] = homeworkListWindow.getSize();
+		// 保存作业列表窗口位置和大小
+		saveWindowBounds('homeworkListWindow', x, y, width, height);
 	});
 
 	homeworkListWindow.loadFile('pages/homework-list.html');
@@ -390,16 +465,36 @@ const createSettingsWindow = () => {
 		return;
 	}
 
+	const size = loadWindowSize('settingsWindow');
+	const [defaultX, defaultY] = loadWindowPosition('settingsWindow');
+
 	settingsWindow = new BrowserWindow({
 		icon: iconPath,
 		frame: false,
-		width: 700,
-		height: 600,
+		width: size.width,
+		height: size.height,
+		x: defaultX,
+		y: defaultY,
 		resizable: true,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false
 		}
+	});
+
+	// 监听窗口移动和调整大小事件，保存位置和大小
+	settingsWindow.on('moved', () => {
+		const [x, y] = settingsWindow.getPosition();
+		const [width, height] = settingsWindow.getSize();
+		// 保存设置窗口位置和大小
+		saveWindowBounds('settingsWindow', x, y, width, height);
+	});
+
+	settingsWindow.on('resize', () => {
+		const [x, y] = settingsWindow.getPosition();
+		const [width, height] = settingsWindow.getSize();
+		// 保存设置窗口位置和大小
+		saveWindowBounds('settingsWindow', x, y, width, height);
 	});
 
 	settingsWindow.loadFile('pages/settings.html');
@@ -419,14 +514,36 @@ const createAboutWindow = () => {
 		return;
 	}
 
+	const size = loadWindowSize('aboutWindow');
+	const [defaultX, defaultY] = loadWindowPosition('aboutWindow');
+
 	aboutWindow = new BrowserWindow({
 		icon: iconPath,
 		frame: false,
+		width: size.width,
+		height: size.height,
+		x: defaultX,
+		y: defaultY,
 		resizable: true,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false
 		}
+	});
+
+	// 监听窗口移动和调整大小事件，保存位置和大小
+	aboutWindow.on('moved', () => {
+		const [x, y] = aboutWindow.getPosition();
+		const [width, height] = aboutWindow.getSize();
+		// 保存关于窗口位置和大小
+		saveWindowBounds('aboutWindow', x, y, width, height);
+	});
+
+	aboutWindow.on('resize', () => {
+		const [x, y] = aboutWindow.getPosition();
+		const [width, height] = aboutWindow.getSize();
+		// 保存关于窗口位置和大小
+		saveWindowBounds('aboutWindow', x, y, width, height);
 	});
 
 	aboutWindow.loadFile('pages/about.html');
@@ -445,17 +562,30 @@ const createWelcomeWindow = () => {
 		return;
 	}
 
+	const size = loadWindowSize('welcomeWindow');
+	const [defaultX, defaultY] = loadWindowPosition('welcomeWindow');
+
 	welcomeWindow = new BrowserWindow({
 		icon: iconPath,
 		transparent: true,
 		frame: false,
-		width: 600,
-		height: 420,
-		resizable: false,
+		width: size.width,
+		height: size.height,
+		x: defaultX,
+		y: defaultY,
+		resizable: false, // 欢迎窗口保持不可调整大小
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false
 		}
+	});
+
+	// 欢迎窗口不可调整大小，所以只监听移动事件
+	welcomeWindow.on('moved', () => {
+		const [x, y] = welcomeWindow.getPosition();
+		const [width, height] = welcomeWindow.getSize();
+		// 保存欢迎窗口位置和大小
+		saveWindowBounds('welcomeWindow', x, y, width, height);
 	});
 
 	welcomeWindow.loadFile('pages/welcome.html');
