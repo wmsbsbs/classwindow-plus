@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>模板设计器</title>
+    <link rel="stylesheet" href="../assets/css/homework-form.css"></link>
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
+    <style>
+        /* 模板设计器特定样式 */
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 为标题栏留出空间 */
+        .designer-container {
+            margin-top: 32px;
+        }
+        
+        .designer-container {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        /* 组件库区域 */
+        .component-library {
+            width: 250px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .component-library h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .component-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .component-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .component-item .component-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .component-item .component-desc {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        
+        /* 添加组件按钮 */
+        .add-component-btn {
+            align-self: flex-start;
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            min-width: 80px;
+            min-height: 32px;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        
+        .add-component-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+        
+        .add-component-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* 设计区域 */
+        .design-area {
+            flex: 1;
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .design-area.drag-over {
+            border-color: #3498db;
+            background-color: #f0f8ff;
+        }
+        
+        .template-components {
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            align-items: center;
+            padding: 20px 0;
+        }
+        
+        .template-component {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: -10px;
+            position: relative;
+            transition: all 0.2s;
+            min-width: 300px;
+            max-width: 500px;
+            width: 80%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            /* 积木连接效果 - 顶部凹槽 */
+            background-image: radial-gradient(circle at 50% 0%, transparent 12px, white 12px, white 100%);
+            background-size: 100% calc(100% + 10px);
+            background-position: 0 -10px;
+            background-repeat: no-repeat;
+            z-index: 1;
+        }
+        
+        /* 第一个组件没有顶部凹槽 */
+        .template-components > .template-component:first-child {
+            background-image: none;
+            margin-top: 0;
+            z-index: 2;
+        }
+        
+        /* 最后一个组件没有底部连接 */
+        .template-components > .template-component:last-child {
+            margin-bottom: 0;
+            z-index: 0;
+        }
+        
+        .template-component:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .template-component.selected {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+        }
+        
+        .component-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .component-type {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .component-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        
+        .action-btn:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        /* 属性编辑区域 */
+        .property-panel {
+            width: 300px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .property-panel h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .property-group {
+            margin-bottom: 20px;
+        }
+        
+        .property-group h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #555;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .property-item {
+            margin-bottom: 15px;
+        }
+        
+        .property-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .property-item fluent-text-field,
+        .property-item fluent-text-area,
+        .property-item fluent-select,
+        .property-item fluent-slider {
+            width: 100%;
+        }
+        
+        .property-item fluent-slider {
+            margin: 10px 0;
+        }
+        
+        .slider-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* 选项列表样式 */
+        .options-list {
+            margin-top: 10px;
+        }
+        
+        .option-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .option-item fluent-text-field {
+            flex: 1;
+        }
+        
+        /* 模板信息区域 */
+        .template-info {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .template-info .input-group {
+            margin-bottom: 15px;
+        }
+        
+        /* 按钮样式 */
+        .designer-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+        
+        .empty-state p {
+            margin-bottom: 20px;
+        }
+        
+        /* 模板设计器暗色主题支持 */
+        body.dark-theme .designer-container {
+            background: #1e1e1e;
+        }
+        
+        body.dark-theme .component-library {
+            background: #252526;
+            border-color: #3e3e42;
+        }
+        
+        body.dark-theme .component-library h3 {
+            color: white;
+        }
+        
+        body.dark-theme .component-item {
+            background: #1e1e1e;
+            border-color: #3e3e42;
+            color: white;
+        }
+        
+        body.dark-theme .component-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        body.dark-theme .component-item .component-title {
+            color: white;
+        }
+        
+        body.dark-theme .component-item .component-desc {
+            color: #cccccc;
+        }
+        
+        body.dark-theme .design-area {
+            background: #1e1e1e;
+            border-color: #3e3e42;
+        }
+        
+        body.dark-theme .design-area.drag-over {
+            border-color: #0e639c;
+            background-color: rgba(14, 99, 156, 0.1);
+        }
+        
+        body.dark-theme .template-component {
+            background: #1e1e1e;
+            border-color: #3e3e42;
+            color: white;
+            /* 积木连接效果 - 暗色主题 */
+            background-image: radial-gradient(circle at 50% 0%, transparent 12px, #1e1e1e 12px, #1e1e1e 100%);
+        }
+        
+        body.dark-theme .template-component:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        body.dark-theme .template-component.selected {
+            border-color: #0e639c;
+            box-shadow: 0 0 0 2px rgba(14, 99, 156, 0.5);
+        }
+        
+        body.dark-theme .component-type {
+            color: white;
+        }
+        
+        body.dark-theme .action-btn {
+            color: #cccccc;
+        }
+        
+        body.dark-theme .action-btn:hover {
+            background: #3c3c3c;
+            color: white;
+        }
+        
+        body.dark-theme .property-panel {
+            background: #252526;
+            border-color: #3e3e42;
+        }
+        
+        body.dark-theme .property-panel h3 {
+            color: white;
+        }
+        
+        body.dark-theme .property-group h4 {
+            color: white;
+            border-bottom-color: #3e3e42;
+        }
+        
+        body.dark-theme .property-item label {
+            color: white;
+        }
+        
+        body.dark-theme .slider-values {
+            color: #cccccc;
+        }
+        
+        body.dark-theme .template-info {
+            background: #1e1e1e;
+            border-color: #3e3e42;
+            color: white;
+        }
+        
+        body.dark-theme .designer-actions {
+            border-top-color: #3e3e42;
+        }
+        
+        body.dark-theme .empty-state {
+            color: #cccccc;
+        }
+        
+        body.dark-theme .design-area h3 {
+            color: white;
+        }
+        
+        body.dark-theme input, 
+        body.dark-theme select, 
+        body.dark-theme textarea {
+            background: #3c3c3c;
+            border: 1px solid #3e3e42;
+            color: white;
+        }
+        
+        body.dark-theme input:focus, 
+        body.dark-theme select:focus, 
+        body.dark-theme textarea:focus {
+            outline: none;
+            border-color: #0e639c;
+            box-shadow: 0 0 0 2px rgba(14, 99, 156, 0.5);
+        }
+        
+        body.dark-theme input::placeholder, 
+        body.dark-theme textarea::placeholder {
+            color: #999999;
+        }
+        
+        body.dark-theme button {
+            background: #0e639c;
+            color: white;
+            border: none;
+        }
+        
+        body.dark-theme button:hover {
+            background: #1177bb;
+        }
+    </style>
+</head>
+<body>
+    <!-- 标题栏 -->
+    <div class="title-bar">
+        <div class="title">模板设计器</div>
+        <div class="title-bar-buttons">
+            <div class="title-bar-button close-button" title="关闭" id="titleCloseBtn"></div>
+        </div>
+    </div>
+
+    <div class="designer-container">
+        <!-- 组件库 -->
+        <div class="component-library">
+            <h3>组件库</h3>
+            
+            <!-- 固定文本组件 -->
+            <div class="component-item" data-type="fixedText">
+                <div class="component-title">固定文本</div>
+                <div class="component-desc">添加固定文本内容</div>
+                <button class="add-component-btn" data-component-type="fixedText" title="添加到模板">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    添加
+                </button>
+            </div>
+            
+            <!-- 数字选择组件 -->
+            <div class="component-item" data-type="numberSelect">
+                <div class="component-title">数字选择</div>
+                <div class="component-desc">添加可选择的数字范围</div>
+                <button class="add-component-btn" data-component-type="numberSelect" title="添加到模板">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    添加
+                </button>
+            </div>
+            
+            <!-- 文本下拉组件 -->
+            <div class="component-item" data-type="textDropdown">
+                <div class="component-title">文本下拉</div>
+                <div class="component-desc">添加可选择的文本选项</div>
+                <button class="add-component-btn" data-component-type="textDropdown" title="添加到模板">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    添加
+                </button>
+            </div>
+        </div>
+        
+        <!-- 设计区域 -->
+        <div class="design-area">
+            <!-- 模板信息 -->
+            <div class="template-info">
+                <h3>模板信息</h3>
+                <div class="input-group">
+                    <label>模板名称:</label>
+                    <input type="text" id="templateName" placeholder="输入模板名称" class="native-input" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                </div>
+                <div class="input-group">
+                    <label>模板描述:</label>
+                    <textarea id="templateDescription" placeholder="输入模板描述" resize="vertical" class="native-input" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; min-height: 80px; resize: vertical;"></textarea>
+                </div>
+            </div>
+            
+            <!-- 设计画布 -->
+            <h3>设计画布</h3>
+            <div class="template-components" id="templateComponents">
+                <div class="empty-state" id="emptyState">
+                    <p>点击左侧组件的添加按钮到此处开始设计模板</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 属性编辑面板 -->
+        <div class="property-panel">
+            <h3>属性编辑</h3>
+            <div id="propertyContent">
+                <p style="color: #999; text-align: center; margin-top: 30px;">选择一个组件来编辑属性</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部操作按钮 -->
+    <div style="padding: 0 20px 20px 20px; border-top: 1px solid #e0e0e0;">
+        <div class="designer-actions">
+            <button id="cancelBtn" style="padding: 16px 24px; background: #f0f0f0; color: #333; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 16px; min-width: 120px; min-height: 48px; transition: all 0.2s ease; touch-action: manipulation; user-select: none;">取消</button>
+            <button id="deleteTemplateBtn" style="margin-left: auto; padding: 16px 24px; background: white; color: #333; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 16px; min-width: 120px; min-height: 48px; transition: all 0.2s ease; touch-action: manipulation; user-select: none;">删除模板</button>
+            <button id="saveTemplateBtn" style="padding: 16px 24px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 16px; min-width: 120px; min-height: 48px; transition: all 0.2s ease; touch-action: manipulation; user-select: none;">保存模板</button>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const path = require('path');
+        const fs = require('fs');
+        
+        // 添加触摸事件支持，确保触摸操作能够正常触发
+        function addTouchSupport() {
+            // 处理触摸事件，确保点击事件能正常触发
+            const clickableElements = document.querySelectorAll('button, .component-item, .template-component');
+            
+            clickableElements.forEach(element => {
+                // 触摸开始时添加激活状态
+                element.addEventListener('touchstart', (e) => {
+                    element.style.transform = 'scale(0.95)';
+                });
+                
+                // 触摸结束时恢复状态
+                element.addEventListener('touchend', (e) => {
+                    element.style.transform = '';
+                });
+                
+                // 触摸取消时恢复状态
+                element.addEventListener('touchcancel', (e) => {
+                    element.style.transform = '';
+                });
+            });
+        }
+        
+        // 添加窗口拖动功能，支持鼠标和触摸事件
+        function addWindowDragSupport() {
+            const titleBar = document.querySelector('.title-bar');
+            if (!titleBar) return;
+            
+            let isDragging = false;
+            let startX, startY;
+            
+            // 鼠标事件
+            titleBar.addEventListener('mousedown', (e) => {
+                // 只有在标题栏区域才能拖动窗口
+                if (!e.target.closest('.title-bar-button')) {
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    titleBar.style.cursor = 'grabbing';
+                }
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    // 发送窗口移动事件到主进程
+                    ipcRenderer.send('move-window', deltaX, deltaY);
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    titleBar.style.cursor = 'grab';
+                }
+            });
+            
+            // 触摸事件
+            let touchStartX, touchStartY;
+            let isTouchDragging = false;
+            
+            titleBar.addEventListener('touchstart', (e) => {
+                // 只有在标题栏区域才能拖动窗口
+                const touchTarget = e.target;
+                if (!touchTarget.closest('.title-bar-button')) {
+                    isTouchDragging = true;
+                    const touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    titleBar.style.cursor = 'grabbing';
+                }
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (isTouchDragging) {
+                    const touch = e.touches[0];
+                    const deltaX = touch.clientX - touchStartX;
+                    const deltaY = touch.clientY - touchStartY;
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    
+                    // 发送窗口移动事件到主进程
+                    ipcRenderer.send('move-window', deltaX, deltaY);
+                }
+            });
+            
+            document.addEventListener('touchend', () => {
+                if (isTouchDragging) {
+                    isTouchDragging = false;
+                    titleBar.style.cursor = 'grab';
+                }
+            });
+            
+            document.addEventListener('touchcancel', () => {
+                if (isTouchDragging) {
+                    isTouchDragging = false;
+                    titleBar.style.cursor = 'grab';
+                }
+            });
+            
+            // 设置初始光标样式
+            titleBar.style.cursor = 'grab';
+        }
+        
+        // 动态加载模板模块
+        const templateModule = require('../template.js');
+        
+        // 当前编辑的模板
+        let currentTemplate = templateModule.createNewTemplate('新模板', '');
+        let selectedComponent = null;
+        
+        // DOM元素
+        const componentLibrary = document.querySelector('.component-library');
+        const designArea = document.querySelector('.design-area');
+        const templateComponents = document.getElementById('templateComponents');
+        const propertyContent = document.getElementById('propertyContent');
+        const emptyState = document.getElementById('emptyState');
+        const templateName = document.getElementById('templateName');
+        const templateDescription = document.getElementById('templateDescription');
+        
+        // 初始化组件按钮
+        function initComponentButtons() {
+            // 添加组件按钮点击事件
+            document.querySelectorAll('.add-component-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const componentType = this.getAttribute('data-component-type');
+                    addComponentToTemplate(componentType);
+                });
+            });
+        }
+        
+        // 添加组件到模板
+        function addComponentToTemplate(type) {
+            // 隐藏空状态
+            emptyState.style.display = 'none';
+            
+            // 创建组件
+            let component;
+            switch (type) {
+                case 'fixedText':
+                    component = templateModule.createComponent(templateModule.COMPONENT_TYPES.FIXED_TEXT, {
+                        content: '固定文本内容'
+                    });
+                    break;
+                case 'numberSelect':
+                    component = templateModule.createComponent(templateModule.COMPONENT_TYPES.NUMBER_SELECT, {
+                        label: '选择数字',
+                        min: 1,
+                        max: 10,
+                        step: 1,
+                        defaultValue: 1
+                    });
+                    break;
+                case 'textDropdown':
+                    component = templateModule.createComponent(templateModule.COMPONENT_TYPES.TEXT_DROPDOWN, {
+                        label: '选择选项',
+                        options: ['选项1', '选项2', '选项3'],
+                        defaultValue: '选项1'
+                    });
+                    break;
+            }
+            
+            // 添加到模板
+            currentTemplate.components.push(component);
+            
+            // 渲染组件
+            renderComponent(component);
+            
+            // 选择新添加的组件
+            selectComponent(component.id);
+        }
+        
+        // 渲染组件
+        function renderComponent(component) {
+            const componentElement = document.createElement('div');
+            componentElement.className = 'template-component';
+            componentElement.dataset.componentId = component.id;
+            
+            let componentContent = '';
+            let componentType = '';
+            
+            switch (component.type) {
+                case templateModule.COMPONENT_TYPES.FIXED_TEXT:
+                    componentType = '固定文本';
+                    componentContent = `
+                        <div class="component-content">
+                            <p>${component.content}</p>
+                        </div>
+                    `;
+                    break;
+                    
+                case templateModule.COMPONENT_TYPES.NUMBER_SELECT:
+                    componentType = '数字选择';
+                    componentContent = `
+                        <div class="component-content">
+                            <p>${component.label}: ${component.defaultValue}</p>
+                            <small>范围: ${component.min} - ${component.max}, 步长: ${component.step}</small>
+                        </div>
+                    `;
+                    break;
+                    
+                case templateModule.COMPONENT_TYPES.TEXT_DROPDOWN:
+                    componentType = '文本下拉';
+                    componentContent = `
+                        <div class="component-content">
+                            <p>${component.label}: ${component.defaultValue}</p>
+                            <small>选项: ${component.options.join(', ')}</small>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            componentElement.innerHTML = `
+                <div class="component-header">
+                    <span class="component-type">${componentType}</span>
+                    <div class="component-actions">
+                        <button class="action-btn" title="编辑" onclick="selectComponent('${component.id}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <button class="action-btn" title="删除" onclick="deleteComponent('${component.id}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                ${componentContent}
+            `;
+            
+            // 添加点击事件
+            componentElement.addEventListener('click', () => {
+                selectComponent(component.id);
+            });
+            
+            templateComponents.appendChild(componentElement);
+        }
+        
+        // 选择组件
+        window.selectComponent = function(componentId) {
+            // 移除之前的选择状态
+            document.querySelectorAll('.template-component.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // 选择新组件
+            const componentElement = document.querySelector(`[data-component-id="${componentId}"]`);
+            if (componentElement) {
+                componentElement.classList.add('selected');
+                selectedComponent = currentTemplate.components.find(c => c.id === componentId);
+                renderPropertyPanel(selectedComponent);
+            }
+        };
+        
+        // 删除组件
+        window.deleteComponent = function(componentId) {
+            if (confirm('确定要删除这个组件吗？')) {
+                // 从模板中删除
+                currentTemplate.components = currentTemplate.components.filter(c => c.id !== componentId);
+                
+                // 从DOM中删除
+                const componentElement = document.querySelector(`[data-component-id="${componentId}"]`);
+                if (componentElement) {
+                    componentElement.remove();
+                }
+                
+                // 清空属性面板
+                selectedComponent = null;
+                renderPropertyPanel(null);
+                
+                // 检查是否为空
+                if (currentTemplate.components.length === 0) {
+                    emptyState.style.display = 'block';
+                }
+            }
+        };
+        
+        // 渲染属性面板
+        function renderPropertyPanel(component) {
+            if (!component) {
+                propertyContent.innerHTML = '<p style="color: #999; text-align: center; margin-top: 30px;">选择一个组件来编辑属性</p>';
+                return;
+            }
+            
+            let propertyHTML = '';
+            
+            switch (component.type) {
+                case templateModule.COMPONENT_TYPES.FIXED_TEXT:
+                    propertyHTML = `
+                        <div class="property-group">
+                            <h4>固定文本属性</h4>
+                            <div class="property-item">
+                                <label>文本内容:</label>
+                                <textarea id="fixedTextContent" class="native-input" value="${component.content}" style="width: 100%; resize: vertical; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">${component.content}</textarea>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case templateModule.COMPONENT_TYPES.NUMBER_SELECT:
+                    propertyHTML = `
+                        <div class="property-group">
+                            <h4>数字选择属性</h4>
+                            <div class="property-item">
+                                <label>标签文本:</label>
+                                <input type="text" id="numberSelectLabel" class="native-input" value="${component.label}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                            </div>
+                            <div class="property-item">
+                                <label>最小值: ${component.min}</label>
+                                <input type="number" id="numberSelectMin" class="native-input" min="0" max="100" step="1" value="${component.min}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                            </div>
+                            <div class="property-item">
+                                <label>最大值: ${component.max}</label>
+                                <input type="number" id="numberSelectMax" class="native-input" min="1" max="200" step="1" value="${component.max}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                            </div>
+                            <div class="property-item">
+                                <label>步长: ${component.step}</label>
+                                <input type="number" id="numberSelectStep" class="native-input" min="1" max="10" step="1" value="${component.step}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                            </div>
+                            <div class="property-item">
+                                <label>默认值:</label>
+                                <input type="number" id="numberSelectDefault" class="native-input" value="${component.defaultValue}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case templateModule.COMPONENT_TYPES.TEXT_DROPDOWN:
+                    propertyHTML = `
+                        <div class="property-group">
+                            <h4>文本下拉属性</h4>
+                            <div class="property-item">
+                                <label>标签文本:</label>
+                                <input type="text" id="textDropdownLabel" class="native-input" value="${component.label}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                            </div>
+                            <div class="property-item">
+                                <label>默认值:</label>
+                                <input type="text" id="textDropdownDefault" class="native-input" value="${component.defaultValue}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                            </div>
+                            <div class="property-item">
+                                <label>选项列表:</label>
+                                <div class="options-list" id="optionsList">
+                                    ${component.options.map((option, index) => `
+                                        <div class="option-item">
+                                            <input type="text" class="native-input option-input" value="${option}" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                                            <button class="action-btn" onclick="removeOption(this)">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button class="native-btn" onclick="addOption()" style="margin-top: 10px; width: 100%; padding: 8px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-family: inherit;">添加选项</button>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            propertyContent.innerHTML = propertyHTML;
+            
+            // 添加属性变化事件监听
+            addPropertyListeners();
+        }
+        
+        // 添加选项
+        window.addOption = function() {
+            const optionsList = document.getElementById('optionsList');
+            const newOptionElement = document.createElement('div');
+            newOptionElement.className = 'option-item';
+            newOptionElement.innerHTML = `
+                <input type="text" class="native-input option-input" placeholder="输入选项内容" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;">
+                <button class="action-btn" onclick="removeOption(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `;
+            optionsList.appendChild(newOptionElement);
+            
+            // 添加事件监听
+            const newInput = newOptionElement.querySelector('.option-input');
+            newInput.addEventListener('input', updateTextDropdownOptions);
+            
+            // 更新属性
+            updateTextDropdownOptions();
+        };
+        
+        // 移除选项
+        window.removeOption = function(button) {
+            const optionItem = button.parentElement;
+            optionItem.remove();
+            
+            // 更新属性
+            updateTextDropdownOptions();
+        };
+        
+        // 添加属性变化监听
+        function addPropertyListeners() {
+            // 确保属性面板中的所有输入框都能正确绑定事件监听器
+            // 使用事件委托和直接事件绑定相结合的方式，确保可靠性
+            
+            // 移除所有现有的事件监听器，避免重复绑定
+            const propertyPanel = document.getElementById('propertyContent');
+            
+            // 固定文本属性 - 使用更可靠的事件绑定
+            const fixedTextContent = document.getElementById('fixedTextContent');
+            if (fixedTextContent) {
+                // 移除可能存在的旧监听器
+                fixedTextContent.replaceWith(fixedTextContent.cloneNode(true));
+                // 获取新元素并绑定监听器
+                const newFixedTextContent = document.getElementById('fixedTextContent');
+                if (newFixedTextContent) {
+                    // 设置初始值
+                    newFixedTextContent.value = selectedComponent.content;
+                    // 绑定input事件，确保能捕获所有输入
+                    newFixedTextContent.addEventListener('input', function(e) {
+                        if (selectedComponent) {
+                            selectedComponent.content = this.value;
+                            updateComponentDisplay(selectedComponent.id);
+                        }
+                    });
+                }
+            }
+            
+            // 数字选择属性 - 标签文本
+            const numberSelectLabel = document.getElementById('numberSelectLabel');
+            if (numberSelectLabel) {
+                numberSelectLabel.addEventListener('input', function(e) {
+                    if (selectedComponent) {
+                        selectedComponent.label = this.value;
+                        updateComponentDisplay(selectedComponent.id);
+                    }
+                });
+            }
+            
+            // 数字选择最小值
+            const numberSelectMin = document.getElementById('numberSelectMin');
+            if (numberSelectMin) {
+                numberSelectMin.addEventListener('input', function(e) {
+                    if (selectedComponent) {
+                        const value = parseInt(this.value);
+                        if (!isNaN(value)) {
+                            selectedComponent.min = value;
+                            updateComponentDisplay(selectedComponent.id);
+                            // 更新标签
+                            this.previousElementSibling.textContent = `最小值: ${selectedComponent.min}`;
+                        }
+                    }
+                });
+            }
+            
+            // 数字选择最大值
+            const numberSelectMax = document.getElementById('numberSelectMax');
+            if (numberSelectMax) {
+                numberSelectMax.addEventListener('input', function(e) {
+                    if (selectedComponent) {
+                        const value = parseInt(this.value);
+                        if (!isNaN(value)) {
+                            selectedComponent.max = value;
+                            updateComponentDisplay(selectedComponent.id);
+                            this.previousElementSibling.textContent = `最大值: ${selectedComponent.max}`;
+                        }
+                    }
+                });
+            }
+            
+            // 数字选择步长
+            const numberSelectStep = document.getElementById('numberSelectStep');
+            if (numberSelectStep) {
+                numberSelectStep.addEventListener('input', function(e) {
+                    if (selectedComponent) {
+                        const value = parseInt(this.value);
+                        if (!isNaN(value)) {
+                            selectedComponent.step = value;
+                            updateComponentDisplay(selectedComponent.id);
+                            this.previousElementSibling.textContent = `步长: ${selectedComponent.step}`;
+                        }
+                    }
+                });
+            }
+            
+            // 数字选择默认值
+            const numberSelectDefault = document.getElementById('numberSelectDefault');
+            if (numberSelectDefault) {
+                numberSelectDefault.addEventListener('input', function(e) {
+                    if (selectedComponent) {
+                        const value = parseInt(this.value);
+                        if (!isNaN(value)) {
+                            selectedComponent.defaultValue = value;
+                            updateComponentDisplay(selectedComponent.id);
+                        }
+                    }
+                });
+            }
+            
+            // 文本下拉属性 - 标签文本
+            const textDropdownLabel = document.getElementById('textDropdownLabel');
+            if (textDropdownLabel) {
+                textDropdownLabel.addEventListener('input', function(e) {
+                    if (selectedComponent) {
+                        selectedComponent.label = this.value;
+                        updateComponentDisplay(selectedComponent.id);
+                    }
+                });
+            }
+            
+            // 文本下拉属性 - 默认值
+            const textDropdownDefault = document.getElementById('textDropdownDefault');
+            if (textDropdownDefault) {
+                textDropdownDefault.addEventListener('input', function(e) {
+                    if (selectedComponent) {
+                        selectedComponent.defaultValue = this.value;
+                        updateComponentDisplay(selectedComponent.id);
+                    }
+                });
+            }
+            
+            // 选项输入监听 - 确保每个选项输入框都能正确绑定事件
+            const optionInputs = document.querySelectorAll('.option-input');
+            optionInputs.forEach(input => {
+                input.addEventListener('input', updateTextDropdownOptions);
+            });
+        }
+        
+        // 更新文本下拉选项
+        function updateTextDropdownOptions() {
+            if (!selectedComponent) return;
+            
+            const optionInputs = document.querySelectorAll('.option-input');
+            const options = Array.from(optionInputs)
+                .map(input => input.value)
+                .filter(value => value.trim() !== '');
+            
+            selectedComponent.options = options;
+            updateComponentDisplay(selectedComponent.id);
+        }
+        
+        // 更新组件显示
+        function updateComponentDisplay(componentId) {
+            const component = currentTemplate.components.find(c => c.id === componentId);
+            if (!component) return;
+            
+            const componentElement = document.querySelector(`[data-component-id="${componentId}"]`);
+            if (!componentElement) return;
+            
+            const componentContent = componentElement.querySelector('.component-content');
+            if (!componentContent) return;
+            
+            let contentHTML = '';
+            
+            switch (component.type) {
+                case templateModule.COMPONENT_TYPES.FIXED_TEXT:
+                    contentHTML = `<p>${component.content}</p>`;
+                    break;
+                    
+                case templateModule.COMPONENT_TYPES.NUMBER_SELECT:
+                    contentHTML = `
+                        <p>${component.label}: ${component.defaultValue}</p>
+                        <small>范围: ${component.min} - ${component.max}, 步长: ${component.step}</small>
+                    `;
+                    break;
+                    
+                case templateModule.COMPONENT_TYPES.TEXT_DROPDOWN:
+                    contentHTML = `
+                        <p>${component.label}: ${component.defaultValue}</p>
+                        <small>选项: ${component.options.join(', ')}</small>
+                    `;
+                    break;
+            }
+            
+            componentContent.innerHTML = contentHTML;
+        }
+        
+        // 保存模板
+        function saveTemplate() {
+            // 验证组件数量
+            if (currentTemplate.components.length === 0) {
+                alert('请添加至少一个组件');
+                // 弹窗关闭后，将焦点设置回设计区域，方便用户添加组件
+                setTimeout(() => {
+                    designArea.focus();
+                }, 100);
+                return;
+            }
+            
+            // 自动生成模板名称（如果为空）
+            let name = templateName.value.trim();
+            if (!name) {
+                // 获取所有模板，生成唯一的默认名称
+                const allTemplates = templateModule.getAllTemplates();
+                let templateCount = 1;
+                
+                // 查找最大序号
+                allTemplates.forEach(template => {
+                    const match = template.name.match(/新模板(\d+)/);
+                    if (match) {
+                        const num = parseInt(match[1]);
+                        if (num >= templateCount) {
+                            templateCount = num + 1;
+                        }
+                    }
+                });
+                
+                // 设置默认名称
+                name = `新模板${templateCount}`;
+            }
+            
+            // 更新模板信息
+            currentTemplate.name = name;
+            currentTemplate.description = templateDescription.value.trim();
+            currentTemplate.updatedAt = new Date().toISOString();
+            
+            // 保存模板
+            const success = templateModule.saveTemplate(currentTemplate);
+            if (success) {
+                alert('模板保存成功');
+                // 通知主进程模板已更新
+                ipcRenderer.send('template-updated');
+                // 关闭窗口
+                window.close();
+            } else {
+                alert('模板保存失败');
+            }
+        }
+        
+        // 删除模板
+        function deleteTemplate() {
+            if (currentTemplate.id && confirm('确定要删除这个模板吗？')) {
+                const success = templateModule.deleteTemplate(currentTemplate.id);
+                if (success) {
+                    alert('模板删除成功');
+                    window.close();
+                } else {
+                    alert('模板删除失败');
+                }
+            }
+        }
+        
+        // 初始化
+        function init() {
+            initComponentButtons();
+            
+            // 初始化输入框值
+            const templateNameInput = document.getElementById('templateName');
+            const templateDescriptionInput = document.getElementById('templateDescription');
+            
+            if (templateNameInput) {
+                // 设置初始值
+                templateNameInput.value = currentTemplate.name;
+                // 添加事件监听器
+                templateNameInput.addEventListener('input', (e) => {
+                    if (currentTemplate) {
+                        currentTemplate.name = templateNameInput.value;
+                    }
+                });
+            }
+            
+            if (templateDescriptionInput) {
+                // 设置初始值
+                templateDescriptionInput.value = currentTemplate.description;
+                // 添加事件监听器
+                templateDescriptionInput.addEventListener('input', (e) => {
+                    if (currentTemplate) {
+                        currentTemplate.description = templateDescriptionInput.value;
+                    }
+                });
+            }
+            
+            // 事件监听器
+            document.getElementById('saveTemplateBtn').addEventListener('click', saveTemplate);
+            document.getElementById('deleteTemplateBtn').addEventListener('click', deleteTemplate);
+            document.getElementById('cancelBtn').addEventListener('click', () => {
+                window.close();
+            });
+            
+            // 标题栏按钮事件
+            document.getElementById('titleCloseBtn').addEventListener('click', () => {
+                window.close();
+            });
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 添加触摸支持
+            addTouchSupport();
+            addWindowDragSupport();
+            
+            init();
+            
+            // 请求获取当前设置，特别是暗色主题设置
+            ipcRenderer.send('get-settings');
+        });
+        
+        // 监听设置状态更新
+        ipcRenderer.on('settings-updated', (event, settings) => {
+            // 应用暗色主题
+            if (settings.darkThemeEnabled) {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+        });
+        
+        // 关闭窗口时清理引用
+        window.addEventListener('beforeunload', () => {
+            ipcRenderer.send('template-designer-window-closed');
+        });
+    </script>
+</body>
+</html>

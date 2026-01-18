@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>账号管理 - 课堂窗</title>
+    <!-- 延迟加载 Fluent UI Web Components -->
+    <script>
+        // 优化：使用异步加载并添加加载状态
+        document.addEventListener('DOMContentLoaded', () => {
+            // 首先显示所有按钮的占位符样式
+            const buttons = document.querySelectorAll('fluent-button, fluent-switch, fluent-anchor, fluent-badge, fluent-card');
+            buttons.forEach(button => {
+                button.style.opacity = '0.7';
+                button.style.transition = 'opacity 0.3s ease';
+            });
+            
+            // 动态加载 Fluent UI 组件
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'https://unpkg.com/@fluentui/web-components';
+            script.onload = () => {
+                // 组件加载完成后显示完整样式
+                buttons.forEach(button => {
+                    button.style.opacity = '1';
+                });
+            };
+            document.head.appendChild(script);
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .title-bar {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+        
+        .title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .title-bar-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .title-bar-button {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .close-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .container {
+            padding: 30px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-group .help-text {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        
+        .button-group button {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .primary-button {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .primary-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .secondary-button {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        .secondary-button:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .status-message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info-message {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 标题栏 -->
+    <div class="title-bar">
+        <div class="title">账号管理</div>
+        <div class="title-bar-buttons">
+            <div class="title-bar-button close-button" title="关闭" id="titleCloseBtn">×</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>云端同步账号管理</h1>
+            <p>注册和管理您的云端同步账号，实现作业数据的远程存储和学生访问</p>
+        </div>
+        
+        <div class="form-container">
+            <div class="form-group">
+                <label for="schoolCode">学校代码</label>
+                <div class="help-text">用于识别学校的唯一代码，学生访问时需要输入</div>
+                <input type="text" id="schoolCode" placeholder="例如：school123">
+            </div>
+            
+            <div class="form-group">
+                <label for="classCode">班级代码</label>
+                <div class="help-text">用于识别班级的代码，学生访问时需要输入</div>
+                <input type="text" id="classCode" placeholder="例如：class01">
+            </div>
+            
+            <div class="form-group">
+                <label for="teacherPassword">教师密码</label>
+                <div class="help-text">用于上传和管理作业的密码</div>
+                <input type="password" id="teacherPassword" placeholder="设置密码">
+            </div>
+            
+            <div class="button-group">
+                <button class="primary-button" id="registerBtn">注册账号</button>
+                <button class="secondary-button" id="loginBtn">登录账号</button>
+            </div>
+            
+            <div class="status-message" id="statusMessage" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Account management page loaded');
+            
+            // 初始化事件监听器
+            initEventListeners();
+            
+            // 加载保存的设置
+            loadSavedSettings();
+        });
+        
+        // 初始化事件监听器
+        function initEventListeners() {
+            // 关闭按钮
+            document.getElementById('titleCloseBtn').addEventListener('click', function() {
+                window.close();
+            });
+            
+            // 注册按钮
+            document.getElementById('registerBtn').addEventListener('click', function() {
+                registerAccount();
+            });
+            
+            // 登录按钮
+            document.getElementById('loginBtn').addEventListener('click', function() {
+                loginAccount();
+            });
+            
+            // 输入框变化时保存设置
+            const inputs = ['schoolCode', 'classCode', 'teacherPassword'];
+            inputs.forEach(inputId => {
+                document.getElementById(inputId).addEventListener('change', saveSettings);
+                document.getElementById(inputId).addEventListener('input', saveSettings);
+            });
+        }
+        
+        // 加载保存的设置
+        function loadSavedSettings() {
+            try {
+                const settings = localStorage.getItem('cloudSyncSettings');
+                if (settings) {
+                    const cloudSyncSettings = JSON.parse(settings);
+                    document.getElementById('schoolCode').value = cloudSyncSettings.schoolCode || '';
+                    document.getElementById('classCode').value = cloudSyncSettings.classCode || '';
+                    document.getElementById('teacherPassword').value = cloudSyncSettings.teacherPassword || '';
+                }
+            } catch (e) {
+                console.error('加载设置失败:', e);
+            }
+        }
+        
+        // 保存设置
+        function saveSettings() {
+            const schoolCode = document.getElementById('schoolCode').value.trim();
+            const classCode = document.getElementById('classCode').value.trim();
+            const teacherPassword = document.getElementById('teacherPassword').value;
+            
+            try {
+                const existingSettings = localStorage.getItem('cloudSyncSettings');
+                let cloudSyncSettings = {};
+                if (existingSettings) {
+                    cloudSyncSettings = JSON.parse(existingSettings);
+                }
+                
+                // 保留现有的服务器地址等设置，只更新账号信息
+                cloudSyncSettings.schoolCode = schoolCode;
+                cloudSyncSettings.classCode = classCode;
+                cloudSyncSettings.teacherPassword = teacherPassword;
+                
+                // 保存到本地存储
+                localStorage.setItem('cloudSyncSettings', JSON.stringify(cloudSyncSettings));
+                console.log('设置已保存');
+                
+                // 通知设置页面更新账号信息显示
+                ipcRenderer.send('account-info-updated');
+            } catch (e) {
+                console.error('保存设置失败:', e);
+            }
+        }
+        
+        // 显示状态消息
+        function showStatusMessage(message, type = 'info') {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type}-message`;
+            statusMessage.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 注册账号
+        function registerAccount() {
+            const schoolCode = document.getElementById('schoolCode').value.trim();
+            const classCode = document.getElementById('classCode').value.trim();
+            const teacherPassword = document.getElementById('teacherPassword').value;
+            
+            if (!schoolCode || !classCode || !teacherPassword) {
+                showStatusMessage('请填写完整的注册信息', 'error');
+                return;
+            }
+            
+            // 显示加载状态
+            showStatusMessage('正在注册账号...', 'info');
+            
+            // 获取服务器地址
+            let serverAddress = '';
+            try {
+                const settings = localStorage.getItem('cloudSyncSettings');
+                if (settings) {
+                    const cloudSyncSettings = JSON.parse(settings);
+                    serverAddress = cloudSyncSettings.serverAddress || '';
+                }
+            } catch (e) {
+                console.error('获取服务器地址失败:', e);
+            }
+            
+            if (!serverAddress) {
+                showStatusMessage('请先在设置中配置服务器地址', 'error');
+                return;
+            }
+            
+            // 验证并修正URL格式
+            if (!serverAddress.startsWith('http://') && !serverAddress.startsWith('https://')) {
+                serverAddress = 'http://' + serverAddress;
+            }
+            
+            // 构建注册数据
+            const registerData = {
+                action: 'register',
+                schoolCode: schoolCode,
+                classCode: classCode,
+                password: teacherPassword
+            };
+            
+            console.log('开始注册账号...');
+            console.log('服务器地址:', serverAddress);
+            console.log('注册数据:', registerData);
+            
+            // 发送到服务器
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
+            
+            fetch(serverAddress, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Referer': serverAddress,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                },
+                body: JSON.stringify(registerData),
+                signal: controller.signal
+            })
+            .finally(() => clearTimeout(timeoutId))
+            .then(response => {
+                console.log('服务器响应状态:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+                }
+                
+                // 尝试获取响应文本
+                return response.text().then(text => {
+                    console.log('服务器响应文本:', text);
+                    
+                    // 处理空响应
+                    if (!text || text.trim() === '') {
+                        throw new Error('服务器返回空内容');
+                    }
+                    
+                    // 检查是否为Cloudflare安全验证页面
+                    if (text.includes('Cloudflare') || text.includes('aes.js') || text.includes('toNumbers')) {
+                        const cloudflareError = 'Cloudflare安全验证拦截\n\n' +
+                            '服务器使用了Cloudflare的安全验证功能，拦截了请求。\n' +
+                            '这是Cloudflare的"JavaScript Challenge"，用于防止自动化脚本访问。\n\n' +
+                            '解决方案：\n' +
+                            '1. 将您的IP添加到Cloudflare白名单\n' +
+                            '2. 暂时禁用Cloudflare的"Bot Fight Mode"或"JavaScript Challenge"\n' +
+                            '3. 使用不使用Cloudflare的服务器\n' +
+                            '4. 或联系服务器管理员，请求将您的应用添加到白名单';
+                        
+                        throw new Error(cloudflareError);
+                    }
+                    
+                    // 尝试JSON解析
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('JSON解析失败:', e);
+                        throw new Error(`服务器返回的不是有效JSON: ${text.substring(0, 200)}...`);
+                    }
+                });
+            })
+            .then(data => {
+                console.log('注册响应数据:', data);
+                if (data.success) {
+                    showStatusMessage('注册成功！现在可以登录账号了。', 'success');
+                    // 保存注册状态
+                    localStorage.setItem('cloudSyncRegistered', 'true');
+                } else {
+                    showStatusMessage('注册失败: ' + (data.message || '未知错误'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('注册失败:', error);
+                if (error.name === 'AbortError') {
+                    showStatusMessage('注册超时，请检查网络连接', 'error');
+                } else {
+                    showStatusMessage('注册失败: ' + error.message, 'error');
+                }
+            });
+        }
+        
+        // 登录账号
+        function loginAccount() {
+            const schoolCode = document.getElementById('schoolCode').value.trim();
+            const classCode = document.getElementById('classCode').value.trim();
+            const teacherPassword = document.getElementById('teacherPassword').value;
+            
+            if (!schoolCode || !classCode || !teacherPassword) {
+                showStatusMessage('请填写完整的登录信息', 'error');
+                return;
+            }
+            
+            // 显示加载状态
+            showStatusMessage('正在登录账号...', 'info');
+            
+            // 获取服务器地址
+            let serverAddress = '';
+            try {
+                const settings = localStorage.getItem('cloudSyncSettings');
+                if (settings) {
+                    const cloudSyncSettings = JSON.parse(settings);
+                    serverAddress = cloudSyncSettings.serverAddress || '';
+                }
+            } catch (e) {
+                console.error('获取服务器地址失败:', e);
+            }
+            
+            if (!serverAddress) {
+                showStatusMessage('请先在设置中配置服务器地址', 'error');
+                return;
+            }
+            
+            // 验证并修正URL格式
+            if (!serverAddress.startsWith('http://') && !serverAddress.startsWith('https://')) {
+                serverAddress = 'http://' + serverAddress;
+            }
+            
+            // 构建登录数据
+            const loginData = {
+                action: 'download',
+                schoolCode: schoolCode,
+                classCode: classCode,
+                password: teacherPassword
+            };
+            
+            console.log('开始登录账号...');
+            console.log('服务器地址:', serverAddress);
+            console.log('登录数据:', loginData);
+            
+            // 发送到服务器
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
+            
+            fetch(serverAddress, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Referer': serverAddress,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                },
+                body: JSON.stringify(loginData),
+                signal: controller.signal
+            })
+            .finally(() => clearTimeout(timeoutId))
+            .then(response => {
+                console.log('服务器响应状态:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+                }
+                
+                // 尝试获取响应文本
+                return response.text().then(text => {
+                    console.log('服务器响应文本:', text);
+                    
+                    // 处理空响应
+                    if (!text || text.trim() === '') {
+                        throw new Error('服务器返回空内容');
+                    }
+                    
+                    // 检查是否为Cloudflare安全验证页面
+                    if (text.includes('Cloudflare') || text.includes('aes.js') || text.includes('toNumbers')) {
+                        const cloudflareError = 'Cloudflare安全验证拦截\n\n' +
+                            '服务器使用了Cloudflare的安全验证功能，拦截了请求。\n' +
+                            '这是Cloudflare的"JavaScript Challenge"，用于防止自动化脚本访问。\n\n' +
+                            '解决方案：\n' +
+                            '1. 将您的IP添加到Cloudflare白名单\n' +
+                            '2. 暂时禁用Cloudflare的"Bot Fight Mode"或"JavaScript Challenge"\n' +
+                            '3. 使用不使用Cloudflare的服务器\n' +
+                            '4. 或联系服务器管理员，请求将您的应用添加到白名单';
+                        
+                        throw new Error(cloudflareError);
+                    }
+                    
+                    // 尝试JSON解析
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('JSON解析失败:', e);
+                        throw new Error(`服务器返回的不是有效JSON: ${text.substring(0, 200)}...`);
+                    }
+                });
+            })
+            .then(data => {
+                console.log('登录响应数据:', data);
+                if (data.success) {
+                    showStatusMessage('登录成功！现在可以同步作业了。', 'success');
+                    // 保存登录状态
+                    localStorage.setItem('cloudSyncLoggedIn', 'true');
+                } else {
+                    showStatusMessage('登录失败: ' + (data.message || '未知错误'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('登录失败:', error);
+                if (error.name === 'AbortError') {
+                    showStatusMessage('登录超时，请检查网络连接', 'error');
+                } else {
+                    showStatusMessage('登录失败: ' + error.message, 'error');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

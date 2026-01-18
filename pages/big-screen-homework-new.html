@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>大屏作业显示</title>
+    <!-- 优化资源加载：使用defer和preload提升性能 -->
+    <link rel="preload" href="../assets/css/big-screen.css" as="style">
+    <link rel="preload" href="../assets/css/hide-scrollbar.css" as="style">
+    <link rel="stylesheet" href="../assets/css/big-screen.css">
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css">
+    <!-- 延迟加载Fluent UI组件，提升首屏加载速度 -->
+    <script type="module" src="https://unpkg.com/@fluentui/web-components" defer></script>
+</head>
+
+<body>
+    <!-- 标题栏 -->
+    <div class="title-bar">
+        <div class="title">作业大屏</div>
+        <div class="title-bar-buttons">
+            <!-- 移除了锁定按钮和关闭按钮 -->
+        </div>
+    </div>
+
+    <div class="content-container" id="contentContainer">
+        <h2 class="homework-title">作业大屏</h2>
+        <div class="homework-grid" id="homeworkGrid">
+            <!-- 作业将在这里显示 -->
+        </div>
+        <!-- 拖动把手 -->
+        <div class="drag-handle" id="dragHandle" title="拖动调整位置"></div>
+    </div>
+    
+    <!-- 无框窗口调整大小手柄 -->
+    <div class="resize-handle top"></div>
+    <div class="resize-handle bottom"></div>
+    <div class="resize-handle left"></div>
+    <div class="resize-handle right"></div>
+    <div class="resize-handle top-left"></div>
+    <div class="resize-handle top-right"></div>
+    <div class="resize-handle bottom-left"></div>
+    <div class="resize-handle bottom-right"></div>
+
+    <script>
+        // 导入 IPC 通信
+        const { ipcRenderer } = require('electron');
+        
+        // 全局变量
+        let currentFontSize = 14;
+        let currentColumns = '2';
+        let currentOpacity = 95;
+        let isDragging = false;
+        let isResizing = false;
+        let resizeEdge = '';
+        let startX, startY;
+        
+        // 节流函数，限制函数调用频率
+        function throttle(func, limit) {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            }
+        }
+        
+        // 优化的窗口移动函数
+        const optimizedMoveWindow = throttle((deltaX, deltaY) => {
+            ipcRenderer.send('move-big-screen-window-by-delta', deltaX, deltaY);
+        }, 16); // 约60fps
+        
+        // 优化的窗口调整大小函数
+        const optimizedResizeWindow = throttle((edge, deltaX, deltaY) => {
+            ipcRenderer.send('resize-big-screen-window', {
+                edge: edge,
+                deltaX: deltaX,
+                deltaY: deltaY
+            });
+        }, 16); // 约60fps
+        
+        // 初始化函数
+        function init() {
+            // 立即设置为忽略鼠标操作，确保启动时就置于底层
+            ipcRenderer.send('set-ignore-mouse-events', { 
+                ignore: true,
+                forward: true
+            });
+            
+            // 从配置中初始化设置
+            ipcRenderer.send('get-big-screen-settings');
+            
+            // 初始化事件监听器
+            setupEventListeners();
+            
+            // 加载作业数据
+            loadHomeworkData();
+            
+            // 修复x轴移动问题
+            document.body.style.overflowX = 'hidden';
+            document.documentElement.style.overflowX = 'hidden';
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 拖动把手支持
+            setupDragHandle();
+            
+            // 调整大小手柄支持
+            setupResizeHandles();
+            
+            // 忽视鼠标操作支持
+            setupUnderlaySupport();
+            
+            // IPC事件监听器
+            setupIpcListeners();
+        }
+        
+        // 设置拖动把手
+        function setupDragHandle() {
+            const dragHandle = document.getElementById('dragHandle');
+            if (!dragHandle) return;
+            
+            // 添加视觉反馈样式
+            dragHandle.style.cursor = 'move';
+            dragHandle.style.transition = 'background-color 0.2s ease';
+            
+            // 鼠标事件
+            dragHandle.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                // 视觉反馈 - 按下状态
+                dragHandle.style.backgroundColor = 'rgba(0, 120, 212, 0.3)';
+                
+                // 开启鼠标监听
+                ipcRenderer.send('set-ignore-mouse-events', { ignore: false });
+                
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            
+            // 鼠标移动处理
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    // 计算鼠标移动的相对距离
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+                    
+                    // 使用优化的窗口移动函数，限制IPC消息发送频率
+                    optimizedMoveWindow(deltaX, deltaY);
+                    
+                    // 更新起始位置，以便下次计算
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+            
+            // 鼠标释放处理
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    // 视觉反馈 - 释放状态
+                    dragHandle.style.backgroundColor = '';
+                    // 保存位置
+                    ipcRenderer.send('save-big-screen-position');
+                    
+                    // 延迟关闭鼠标监听，确保操作完成
+                    setTimeout(() => {
+                        ipcRenderer.send('set-ignore-mouse-events', { 
+                            ignore: true,
+                            forward: true
+                        });
+                    }, 100);
+                }
+            });
+            
+            // 鼠标悬停效果
+            dragHandle.addEventListener('mouseenter', () => {
+                dragHandle.style.backgroundColor = 'rgba(0, 120, 212, 0.2)';
+                // 开启鼠标监听
+                ipcRenderer.send('set-ignore-mouse-events', { ignore: false });
+            });
+            
+            dragHandle.addEventListener('mouseleave', () => {
+                if (!isDragging) {
+                    dragHandle.style.backgroundColor = '';
+                    // 关闭鼠标监听
+                    ipcRenderer.send('set-ignore-mouse-events', { 
+                        ignore: true,
+                        forward: true
+                    });
+                }
+            });
+        }
+        
+        // 设置调整大小手柄
+        function setupResizeHandles() {
+            const resizeHandles = document.querySelectorAll('.resize-handle');
+            
+            // 为每个调整大小手柄添加样式和事件监听
+            resizeHandles.forEach(handle => {
+                // 添加视觉反馈样式
+                handle.style.transition = 'background-color 0.2s ease';
+                handle.style.zIndex = '1000'; // 确保手柄在最上层
+                handle.style.pointerEvents = 'auto'; // 确保可以接收鼠标事件
+                
+                // 根据手柄位置设置光标样式
+                const edge = handle.classList[1];
+                const cursorStyles = {
+                    'top': 'ns-resize',
+                    'bottom': 'ns-resize',
+                    'left': 'ew-resize',
+                    'right': 'ew-resize',
+                    'top-left': 'nesw-resize',
+                    'top-right': 'nwse-resize',
+                    'bottom-left': 'nwse-resize',
+                    'bottom-right': 'nesw-resize'
+                };
+                
+                if (cursorStyles[edge]) {
+                    handle.style.cursor = cursorStyles[edge];
+                }
+                
+                // 鼠标悬停事件 - 确保开启鼠标监听
+                handle.addEventListener('mouseenter', () => {
+                    console.log('Resize handle mouse enter');
+                    // 开启鼠标监听
+                    ipcRenderer.send('set-ignore-mouse-events', { ignore: false });
+                    // 视觉反馈 - 悬停状态
+                    handle.style.backgroundColor = 'rgba(0, 120, 212, 0.2)';
+                });
+                
+                // 鼠标离开事件 - 恢复忽视鼠标操作
+                handle.addEventListener('mouseleave', () => {
+                    console.log('Resize handle mouse leave');
+                    if (!isResizing) {
+                        // 关闭鼠标监听
+                        ipcRenderer.send('set-ignore-mouse-events', { 
+                            ignore: true,
+                            forward: true
+                        });
+                        // 移除视觉反馈
+                        handle.style.backgroundColor = '';
+                    }
+                });
+                
+                // 鼠标按下事件
+                handle.addEventListener('mousedown', (e) => {
+                    console.log('Resize handle mouse down', handle.classList[1]);
+                    isResizing = true;
+                    resizeEdge = handle.classList[1];
+                    
+                    // 记录开始位置
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    // 视觉反馈 - 按下状态
+                    handle.style.backgroundColor = 'rgba(0, 120, 212, 0.3)';
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // 开启鼠标监听
+                    ipcRenderer.send('set-ignore-mouse-events', { ignore: false });
+                    
+                    // 通知主进程开始调整大小
+                    ipcRenderer.send('start-resizing', resizeEdge);
+                });
+            });
+            
+            // 鼠标释放事件
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    console.log('Mouse up - stop resizing');
+                    isResizing = false;
+                    resizeEdge = '';
+                    ipcRenderer.send('stop-resizing');
+                    
+                    // 移除所有手柄的视觉反馈
+                    resizeHandles.forEach(handle => {
+                        handle.style.backgroundColor = '';
+                    });
+                    
+                    // 延迟关闭鼠标监听，确保操作完成
+                    setTimeout(() => {
+                        ipcRenderer.send('set-ignore-mouse-events', { 
+                            ignore: true,
+                            forward: true
+                        });
+                    }, 100);
+                }
+            });
+            
+            // 鼠标移动事件 - 处理调整大小
+            document.addEventListener('mousemove', (e) => {
+                if (isResizing) {
+                    // 计算鼠标移动的距离
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+                    
+                    // 使用优化的窗口调整大小函数，限制IPC消息发送频率
+                    optimizedResizeWindow(resizeEdge, deltaX, deltaY);
+                    
+                    // 更新起始位置
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    // 确保鼠标事件被正确处理
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+        }
+        
+        // 设置忽视鼠标操作支持
+        function setupUnderlaySupport() {
+            const contentContainer = document.querySelector('.content-container');
+            if (!contentContainer) return;
+            
+            // 定义交互元素选择器
+            const interactiveSelectors = 'button, fluent-button, .drag-handle, .resize-handle';
+            
+            // 只在交互元素上开启鼠标监听
+            const updateInteractiveElements = () => {
+                const interactiveElements = contentContainer.querySelectorAll(interactiveSelectors);
+                
+                interactiveElements.forEach(element => {
+                    // 移除现有的事件监听器，避免重复绑定
+                    element.removeEventListener('mouseenter', handleMouseEnter);
+                    element.removeEventListener('mouseleave', handleMouseLeave);
+                    
+                    // 添加新的事件监听器
+                    element.addEventListener('mouseenter', handleMouseEnter);
+                    element.addEventListener('mouseleave', handleMouseLeave);
+                });
+            };
+            
+            // 鼠标进入处理
+            const handleMouseEnter = () => {
+                // 开启鼠标监听
+                ipcRenderer.send('set-ignore-mouse-events', { ignore: false });
+            };
+            
+            // 鼠标离开处理
+            const handleMouseLeave = () => {
+                // 关闭鼠标监听
+                ipcRenderer.send('set-ignore-mouse-events', { 
+                    ignore: true,
+                    forward: true
+                });
+            };
+            
+            // 初始更新交互元素
+            updateInteractiveElements();
+            
+            // 监听DOM变化，动态更新交互元素
+            const observer = new MutationObserver(() => {
+                updateInteractiveElements();
+            });
+            
+            observer.observe(contentContainer, {
+                childList: true,
+                subtree: true
+            });
+        }
+        
+        // 设置IPC事件监听器
+        function setupIpcListeners() {
+            // 监听作业数据
+            ipcRenderer.on('homework-data', (event, homeworkData) => {
+                renderHomeworkList(homeworkData);
+            });
+            
+            // 监听刷新作业列表
+            ipcRenderer.on('refresh-homework-list', () => {
+                loadHomeworkData();
+            });
+            
+            // 监听大屏设置
+            ipcRenderer.on('big-screen-settings', (event, settings) => {
+                if (settings.fontSize) {
+                    currentFontSize = settings.fontSize;
+                    updateFontSize();
+                }
+                if (settings.columns) {
+                    currentColumns = settings.columns;
+                    updateColumns();
+                }
+                if (settings.opacity) {
+                    currentOpacity = settings.opacity;
+                    updateOpacity();
+                }
+                if (settings.blur) {
+                    document.documentElement.style.setProperty('--blur-value', `${settings.blur}px`);
+                }
+            });
+            
+            // 监听字号变化
+            ipcRenderer.on('update-big-screen-font-size', (event, fontSize) => {
+                currentFontSize = fontSize;
+                updateFontSize();
+            });
+            
+            // 监听列数变化
+            ipcRenderer.on('update-big-screen-columns', (event, columns) => {
+                currentColumns = columns;
+                updateColumns();
+            });
+            
+            // 监听透明度变化
+            ipcRenderer.on('update-big-screen-opacity', (event, opacity) => {
+                currentOpacity = opacity;
+                updateOpacity();
+            });
+            
+            // 监听背景模糊变化
+            ipcRenderer.on('update-big-screen-blur', (event, blurValue) => {
+                document.documentElement.style.setProperty('--blur-value', `${blurValue}px`);
+            });
+            
+            // 监听暗色主题切换
+            ipcRenderer.on('dark-theme-toggle', (event, isEnabled) => {
+                if (isEnabled) {
+                    document.body.classList.add('dark-theme');
+                } else {
+                    document.body.classList.remove('dark-theme');
+                }
+                updateOpacity();
+            });
+        }
+        
+        // 加载作业数据
+        function loadHomeworkData() {
+            // 主动请求作业数据
+            ipcRenderer.send('get-homework-data');
+        }
+        
+        // 渲染作业列表
+        function renderHomeworkList(homeworkData) {
+            const grid = document.getElementById('homeworkGrid');
+            grid.innerHTML = '';
+            
+            if (!homeworkData || homeworkData.length === 0) {
+                grid.innerHTML = '<div class="no-homework">暂无作业</div>';
+                return;
+            }
+            
+            // 使用文档片段减少DOM操作
+            const fragment = document.createDocumentFragment();
+            
+            // 按科目分组
+            const homeworkBySubject = homeworkData.reduce((groups, item) => {
+                const subject = item.subject;
+                if (!groups[subject]) {
+                    groups[subject] = [];
+                }
+                groups[subject].push(item);
+                return groups;
+            }, {});
+            
+            // 遍历每个科目
+            Object.entries(homeworkBySubject).forEach(([subject, items]) => {
+                // 科目标题
+                const subjectTitle = document.createElement('div');
+                subjectTitle.className = `subject-title ${subject}`;
+                subjectTitle.textContent = getSubjectName(subject);
+                fragment.appendChild(subjectTitle);
+                
+                // 作业项
+                items.forEach(item => {
+                    const homeworkCard = document.createElement('div');
+                    homeworkCard.className = `homework-card homework-${subject}`;
+                    
+                    // 格式化截止日期
+                    let dueDateStr = '';
+                    if (item.dueDate) {
+                        const date = new Date(item.dueDate);
+                        const today = new Date();
+                        if (date.getFullYear() === today.getFullYear() &&
+                            date.getMonth() === today.getMonth() &&
+                            date.getDate() === today.getDate()) {
+                            dueDateStr = '<br><span class="due-date today">今天截止</span>';
+                        } else {
+                            dueDateStr = `<br><span class="due-date">截止: ${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}</span>`;
+                        }
+                    }
+                    
+                    // 作业内容
+                    const contentWithLineBreaks = item.content.replace(/\n/g, '<br>');
+                    
+                    homeworkCard.innerHTML = `
+                        <div class="homework-content">
+                            ${contentWithLineBreaks}${dueDateStr}
+                        </div>
+                    `;
+                    
+                    fragment.appendChild(homeworkCard);
+                });
+            });
+            
+            // 一次性添加所有元素
+            grid.appendChild(fragment);
+        }
+        
+        // 获取科目名称
+        function getSubjectName(subjectValue) {
+            const subjects = {
+                'chinese': '语文',
+                'math': '数学',
+                'english': '英语',
+                'physics': '物理',
+                'chemistry': '化学',
+                'biology': '生物',
+                'history': '历史',
+                'geography': '地理',
+                'politics': '道法',
+                'other': '其他'
+            };
+            return subjects[subjectValue] || subjectValue;
+        }
+        
+        // 更新字号
+        function updateFontSize() {
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}px`);
+            localStorage.setItem('bigScreenFontSize', currentFontSize.toString());
+        }
+        
+        // 更新列数
+        function updateColumns() {
+            // 移除所有列数相关的类
+            document.body.classList.remove('columns-1', 'columns-2', 'columns-3', 'columns-4', 'columns-auto');
+            // 添加当前列数的类
+            document.body.classList.add(`columns-${currentColumns}`);
+            localStorage.setItem('bigScreenColumns', currentColumns);
+        }
+        
+        // 更新透明度
+        function updateOpacity() {
+            const isDarkTheme = document.body.classList.contains('dark-theme');
+            
+            if (isDarkTheme) {
+                // 暗色主题
+                document.documentElement.style.setProperty('--background-color', `rgba(32, 31, 30, ${currentOpacity / 100})`);
+                document.documentElement.style.setProperty('--title-bar-bg', `rgba(37, 37, 38, ${currentOpacity / 100})`);
+                document.documentElement.style.setProperty('--card-bg', `rgba(50, 49, 48, ${currentOpacity / 100})`);
+            } else {
+                // 亮色主题
+                document.documentElement.style.setProperty('--background-color', `rgba(255, 255, 255, ${currentOpacity / 100})`);
+                document.documentElement.style.setProperty('--title-bar-bg', `rgba(243, 242, 241, ${currentOpacity / 100})`);
+                document.documentElement.style.setProperty('--card-bg', `rgba(255, 255, 255, ${currentOpacity / 100})`);
+            }
+            
+            localStorage.setItem('bigScreenOpacity', currentOpacity.toString());
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

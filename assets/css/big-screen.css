@@ -1,0 +1,770 @@
+/* 大屏作业显示样式 */
+:root {
+    /* Fluent UI 颜色系统 */
+    --primary-color: #0078d4;
+    --primary-hover: #106ebe;
+    --primary-active: #005a9e;
+    --background-color: rgba(255, 255, 255, 0.85);
+    --text-color: #1a1a1a;
+    --text-secondary: #605e5c;
+    --title-bar-bg: rgba(243, 242, 241, 0.85);
+    --border-color: #edebe9;
+    --card-bg: rgba(255, 255, 255, 0.8);
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --font-size: 14px;
+    --font-size-small: 12px;
+    --font-size-large: 16px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --border-radius-sm: 2px;
+    --border-radius-md: 4px;
+    --border-radius-lg: 8px;
+    --border-radius-xl: 12px;
+    
+    /* 科目颜色 - 调整为更符合Fluent UI的调色板 */
+    --subject-chinese: #d13438;
+    --subject-math: #0078d4;
+    --subject-english: #ffb900;
+    --subject-physics: #107c10;
+    --subject-chemistry: #7c3aed;
+    --subject-biology: #03787c;
+    --subject-history: #d83b01;
+    --subject-geography: #00b7c3;
+    --subject-politics: #0078d4;
+    --subject-other: #6e7681;
+    
+    --blur-value: 10px;
+}
+
+/* 暗色主题 */
+.dark-theme {
+    --background-color: rgba(32, 31, 30, 0.85);
+    --text-color: #ffffff;
+    --text-secondary: #a19f9d;
+    --title-bar-bg: rgba(37, 37, 38, 0.85);
+    --border-color: #484644;
+    --card-bg: rgba(50, 49, 48, 0.8);
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    user-select: none;
+    overflow: hidden;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    transition: all 0.3s ease;
+    scroll-behavior: smooth;
+    backdrop-filter: blur(var(--blur-value));
+    -webkit-backdrop-filter: blur(var(--blur-value));
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+html {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+/* 确保作业卡片内容不会导致水平滚动 */
+.homework-card {
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow: hidden;
+}
+
+/* 标题栏 */
+.title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--title-bar-bg);
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: move;
+    -webkit-app-region: drag;
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.title-bar-buttons {
+    display: flex;
+    gap: 8px;
+    -webkit-app-region: no-drag;
+}
+
+.title-bar-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.title-bar-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark-theme .title-bar-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.close-button {
+    background-color: #FF5F57;
+    color: white;
+}
+
+.close-button:hover {
+    background-color: #FF7B72 !important;
+}
+
+/* 锁定按钮 */
+.lock-button {
+    background-color: transparent;
+    position: relative;
+}
+
+.lock-button::before {
+    content: '🔒';
+    font-size: 16px;
+}
+
+.lock-button.unlocked::before {
+    content: '🔓';
+}
+
+/* 内容容器 */
+.content-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    overflow: hidden;
+    border-radius: 12px;
+    background-color: transparent;
+}
+
+/* 作业标题 */
+.homework-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-color);
+    text-align: center;
+}
+
+/* 作业控制面板 */
+.homework-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+/* 作业按钮容器 */
+.homework-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* 列数控制 */
+.columns-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 字号控制 */
+.font-size-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 透明度控制 */
+.opacity-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 控制标签 */
+.control-label {
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+/* 控制选择器 */
+.control-select {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.control-select:hover {
+    border-color: var(--primary-color);
+}
+
+/* 不同列数的样式 */
+body.columns-1 .homework-grid {
+    grid-template-columns: 1fr;
+}
+
+body.columns-2 .homework-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+body.columns-3 .homework-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+body.columns-4 .homework-grid {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+body.columns-auto .homework-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+/* 作业网格 - 单个大网格布局，实现自动补位 */
+.homework-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    padding: 12px;
+    align-content: start;
+    /* 优化滚动性能 */
+    scroll-behavior: smooth;
+    overscroll-behavior-y: smooth;
+    will-change: transform;
+    -webkit-overflow-scrolling: touch;
+    /* 隐藏滚动条，但保留滚动功能 */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* 科目区域 - 改为display: contents，让子元素直接参与网格布局 */
+.subject-section {
+    display: contents;
+}
+
+/* 科目标题 - 作为网格项，与作业卡片横向排列，大小一致 */
+.subject-title {
+    font-size: 20px;
+    font-weight: 600;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-lg);
+    color: white;
+    text-align: center;
+    box-shadow: var(--shadow);
+    grid-column: span 1;
+    margin-top: var(--spacing-sm);
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+.subject-title:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    transition: all 0.2s ease;
+}
+
+/* 科目颜色 - 直接应用到科目标题 */
+.subject-title.chinese { background-color: var(--subject-chinese); }
+.subject-title.math { background-color: var(--subject-math); }
+.subject-title.english { background-color: var(--subject-english); }
+.subject-title.physics { background-color: var(--subject-physics); }
+.subject-title.chemistry { background-color: var(--subject-chemistry); }
+.subject-title.biology { background-color: var(--subject-biology); }
+.subject-title.history { background-color: var(--subject-history); }
+.subject-title.geography { background-color: var(--subject-geography); }
+.subject-title.politics { background-color: var(--subject-politics); }
+.subject-title.other { background-color: var(--subject-other); }
+
+/* 科目作业网格 - 改为display: contents，让作业卡片直接参与网格布局 */
+.subject-grid {
+    display: contents;
+}
+
+/* 作业卡片 */
+.homework-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow);
+    transition: all 0.2s ease;
+    cursor: default;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* 不同科目的作业卡片背景颜色 */
+.homework-chinese {
+    background-color: rgba(209, 52, 56, 0.08);
+    border-left: 4px solid var(--subject-chinese);
+}
+
+.homework-math {
+    background-color: rgba(0, 120, 212, 0.08);
+    border-left: 4px solid var(--subject-math);
+}
+
+.homework-english {
+    background-color: rgba(255, 185, 0, 0.08);
+    border-left: 4px solid var(--subject-english);
+}
+
+.homework-physics {
+    background-color: rgba(16, 124, 16, 0.08);
+    border-left: 4px solid var(--subject-physics);
+}
+
+.homework-chemistry {
+    background-color: rgba(124, 58, 237, 0.08);
+    border-left: 4px solid var(--subject-chemistry);
+}
+
+.homework-biology {
+    background-color: rgba(3, 120, 124, 0.08);
+    border-left: 4px solid var(--subject-biology);
+}
+
+.homework-history {
+    background-color: rgba(216, 59, 1, 0.08);
+    border-left: 4px solid var(--subject-history);
+}
+
+.homework-geography {
+    background-color: rgba(0, 183, 195, 0.08);
+    border-left: 4px solid var(--subject-geography);
+}
+
+.homework-politics {
+    background-color: rgba(0, 120, 212, 0.08);
+    border-left: 4px solid var(--subject-politics);
+}
+
+.homework-other {
+    background-color: rgba(110, 118, 129, 0.08);
+    border-left: 4px solid var(--subject-other);
+}
+
+/* 作业卡片悬停效果 */
+.homework-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--primary-color);
+    transition: all 0.2s ease;
+}
+
+/* 科目标题悬停效果优化 */
+.subject-title:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    transition: all 0.2s ease;
+}
+
+/* 暗色主题下的作业卡片优化 */
+.dark-theme .homework-card {
+    background-color: rgba(32, 31, 30, 0.95);
+}
+
+.dark-theme .homework-chinese {
+    background-color: rgba(209, 52, 56, 0.1);
+}
+
+.dark-theme .homework-math {
+    background-color: rgba(0, 120, 212, 0.1);
+}
+
+.dark-theme .homework-english {
+    background-color: rgba(255, 185, 0, 0.1);
+}
+
+.dark-theme .homework-physics {
+    background-color: rgba(16, 124, 16, 0.1);
+}
+
+.dark-theme .homework-chemistry {
+    background-color: rgba(124, 58, 237, 0.1);
+}
+
+.dark-theme .homework-biology {
+    background-color: rgba(3, 120, 124, 0.1);
+}
+
+.dark-theme .homework-history {
+    background-color: rgba(216, 59, 1, 0.1);
+}
+
+.dark-theme .homework-geography {
+    background-color: rgba(0, 183, 195, 0.1);
+}
+
+.dark-theme .homework-politics {
+    background-color: rgba(0, 120, 212, 0.1);
+}
+
+.dark-theme .homework-other {
+    background-color: rgba(110, 118, 129, 0.1);
+}
+
+/* 作业卡片内容优化 */
+.homework-content {
+    flex: 1;
+    font-size: var(--font-size);
+    line-height: 1.5;
+    color: var(--text-color);
+    word-wrap: break-word;
+    word-break: break-word;
+    margin-bottom: var(--spacing-sm);
+}
+
+/* 暗色主题优化 */
+.dark-theme .subject-section {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .homework-card {
+    background-color: rgba(32, 31, 30, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 无作业提示优化 */
+.no-homework {
+    text-align: center;
+    color: #605e5c;
+    font-size: 16px;
+    padding: 60px 20px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    margin: 20px;
+}
+
+
+
+/* 截止日期 */
+.due-date {
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+    display: inline-block;
+}
+
+.due-date.today {
+    color: #d13438;
+    font-weight: 600;
+}
+
+/* 无作业提示 */
+.no-homework {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--font-size);
+    padding: var(--spacing-xl);
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow);
+    margin: var(--spacing-md);
+}
+
+/* 状态栏 */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--title-bar-bg);
+    border-top: 1px solid var(--border-color);
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-sm);
+    border-radius: 0 0 var(--border-radius-xl) var(--border-radius-xl);
+    overflow: hidden;
+}
+
+/* 右下角按钮区域 */
+.bottom-right-buttons {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    right: var(--spacing-lg);
+    display: flex;
+    gap: var(--spacing-sm);
+    z-index: 100;
+}
+
+/* 拖动把手 */
+.drag-handle {
+    position: fixed;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 120, 212, 0.8);
+    border-radius: 50%;
+    cursor: move;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 101;
+    transition: all 0.2s ease;
+}
+
+.drag-handle:hover {
+    background-color: rgba(0, 100, 180, 0.9);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.drag-handle::before {
+    content: '⋮⋮';
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* 暗色主题下的拖动把手 */
+.dark-theme .drag-handle {
+    background-color: rgba(0, 120, 212, 0.9);
+}
+
+.dark-theme .drag-handle:hover {
+    background-color: rgba(0, 140, 220, 1);
+}
+
+.bottom-right-buttons fluent-button {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size);
+    box-shadow: var(--shadow-hover);
+    border-radius: var(--border-radius-md);
+    transition: all 0.2s ease;
+}
+
+.bottom-right-buttons fluent-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* 滚动条样式 */
+.homework-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.homework-grid::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.homework-grid::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.homework-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* 暗色主题滚动条 */
+.dark-theme .homework-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .homework-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.dark-theme .homework-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .subject-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .homework-title {
+        font-size: 20px;
+    }
+    
+    .subject-title {
+        font-size: 18px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+    .subject-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+}
+
+/* 无框窗口调整大小手柄 */
+/* 上边框 */
+.resize-handle.top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    cursor: ns-resize;
+    z-index: 1000;
+}
+
+/* 下边框 */
+.resize-handle.bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    cursor: ns-resize;
+    z-index: 1000;
+}
+
+/* 左边框 */
+.resize-handle.left {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: ew-resize;
+    z-index: 1000;
+}
+
+/* 右边框 */
+.resize-handle.right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: ew-resize;
+    z-index: 1000;
+}
+
+/* 左上角 */
+.resize-handle.top-left {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nwse-resize;
+    z-index: 1001;
+}
+
+/* 右上角 */
+.resize-handle.top-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nesw-resize;
+    z-index: 1001;
+}
+
+/* 左下角 */
+.resize-handle.bottom-left {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nesw-resize;
+    z-index: 1001;
+}
+
+/* 右下角 */
+.resize-handle.bottom-right {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nwse-resize;
+    z-index: 1001;
+}
+
+/* 动画效果 */
+.homework-card {
+    animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 主题切换动画 */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.title-bar, .status-bar {
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.homework-card, .subject-title {
+    transition: all 0.3s ease;
+}

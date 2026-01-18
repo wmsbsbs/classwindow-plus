@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>关于 - 课堂窗</title>
+    <!-- 引入 Fluent UI Web Components -->
+    <!-- 优化资源加载：使用defer和preload提升性能 -->
+    <link rel="preload" href="../assets/css/about.css" as="style">
+    <link rel="preload" href="../assets/css/hide-scrollbar.css" as="style">
+    <link rel="stylesheet" href="../assets/css/about.css">
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css">
+    <!-- 延迟加载Fluent UI组件，提升首屏加载速度 -->
+    <script type="module" src="https://unpkg.com/@fluentui/web-components" defer></script>
+</head>
+<body>
+    <!-- 标题栏 -->
+    <div class="title-bar">
+        <div class="title">关于</div>
+        <div class="title-bar-buttons">
+            <div class="title-bar-button close-button" title="关闭" id="titleCloseBtn"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header-section">
+            <div class="promo-logo-container">
+                <img src="../assets/logo.jpg" alt="ClassWindow Plus Logo" class="promo-logo">
+            </div>
+            <div class="slogan">ClassWindow Plus</div>
+            <div class="app-name">课堂窗增强版</div>
+        </div>
+        
+        <fluent-card class="info-card">
+            <div class="about-content">
+                <div class="about-text">开发者：R3N</div>
+                <div class="about-text">版本: <fluent-badge>1.1.1</fluent-badge></div>
+            </div>
+        </fluent-card>
+        
+        <div class="footer">
+            <div class="adapt-info">基于 ClassWindow 改编</div>
+            <div class="original-info">
+                原作者 GitHub：
+                <fluent-anchor href="https://github.com/xinghai-smartedu/classwindow" target="_blank">
+                    https://github.com/xinghai-smartedu/classwindow
+                </fluent-anchor>
+            </div>
+            <div class="copyright">© 2026 ClassWindow Plus. 保留所有权利.</div>
+        </div>
+    </div>
+</body>
+
+<script>
+    const { shell } = require('electron');
+    
+    // 监听关闭按钮
+    document.querySelector('#titleCloseBtn').addEventListener('click', () => {
+        window.close();
+    });
+    
+    // 处理所有外部链接点击，确保在外部浏览器打开
+    document.addEventListener('click', (event) => {
+        const anchor = event.target.closest('fluent-anchor');
+        if (anchor && anchor.href) {
+            event.preventDefault();
+            shell.openExternal(anchor.href);
+        }
+    });
+    
+    function openGitHub() {
+        shell.openExternal('https://github.com/xinghai-smartedu/classwindow');
+    }
+    </script>
+</html>

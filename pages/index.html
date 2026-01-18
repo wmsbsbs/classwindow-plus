@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>桌面悬浮窗</title>
+    <!-- 优化资源加载：使用defer和preload提升性能 -->
+    <link rel="preload" href="../assets/css/main.css" as="style">
+    <link rel="preload" href="../assets/css/hide-scrollbar.css" as="style">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css">
+    <!-- 延迟加载Fluent UI组件，提升首屏加载速度 -->
+    <script type="module" src="https://unpkg.com/@fluentui/web-components" defer></script>
+</head>
+
+<body>
+    <!-- 加载动画 -->
+    <div id="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>加载中...</p>
+    </div>
+
+    <div class="main-container" id="mainContainer">
+
+        
+        <div class="content" id="contentContainer">
+            <!-- 时钟卡片 -->
+            <div class="card time-card" id="timeCard">
+                <h3>时间</h3>
+                <div class="time" id="time">00:00:00</div>
+                <div class="date" id="date">加载中</div>
+            </div>
+
+            <!-- 作业卡片 -->
+            <div class="card homework-card" id="homeworkCard">
+                <h3>作业</h3>
+                <div class="homework-list" id="homeworkList">
+                    <!-- 作业将在这里显示 -->
+                </div>
+                <div class="homework-btn-container">
+                    <fluent-button appearance="accent" id="addHomeworkBtn">添加作业</fluent-button>
+                    <fluent-button appearance="outline" id="viewAllHomeworkBtn">查看全部</fluent-button>
+                </div>
+            </div>
+
+            <!-- 启动台卡片 -->
+            <div class="card launchpad-card" id="launchpadCard">
+                <h3>启动台</h3>
+                <div class="launchpad-container" id="launchpadContainer">
+                    <!-- 启动台应用将在这里显示 -->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    // 导入 IPC 通信
+    const { ipcRenderer } = require('electron');
+
+    // 防止click事件在空白区域时被拦截
+    ['timeCard', 'homeworkCard', 'launchpadCard'].forEach(id => {
+        const card = document.getElementById(id);
+        if (card) {
+            // 鼠标事件
+            card.addEventListener('mouseenter', () => 
+                ipcRenderer.send('set-ignore-mouse-events', { ignore: false })
+            );
+            
+            card.addEventListener('mouseleave', () => 
+                ipcRenderer.send('set-ignore-mouse-events', { 
+                    ignore: true,
+                    forward: true
+                })
+            );
+            
+            // 触摸事件 - 模拟鼠标进入/离开效果
+            card.addEventListener('touchstart', () => {
+                ipcRenderer.send('set-ignore-mouse-events', { ignore: false });
+            });
+            
+            card.addEventListener('touchend', () => {
+                setTimeout(() => {
+                    ipcRenderer.send('set-ignore-mouse-events', { 
+                        ignore: true,
+                        forward: true
+                    });
+                }, 100);
+            });
+        }
+    });
+    
+    // 添加触摸事件支持，确保触摸操作能够正常触发
+    function addTouchSupport() {
+        // 处理触摸事件，确保点击事件能正常触发
+        const clickableElements = document.querySelectorAll('button, .launchpad-app, .subject-homework-item');
+        
+        clickableElements.forEach(element => {
+            // 触摸开始时添加激活状态
+            element.addEventListener('touchstart', (e) => {
+                element.style.transform = 'scale(0.95)';
+            });
+            
+            // 触摸结束时恢复状态
+            element.addEventListener('touchend', (e) => {
+                element.style.transform = '';
+            });
+            
+            // 触摸取消时恢复状态
+            element.addEventListener('touchcancel', (e) => {
+                element.style.transform = '';
+            });
+        });
+    }
+    
+    // 页面加载完成后添加触摸支持
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', addTouchSupport);
+    } else {
+        addTouchSupport();
+    }
+    
+    // 添加窗口拖动功能，支持鼠标和触摸事件
+    function addWindowDragSupport() {
+        const mainContainer = document.getElementById('mainContainer');
+        if (!mainContainer) return;
+        
+        let isDragging = false;
+        let startX, startY;
+        
+        // 鼠标事件
+        mainContainer.addEventListener('mousedown', (e) => {
+            // 只有在非可点击元素上才能拖动窗口
+            if (e.target.tagName !== 'BUTTON' && 
+                !e.target.closest('.delete-btn') && 
+                !e.target.closest('.launchpad-app') &&
+                !e.target.closest('.subject-homework-item')) {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                mainContainer.style.cursor = 'grabbing';
+            }
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                // 发送窗口移动事件到主进程
+                ipcRenderer.send('move-window', deltaX, deltaY);
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                mainContainer.style.cursor = 'grab';
+            }
+        });
+        
+        // 触摸事件
+        let touchStartX, touchStartY;
+        let isTouchDragging = false;
+        
+        mainContainer.addEventListener('touchstart', (e) => {
+            // 只有在非可点击元素上才能拖动窗口
+            const touchTarget = e.target;
+            if (touchTarget.tagName !== 'BUTTON' && 
+                !touchTarget.closest('.delete-btn') && 
+                !touchTarget.closest('.launchpad-app') &&
+                !touchTarget.closest('.subject-homework-item')) {
+                isTouchDragging = true;
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                mainContainer.style.cursor = 'grabbing';
+            }
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (isTouchDragging) {
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - touchStartX;
+                const deltaY = touch.clientY - touchStartY;
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                
+                // 发送窗口移动事件到主进程
+                ipcRenderer.send('move-window', deltaX, deltaY);
+            }
+        });
+        
+        document.addEventListener('touchend', () => {
+            if (isTouchDragging) {
+                isTouchDragging = false;
+                mainContainer.style.cursor = 'grab';
+            }
+        });
+        
+        document.addEventListener('touchcancel', () => {
+            if (isTouchDragging) {
+                isTouchDragging = false;
+                mainContainer.style.cursor = 'grab';
+            }
+        });
+        
+        // 设置初始光标样式
+        mainContainer.style.cursor = 'grab';
+    }
+    
+    // 页面加载完成后添加窗口拖动支持
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', addWindowDragSupport);
+    } else {
+        addWindowDragSupport();
+    }
+
+    // 窗口大小锁定功能
+    let isWindowLocked = true; // 默认锁定窗口大小
+    
+    // 初始化锁按钮状态
+    function initLockButton() {
+        const resizeLockBtn = document.getElementById('resizeLockBtn');
+        const lockIcon = document.getElementById('lockIcon');
+        if (resizeLockBtn && lockIcon) {
+            lockIcon.textContent = '调整';
+            resizeLockBtn.classList.add('locked');
+            resizeLockBtn.classList.remove('unlocked');
+        }
+    }
+    
+    // 切换窗口大小锁定状态
+    function toggleWindowLock() {
+        isWindowLocked = !isWindowLocked;
+        
+        const resizeLockBtn = document.getElementById('resizeLockBtn');
+        const lockIcon = document.getElementById('lockIcon');
+        
+        console.log('Toggle window lock:', isWindowLocked);
+        
+        if (resizeLockBtn && lockIcon) {
+            if (isWindowLocked) {
+                lockIcon.textContent = '调整';
+                resizeLockBtn.classList.add('locked');
+                resizeLockBtn.classList.remove('unlocked');
+                console.log('Sending set-window-resizable: false');
+                ipcRenderer.send('set-window-resizable', false);
+                ipcRenderer.send('update-window-locked', true);
+            } else {
+                lockIcon.textContent = '调整';
+                resizeLockBtn.classList.add('unlocked');
+                resizeLockBtn.classList.remove('locked');
+                console.log('Sending set-window-resizable: true');
+                ipcRenderer.send('set-window-resizable', true);
+                ipcRenderer.send('update-window-locked', false);
+                
+                // 测试窗口调整大小
+                console.log('Testing window resize');
+                ipcRenderer.send('test-resize-window', 400, 500);
+            }
+        }
+    }
+    
+    // 初始化窗口调整大小手柄
+    function initResizeHandles() {
+        const resizeHandles = document.querySelectorAll('.resize-handle');
+        
+        resizeHandles.forEach(handle => {
+            handle.addEventListener('mousedown', startResizing);
+            handle.addEventListener('touchstart', startResizing, { passive: false });
+        });
+        
+        document.addEventListener('mousemove', resize);
+        document.addEventListener('touchmove', resize, { passive: false });
+        document.addEventListener('mouseup', stopResizing);
+        document.addEventListener('touchend', stopResizing);
+    }
+    
+    // 开始调整大小
+    function startResizing(e) {
+        e.preventDefault();
+        const handle = e.currentTarget;
+        const edge = handle.classList[1]; // 获取手柄的位置类名（top, bottom, left, right等）
+        
+        // 发送开始调整大小事件到主进程
+        ipcRenderer.send('start-resizing', edge);
+    }
+    
+    // 停止调整大小
+    function stopResizing(e) {
+        e.preventDefault();
+        // 发送停止调整大小事件到主进程
+        ipcRenderer.send('stop-resizing');
+    }
+    
+    // 调整大小
+    function resize(e) {
+        // 这里可以添加客户端调整大小的逻辑
+        // 但主要的调整大小逻辑由Electron的窗口系统处理
+    }
+    
+    // 确保DOM加载完成后再执行
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            const resizeLockBtn = document.getElementById('resizeLockBtn');
+            // 添加锁按钮点击事件监听
+            if (resizeLockBtn) {
+                resizeLockBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    toggleWindowLock();
+                });
+            }
+            // 初始化锁按钮
+            initLockButton();
+            // 初始化窗口调整大小手柄
+            initResizeHandles();
+        });
+    } else {
+        const resizeLockBtn = document.getElementById('resizeLockBtn');
+        // 添加锁按钮点击事件监听
+        if (resizeLockBtn) {
+            resizeLockBtn.addEventListener('click', function(event) {
+                event.preventDefault();
+                toggleWindowLock();
+            });
+        }
+        // 初始化锁按钮
+        initLockButton();
+        // 初始化窗口调整大小手柄
+        initResizeHandles();
+    }
+
+    // 添加时钟显示状态变量
+    let isClockVisible = true;
+    // 添加作业显示状态变量
+    let isHomeworkVisible = true;
+    // 添加启动台显示状态变量
+    let isLaunchpadVisible = true;
+    // 添加置顶状态变量
+    let isAlwaysOnTop = true;
+    // 添加暗色主题状态变量
+    let isDarkThemeEnabled = false;
+    // 启动台应用列表
+    let launchpadApps = [];
+
+    // 更新时间函数
+    function updateTime() {
+        if (!isClockVisible) {
+            // 如果时钟被禁用，隐藏时间元素
+            document.getElementById('timeCard').style.display = 'none';
+            return;
+        }
+
+        // 如果时钟启用，确保元素可见
+        document.getElementById('timeCard').style.display = 'block';
+        document.getElementById('time').style.display = 'block';
+        document.getElementById('date').style.display = 'block';
+        const timeHeaders = document.querySelectorAll('h3');
+        if (timeHeaders[0]) {
+            timeHeaders[0].style.display = 'block';
+        }
+
+        const now = new Date();
+
+        // 格式化时间
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeString = `${hours}:${minutes}:${seconds}`;
+
+        // 格式化日期
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        const weekday = weekdays[now.getDay()];
+        const dateString = `${year}年${month}月${day}日 ${weekday}`;
+
+        // 更新显示
+        document.getElementById('time').textContent = timeString;
+        document.getElementById('date').textContent = dateString;
+    }
+
+    // 控制作业显示的函数
+    function updateHomeworkVisibility() {
+        if (!isHomeworkVisible) {
+            // 如果作业被禁用，隐藏作业相关元素
+            document.getElementById('homeworkCard').style.display = 'none';
+        } else {
+            // 如果作业启用，确保元素可见
+            document.getElementById('homeworkCard').style.display = 'block';
+            document.getElementById('addHomeworkBtn').style.display = 'inline-block';
+            document.getElementById('homeworkList').style.display = 'block';
+            const homeworkHeaders = document.querySelectorAll('h3');
+            if (homeworkHeaders[1]) { // 注意：这里索引可能需要调整
+                homeworkHeaders[1].style.display = 'block';
+            }
+        }
+    }
+
+    // 控制启动台显示的函数
+    function updateLaunchpadVisibility() {
+        if (!isLaunchpadVisible || launchpadApps.length === 0) {
+            // 如果启动台被禁用或没有应用，隐藏启动台
+            document.getElementById('launchpadCard').style.display = 'none';
+        } else {
+            // 如果启动台启用且有应用，确保元素可见
+            document.getElementById('launchpadCard').style.display = 'block';
+            const launchpadHeaders = document.querySelectorAll('h3');
+            if (launchpadHeaders[2]) { // 启动台标题是第三个h3（因为现在启动台在最后）
+                launchpadHeaders[2].style.display = 'block';
+            }
+        }
+    }
+
+    // 切换主题的函数
+    function toggleTheme(enabled) {
+        isDarkThemeEnabled = enabled;
+        
+        // 查找现有的主题链接元素
+        let themeLink = document.getElementById('theme-stylesheet');
+        
+        if (enabled) {
+            // 使用暗色主题CSS
+            if (themeLink) {
+                // 如果已存在主题链接，直接修改href
+                themeLink.href = '../assets/css/main-dark.css';
+            } else {
+                // 如果不存在，创建新的链接元素
+                themeLink = document.createElement('link');
+                themeLink.rel = 'stylesheet';
+                themeLink.href = '../assets/css/main-dark.css';
+                themeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
+                document.head.appendChild(themeLink);
+            }
+        } else {
+            // 使用默认主题CSS
+            if (themeLink) {
+                // 如果已存在主题链接，直接修改href
+                themeLink.href = '../assets/css/main.css';
+            } else {
+                // 如果不存在，创建新的链接元素
+                themeLink = document.createElement('link');
+                themeLink.rel = 'stylesheet';
+                themeLink.href = '../assets/css/main.css';
+                themeLink.id = 'theme-stylesheet'; // 添加ID以便后续引用
+                document.head.appendChild(themeLink);
+            }
+        }
+    }
+
+    // 渲染启动台应用
+    function renderLaunchpadApps() {
+        if (!isLaunchpadVisible || launchpadApps.length === 0) {
+            return; // 如果启动台功能被禁用或没有应用，则不渲染
+        }
+
+        const container = document.getElementById('launchpadContainer');
+        container.innerHTML = '';
+        launchpadApps.forEach((app, index) => {
+            const appElement = document.createElement('div');
+            appElement.className = 'launchpad-app';
+
+            // 为链接类型添加特殊类名
+            if (app.type === 'link') {
+                appElement.classList.add('link-type');
+                appElement.title = `链接: ${app.name}`;
+            } else {
+                appElement.title = `应用: ${app.name}`;
+            }
+
+            let iconElement = '';
+            if (app.icon) {
+                // 如果有自定义图标，使用图片
+                iconElement = `<img class="launchpad-icon" src="${app.icon}" alt="${app.name}">`;
+            } else {
+                // 否则使用首字母
+                const iconText = app.name.charAt(0).toUpperCase();
+                iconElement = `<div class="launchpad-icon">${iconText}</div>`;
+            }
+
+            appElement.innerHTML = `
+                    ${iconElement}
+                    <div class="launchpad-name">${app.name}</div>
+                `;
+
+            appElement.addEventListener('click', () => {
+                // 发送启动应用或打开链接请求
+                if (typeof require !== 'undefined') {
+                    try {
+                        const {
+                            ipcRenderer
+                        } = require('electron');
+                        ipcRenderer.send('launch-app', app);
+                    } catch (e) {
+                        console.log('Not in Electron environment');
+                    }
+                }
+            });
+
+            container.appendChild(appElement);
+        });
+    }
+
+    // 立即显示时间
+    updateTime();
+
+    // 每秒更新时间
+    const timeInterval = setInterval(updateTime, 1000);
+
+    // 窗口关闭时清理定时器，防止内存泄漏
+    window.addEventListener('beforeunload', () => {
+        clearInterval(timeInterval);
+    });
+
+    // 作业功能相关代码
+    document.addEventListener('DOMContentLoaded', () => {
+        // 隐藏加载动画并显示内容
+        const loadingOverlay = document.getElementById('loading');
+        const content = document.querySelector('.content');
+
+        // 稍微延迟隐藏加载动画，让用户看到加载过程
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+            content.classList.add('loaded');
+        }, 500);
+
+        // 获取DOM元素
+        const addHomeworkBtn = document.getElementById('addHomeworkBtn');
+        const viewAllHomeworkBtn = document.getElementById('viewAllHomeworkBtn');
+        const homeworkList = document.getElementById('homeworkList');
+        const launchpadCard = document.getElementById('launchpadCard');
+        
+        // 打开全部作业窗口
+        viewAllHomeworkBtn.addEventListener('click', () => {
+            // 检查是否在 Electron 环境中
+            if (typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    ipcRenderer.send('open-homework-list-window');
+                } catch (e) {
+                    console.log('Not in Electron environment');
+                }
+            } else {
+                console.log('Not in Electron environment');
+            }
+        });
+
+        // 获取科目名称
+        function getSubjectName(subjectValue) {
+            const subjects = {
+                'chinese': '语文',
+                'math': '数学',
+                'english': '英语',
+                'physics': '物理',
+                'chemistry': '化学',
+                'biology': '生物',
+                'history': '历史',
+                'geography': '地理',
+                'politics': '道法',
+                'other': '其他'
+            };
+            return subjects[subjectValue] || subjectValue;
+        }
+
+        // 从localStorage加载作业数据
+        let homeworkData = JSON.parse(localStorage.getItem('homeworkData')) || [];
+
+        // 显示作业列表
+        function renderHomeworkList() {
+            if (!isHomeworkVisible) {
+                return; // 如果作业功能被禁用，则不渲染
+            }
+
+            // 确保所有作业都有唯一ID（只在必要时执行）
+            let needSave = false;
+            homeworkData = homeworkData.map(homework => {
+                if (!homework.id) {
+                    homework.id = `homework-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                    needSave = true;
+                }
+                return homework;
+            });
+
+            // 只有在ID发生变化时才保存到localStorage
+            if (needSave) {
+                localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
+            }
+
+            // 使用文档片段减少DOM操作
+            const fragment = document.createDocumentFragment();
+            
+            if (homeworkData.length === 0) {
+                const emptyMessage = document.createElement('p');
+                emptyMessage.style.textAlign = 'center';
+                emptyMessage.style.opacity = '0.7';
+                emptyMessage.textContent = '暂无作业';
+                fragment.appendChild(emptyMessage);
+            } else {
+                // 按科目分组作业数据
+                const homeworkBySubject = homeworkData.reduce((groups, item) => {
+                    const subject = item.subject;
+                    if (!groups[subject]) {
+                        groups[subject] = [];
+                    }
+                    groups[subject].push(item);
+                    return groups;
+                }, {});
+
+                // 遍历每个科目分组
+                Object.entries(homeworkBySubject).forEach(([subject, items]) => {
+                    // 创建科目容器
+                    const subjectContainer = document.createElement('div');
+                    subjectContainer.className = `subject-container ${subject}`;
+                    
+                    // 创建科目标题
+                    const subjectTitle = document.createElement('div');
+                    subjectTitle.className = 'subject-title';
+                    subjectTitle.textContent = getSubjectName(subject);
+                    
+                    // 创建作业列表容器
+                    const subjectHomeworkList = document.createElement('div');
+                    subjectHomeworkList.className = 'subject-homework-list';
+                    
+                    // 添加作业项到科目作业列表
+                    items.forEach((item) => {
+                        const homeworkItem = document.createElement('div');
+                        homeworkItem.className = 'subject-homework-item';
+
+                        // 格式化截止日期
+                        let dueDateStr = '';
+                        if (item.dueDate) {
+                            const date = new Date(item.dueDate);
+                            // 检查是否是当天
+                            const today = new Date();
+                            if (!(date.getFullYear() === today.getFullYear() &&
+                                    date.getMonth() === today.getMonth() &&
+                                    date.getDate() === today.getDate())) {
+                                dueDateStr = `<br> 截止: ${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                            }
+                        }
+
+                        // 将换行符替换为<br>标签
+                        const contentWithLineBreaks = item.content.replace(/\n/g, '<br>');
+
+                        // 使用作业ID作为标识
+                        homeworkItem.innerHTML = `
+                            <div class="subject-homework-content">
+                                ${contentWithLineBreaks}${dueDateStr}
+                            </div>
+                            <button class="delete-btn" data-id="${item.id}">删除</button>
+                        `;
+                        subjectHomeworkList.appendChild(homeworkItem);
+                    });
+                    
+                    // 组装科目容器
+                    subjectContainer.appendChild(subjectTitle);
+                    subjectContainer.appendChild(subjectHomeworkList);
+                    
+                    // 添加到文档片段
+                    fragment.appendChild(subjectContainer);
+                });
+            }
+
+            // 确保homeworkList元素存在
+            if (homeworkList) {
+                // 一次性清空并添加内容，减少重排
+                homeworkList.innerHTML = '';
+                homeworkList.appendChild(fragment);
+
+                // 个人模式默认使用单列布局
+                const subjectHomeworkItems = document.querySelectorAll('.subject-homework-item');
+                subjectHomeworkItems.forEach(item => {
+                    item.style.minWidth = '100%';
+                    item.style.maxWidth = '100%';
+                });
+            }
+        }
+
+        // 打开新窗口添加作业
+        addHomeworkBtn.addEventListener('click', () => {
+            // 检查是否在 Electron 环境中
+            if (typeof require !== 'undefined') {
+                try {
+                    const {
+                        ipcRenderer
+                    } = require('electron');
+                    ipcRenderer.send('open-homework-window');
+                } catch (e) {
+                    console.log('Not in Electron environment');
+                }
+            } else {
+                console.log('Not in Electron environment');
+            }
+        });
+        // 接收来自新窗口的作业数据和开关状态
+        if (typeof require !== 'undefined') {
+            try {
+                const {
+                    ipcRenderer
+                } = require('electron');
+
+                // 监听新作业数据
+                ipcRenderer.on('new-homework', (event, homework) => {
+                    // 为新作业添加唯一ID
+                    homework.id = `homework-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                    
+                    // 添加新作业
+                    homeworkData.push(homework);
+
+                    // 保存到localStorage
+                    localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
+
+                    // 触发自动云端同步
+                    try {
+                        const existingSettings = localStorage.getItem('cloudSyncSettings');
+                        if (existingSettings) {
+                            const cloudSyncSettings = JSON.parse(existingSettings);
+                            if (cloudSyncSettings.enabled) {
+                                console.log('自动触发云端同步...');
+                                // 检查是否已在settings.js中定义了syncToCloud函数
+                                if (typeof syncToCloud === 'function') {
+                                    syncToCloud();
+                                } else {
+                                    // 如果未定义，尝试通过IPC触发同步
+                                    ipcRenderer.send('perform-auto-cloud-sync');
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('自动同步失败:', e);
+                    }
+
+                    // 重新渲染作业列表
+                    renderHomeworkList();
+                    
+                    // 通知大屏作业窗口刷新，确保数据已经保存到localStorage
+                    ipcRenderer.send('main-window-homework-updated');
+                });
+
+                // 监听更新作业数据
+                ipcRenderer.on('update-homework', (event, homework, index) => {
+                    // 更新作业数据
+                    if (index >= 0 && index < homeworkData.length) {
+                        homeworkData[index] = homework;
+                    } else {
+                        // 如果索引无效，查找并更新
+                        const existingIndex = homeworkData.findIndex(item => 
+                            item.id === homework.id || 
+                            (item.content === homework.content && 
+                             item.subject === homework.subject && 
+                             item.timestamp === homework.timestamp)
+                        );
+                        if (existingIndex >= 0) {
+                            homeworkData[existingIndex] = homework;
+                        }
+                    }
+
+                    // 保存到localStorage
+                    localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
+
+                    // 重新渲染作业列表
+                    renderHomeworkList();
+                });
+
+                // 监听作业删除事件
+                ipcRenderer.on('homework-deleted', (event, homeworkId) => {
+                    // 根据作业ID删除作业
+                    homeworkData = homeworkData.filter(item => item.id !== homeworkId);
+                    
+                    // 保存到localStorage
+                    localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
+                    
+                    // 重新渲染作业列表
+                    renderHomeworkList();
+                });
+
+                // 监听时钟开关事件
+                ipcRenderer.on('clock-toggle', (event, isEnabled) => {
+                    isClockVisible = isEnabled;
+                    // 重新设置时间更新逻辑
+                    if (isClockVisible) {
+                        updateTime(); // 立即更新一次显示
+                    } else {
+                        // 隐藏时间元素
+                        document.getElementById('timeCard').style.display = 'none';
+                    }
+                });
+
+                // 监听作业开关事件
+                ipcRenderer.on('homework-toggle', (event, isEnabled) => {
+                    isHomeworkVisible = isEnabled;
+                    updateHomeworkVisibility();
+                    renderHomeworkList(); // 重新渲染作业列表
+                });
+
+                // 监听启动台应用更新事件
+                ipcRenderer.on('launchpad-apps-updated', (event, apps) => {
+                    launchpadApps = apps;
+                    updateLaunchpadVisibility();
+                    renderLaunchpadApps();
+                });
+
+                // 监听暗色主题切换事件
+                ipcRenderer.on('dark-theme-toggle', (event, isEnabled) => {
+                    toggleTheme(isEnabled);
+                });
+
+                // 监听窗口背景模糊变化事件
+                ipcRenderer.on('update-window-blur', (event, blurValue) => {
+                    const contentContainer = document.getElementById('contentContainer');
+                    if (contentContainer) {
+                        // 使用CSS backdrop-filter实现模糊效果
+                        contentContainer.style.backdropFilter = `blur(${blurValue}px)`;
+                        contentContainer.style.webkitBackdropFilter = `blur(${blurValue}px)`;
+                    }
+                });
+                
+                // 监听主界面组件缩放变化事件
+                ipcRenderer.on('update-main-interface-scale', (event, scale) => {
+                    try {
+                        // 直接调整字体大小和间距，避免transform导致的裁切问题
+                        const scaleFactor = scale / 100;
+                        
+                        // 调整所有卡片的字体大小和间距
+                        const cards = document.querySelectorAll('.card');
+                        if (cards.length > 0) {
+                            cards.forEach(card => {
+                                card.style.fontSize = `${14 * scaleFactor}px`;
+                                card.style.padding = `${17 * scaleFactor}px`;
+                            });
+                        }
+                        
+                        // 调整标题大小
+                        const titles = document.querySelectorAll('h3');
+                        if (titles.length > 0) {
+                            titles.forEach(title => {
+                                title.style.fontSize = `${16 * scaleFactor}px`;
+                            });
+                        }
+                        
+                        // 调整时间显示大小
+                        const timeElement = document.getElementById('time');
+                        if (timeElement) {
+                            timeElement.style.fontSize = `${26 * scaleFactor}px`;
+                        }
+                        
+                        // 调整日期显示大小
+                        const dateElement = document.getElementById('date');
+                        if (dateElement) {
+                            dateElement.style.fontSize = `${13 * scaleFactor}px`;
+                        }
+                        
+                        // 调整作业项的内边距
+                        const homeworkItems = document.querySelectorAll('.subject-homework-item, .homework-item');
+                        if (homeworkItems.length > 0) {
+                            homeworkItems.forEach(item => {
+                                item.style.padding = `${10 * scaleFactor}px`;
+                            });
+                        }
+                                                // 调整按钮大小
+                        const buttons = document.querySelectorAll('fluent-button');
+                        if (buttons.length > 0) {
+                            buttons.forEach(button => {
+                                button.style.height = `${48 * scaleFactor}px`;
+                                button.style.minHeight = `${48 * scaleFactor}px`;
+                                button.style.fontSize = `${14 * scaleFactor}px`;
+                            });
+                        }
+                        
+                        // 调整删除按钮大小
+                        const deleteButtons = document.querySelectorAll('.delete-btn');
+                        if (deleteButtons.length > 0) {
+                            deleteButtons.forEach(button => {
+                                button.style.minWidth = `${48 * scaleFactor}px`;
+                                button.style.minHeight = `${48 * scaleFactor}px`;
+                                button.style.fontSize = `${14 * scaleFactor}px`;
+                            });
+                        }
+                    } catch (e) {
+                        console.error('缩放处理失败:', e);
+                    }
+                });
+
+
+                
+                // 监听自动云端同步请求
+                ipcRenderer.on('perform-auto-cloud-sync', function() {
+                    console.log('收到自动云端同步请求');
+                    // 检查是否定义了syncToCloud函数
+                    if (typeof syncToCloud === 'function') {
+                        syncToCloud();
+                    } else {
+                        console.log('syncToCloud函数未定义，尝试从settings.html加载');
+                        // 定义syncToCloud函数
+                        syncToCloud = function() {
+                            // 从localStorage获取云端同步设置
+                            let cloudSyncEnabled = false;
+                            let serverAddress = '';
+                            let schoolCode = '';
+                            let classCode = '';
+                            let teacherPassword = '';
+                            
+                            try {
+                                const existingSettings = localStorage.getItem('cloudSyncSettings');
+                                if (existingSettings) {
+                                    const cloudSyncSettings = JSON.parse(existingSettings);
+                                    cloudSyncEnabled = cloudSyncSettings.enabled || false;
+                                    serverAddress = cloudSyncSettings.serverAddress || '';
+                                    schoolCode = cloudSyncSettings.schoolCode || '';
+                                    classCode = cloudSyncSettings.classCode || '';
+                                    teacherPassword = cloudSyncSettings.teacherPassword || '';
+                                }
+                            } catch (e) {
+                                console.error('获取云端同步设置失败:', e);
+                            }
+                            
+                            if (!cloudSyncEnabled) {
+                                console.log('云端同步功能未启用，跳过同步');
+                                return;
+                            }
+                            
+                            if (!serverAddress || !schoolCode || !classCode || !teacherPassword) {
+                                console.log('云端同步设置不完整，跳过同步');
+                                return;
+                            }
+                            
+                            // 验证并修正URL格式
+                            if (!serverAddress.startsWith('http://') && !serverAddress.startsWith('https://')) {
+                                serverAddress = 'http://' + serverAddress;
+                                console.log('自动修正服务器地址:', serverAddress);
+                            }
+                            
+                            // 获取作业数据
+                            let homeworkData = [];
+                            try {
+                                const data = localStorage.getItem('homeworkData');
+                                homeworkData = data ? JSON.parse(data) : [];
+                                console.log('获取到的作业数据:', homeworkData);
+                            } catch (e) {
+                                console.error('获取作业数据失败:', e);
+                                return;
+                            }
+                            
+                            // 构建同步数据
+                            const syncData = {
+                                action: 'upload',
+                                schoolCode: schoolCode,
+                                classCode: classCode,
+                                password: teacherPassword,
+                                homeworkData: homeworkData
+                            };
+                            
+                            // 发送到服务器，使用AbortController实现超时
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
+                            
+                            console.log('开始执行自动云端同步...');
+                            console.log('服务器地址:', serverAddress);
+                            console.log('同步数据:', syncData);
+                            
+                            fetch(serverAddress, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Referer': serverAddress,
+                                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                                },
+                                body: JSON.stringify(syncData),
+                                signal: controller.signal
+                            })
+                            .finally(() => clearTimeout(timeoutId))
+                            .then(response => {
+                                console.log('服务器响应状态:', response.status);
+                                console.log('服务器响应:', response);
+                                
+                                if (!response.ok) {
+                                    throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+                                }
+                                
+                                // 尝试获取响应文本
+                                return response.text().then(text => {
+                                    console.log('服务器响应文本:', text);
+                                    
+                                    // 处理空响应
+                                    if (!text || text.trim() === '') {
+                                        console.error('服务器返回空内容');
+                                        throw new Error('服务器返回空内容');
+                                    }
+                                    
+                                    // 检查是否为Cloudflare安全验证页面
+                                    if (text.includes('Cloudflare') || text.includes('aes.js') || text.includes('toNumbers')) {
+                                        console.error('Cloudflare安全验证拦截');
+                                        throw new Error('Cloudflare安全验证拦截');
+                                    }
+                                    
+                                    // 尝试JSON解析
+                                    try {
+                                        return JSON.parse(text);
+                                    } catch (e) {
+                                        console.error('JSON解析失败:', e);
+                                        console.error('响应文本:', text);
+                                        throw new Error(`服务器返回的不是有效JSON: ${text.substring(0, 200)}...`);
+                                    }
+                                });
+                            })
+                            .then(data => {
+                                console.log('同步响应数据:', data);
+                                if (data.success) {
+                                    console.log('作业已成功同步到云端');
+                                } else {
+                                    console.error('同步失败:', data.message || '未知错误');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('同步到云端失败:', error);
+                            });
+                        };
+                        // 执行同步
+                        syncToCloud();
+                    }
+                });
+
+                // 监听获取作业数据请求
+                ipcRenderer.on('get-homework-from-localstorage', function() {
+                    console.log('收到获取作业数据请求');
+                    
+                    // 从localStorage获取作业数据
+                    let homeworkData = [];
+                    try {
+                        const data = localStorage.getItem('homeworkData');
+                        homeworkData = data ? JSON.parse(data) : [];
+                        console.log('从localStorage获取到作业数据:', homeworkData);
+                    } catch (e) {
+                        console.error('获取作业数据失败:', e);
+                        homeworkData = [];
+                    }
+                    
+                    // 发送响应
+                    ipcRenderer.send('homework-data-from-localstorage', homeworkData);
+                });
+            } catch (e) {
+                console.log('Not in Electron environment');
+            }
+        }
+
+        // 初始化作业列表
+        updateHomeworkVisibility(); // 初始化作业可见性
+        renderHomeworkList();
+
+        // 初始化启动台
+        updateLaunchpadVisibility();
+        
+        // 初始化模糊效果和缩放设置
+        if (typeof require !== 'undefined') {
+            try {
+                const { ipcRenderer } = require('electron');
+                // 请求当前模糊设置和缩放设置
+                setTimeout(() => {
+                    // 请求当前模糊设置
+                    ipcRenderer.send('get-current-blur');
+                    // 请求当前缩放设置
+                    ipcRenderer.send('get-current-scale');
+                }, 100);
+            } catch (e) {
+                console.log('Not in Electron environment');
+            }
+        }
+    });
+</script>
+
+</html>

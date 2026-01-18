@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>全部作业</title>
+    <!-- 内联关键CSS，减少加载时间 -->
+    <style>
+        /* 重置和基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #ffffff;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 标题栏样式 */
+        .title-bar {
+            height: 32px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            -webkit-app-region: drag;
+            border-bottom: 1px solid #d9d9d9;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: 500;
+            -webkit-app-region: drag;
+        }
+
+        .title-bar-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .title-bar-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            -webkit-app-region: no-drag;
+        }
+
+        .close-button {
+            background: #ff5f57;
+        }
+
+        .close-button:hover {
+            background: #e04a43;
+        }
+
+        /* 主容器 */
+        .container {
+            padding: 20px;
+            height: calc(100vh - 32px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* 搜索栏 */
+        .search-bar {
+            margin-bottom: 15px;
+            z-index: 100;
+            position: relative;
+        }
+
+        /* 筛选控件 */
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* 作业列表容器 - 虚拟滚动 */
+        .homework-list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+            position: relative;
+            /* 虚拟滚动容器 */
+        }
+
+        /* 筛选控件 */
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            z-index: 100;
+            position: relative;
+        }
+
+        /* 虚拟滚动内容容器 */
+        .virtual-list {
+            position: relative;
+            width: 100%;
+        }
+
+        /* 虚拟滚动占位符 */
+        .virtual-list-placeholder {
+            position: absolute;
+            left: 0;
+            right: 0;
+            z-index: 1;
+        }
+
+        /* 虚拟滚动项目容器 */
+        .virtual-list-items {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 科目标签样式 */
+        .subject-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .subject-tag.chinese {
+            background-color: #E74C3C;
+        }
+
+        .subject-tag.math {
+            background-color: #3498DB;
+        }
+
+        .subject-tag.english {
+            background-color: #F39C12;
+        }
+
+        .subject-tag.physics {
+            background-color: #2980B9;
+        }
+
+        .subject-tag.chemistry {
+            background-color: #9B59B6;
+        }
+
+        .subject-tag.biology {
+            background-color: #27AE60;
+        }
+
+        .subject-tag.history {
+            background-color: #E67E22;
+        }
+
+        .subject-tag.geography {
+            background-color: #27AE60;
+        }
+
+        .subject-tag.politics {
+            background-color: #1ABC9C;
+        }
+
+        .subject-tag.other {
+            background-color: #95A5A6;
+        }
+
+        /* 作业项样式 */
+        .homework-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            /* 固定高度，用于虚拟滚动计算 */
+            min-height: 120px;
+        }
+
+        .homework-item:hover {
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .item-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .due-date.overdue {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .item-content {
+            margin-bottom: 12px;
+            line-height: 1.5;
+            color: #444;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #999;
+        }
+
+        .empty-state p {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        /* 加载状态 */
+        .loading-state {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+    <!-- 延迟加载Fluent UI组件，提升首屏加载速度 -->
+    <script type="module" src="https://unpkg.com/@fluentui/web-components" defer></script>
+</head>
+
+<body>
+    <!-- 标题栏 -->
+    <div class="title-bar">
+        <div class="title">全部作业</div>
+        <div class="title-bar-buttons">
+            <div class="title-bar-button close-button" title="关闭" id="titleCloseBtn"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h2>作业列表</h2>
+            <div class="header-buttons">
+                <fluent-button appearance="outline" id="deleteExpiredBtn">删除过期作业</fluent-button>
+                <fluent-button appearance="outline" id="deleteAllBtn">删除全部作业</fluent-button>
+            </div>
+        </div>
+        
+        <div class="search-bar">
+            <fluent-text-field id="searchInput" placeholder="搜索作业..." type="text"></fluent-text-field>
+        </div>
+        
+        <div class="filter-controls">
+            <fluent-select id="subjectFilter">
+                <option value="">全部科目</option>
+                <option value="chinese">语文</option>
+                <option value="math">数学</option>
+                <option value="english">英语</option>
+                <option value="physics">物理</option>
+                <option value="chemistry">化学</option>
+                <option value="biology">生物</option>
+                <option value="history">历史</option>
+                <option value="geography">地理</option>
+                <option value="politics">道德与法治</option>
+                <option value="other">其他</option>
+            </fluent-select>
+            
+            <fluent-select id="sortOrder">
+                <option value="newest">按最新添加</option>
+                <option value="oldest">按最早添加</option>
+                <option value="dueDateAsc">按截止日期（升序）</option>
+                <option value="dueDateDesc">按截止日期（降序）</option>
+            </fluent-select>
+        </div>
+        
+        <div class="homework-list-container" id="homeworkListContainer">
+            <!-- 虚拟滚动容器 -->
+            <div class="virtual-list" id="virtualList">
+                <div class="virtual-list-placeholder" id="virtualListPlaceholder"></div>
+                <div class="virtual-list-items" id="virtualListItems"></div>
+            </div>
+            
+            <!-- 加载状态 -->
+            <div class="loading-state" id="loadingState" style="display: none;">
+                <div class="loading-spinner"></div>
+                <span>加载中...</span>
+            </div>
+        </div>
+        
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <p>暂无作业</p>
+            <fluent-button appearance="accent" id="emptyAddBtn">添加第一个作业</fluent-button>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        // 性能优化：防抖函数
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // 添加触摸事件支持，确保触摸操作能够正常触发
+        function addTouchSupport() {
+            // 处理触摸事件，确保点击事件能正常触发
+            const clickableElements = document.querySelectorAll('button, fluent-button, fluent-select, fluent-text-field');
+            
+            clickableElements.forEach(element => {
+                // 触摸开始时添加激活状态
+                element.addEventListener('touchstart', (e) => {
+                    element.style.transform = 'scale(0.95)';
+                });
+                
+                // 触摸结束时恢复状态
+                element.addEventListener('touchend', (e) => {
+                    element.style.transform = '';
+                });
+                
+                // 触摸取消时恢复状态
+                element.addEventListener('touchcancel', (e) => {
+                    element.style.transform = '';
+                });
+            });
+        }
+        
+        // 添加窗口拖动功能，支持鼠标和触摸事件
+        function addWindowDragSupport() {
+            const titleBar = document.querySelector('.title-bar');
+            if (!titleBar) return;
+            
+            let isDragging = false;
+            let startX, startY;
+            
+            // 鼠标事件
+            titleBar.addEventListener('mousedown', (e) => {
+                // 只有在标题栏区域才能拖动窗口
+                if (!e.target.closest('.title-bar-button')) {
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    titleBar.style.cursor = 'grabbing';
+                }
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    // 发送窗口移动事件到主进程
+                    ipcRenderer.send('move-window', deltaX, deltaY);
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    titleBar.style.cursor = 'grab';
+                }
+            });
+            
+            // 触摸事件
+            let touchStartX, touchStartY;
+            let isTouchDragging = false;
+            
+            titleBar.addEventListener('touchstart', (e) => {
+                // 只有在标题栏区域才能拖动窗口
+                const touchTarget = e.target;
+                if (!touchTarget.closest('.title-bar-button')) {
+                    isTouchDragging = true;
+                    const touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    titleBar.style.cursor = 'grabbing';
+                }
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (isTouchDragging) {
+                    const touch = e.touches[0];
+                    const deltaX = touch.clientX - touchStartX;
+                    const deltaY = touch.clientY - touchStartY;
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    
+                    // 发送窗口移动事件到主进程
+                    ipcRenderer.send('move-window', deltaX, deltaY);
+                }
+            });
+            
+            document.addEventListener('touchend', () => {
+                if (isTouchDragging) {
+                    isTouchDragging = false;
+                    titleBar.style.cursor = 'grab';
+                }
+            });
+            
+            document.addEventListener('touchcancel', () => {
+                if (isTouchDragging) {
+                    isTouchDragging = false;
+                    titleBar.style.cursor = 'grab';
+                }
+            });
+            
+            // 设置初始光标样式
+            titleBar.style.cursor = 'grab';
+        }
+
+        // 全局变量
+        let homeworkData = [];
+        let filteredHomework = [];
+        let isLoading = false;
+        
+        // DOM 元素
+        const homeworkListContainer = document.getElementById('homeworkListContainer');
+        const virtualList = document.getElementById('virtualList');
+        const virtualListPlaceholder = document.getElementById('virtualListPlaceholder');
+        const virtualListItems = document.getElementById('virtualListItems');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const subjectFilter = document.getElementById('subjectFilter');
+        const sortOrder = document.getElementById('sortOrder');
+        const emptyAddBtn = document.getElementById('emptyAddBtn');
+        const deleteExpiredBtn = document.getElementById('deleteExpiredBtn');
+        const deleteAllBtn = document.getElementById('deleteAllBtn');
+        const titleCloseBtn = document.getElementById('titleCloseBtn');
+
+        // 虚拟滚动配置
+        const VIRTUAL_SCROLL_CONFIG = {
+            itemHeight: 150, // 每个作业项的预估高度
+            buffer: 5, // 可视区域外的缓冲项数量
+            visibleCount: 0, // 可见项数量
+            startIndex: 0, // 开始索引
+            endIndex: 0, // 结束索引
+        };
+
+        // 获取所有作业数据（异步）
+        async function getAllHomework() {
+            try {
+                // 模拟异步加载，避免阻塞主线程
+                await new Promise(resolve => setTimeout(resolve, 50));
+                
+                const data = localStorage.getItem('homeworkData');
+                const homeworkList = data ? JSON.parse(data) : [];
+                
+                // 确保所有作业都有唯一ID
+                return homeworkList.map(homework => {
+                    if (!homework.id) {
+                        homework.id = `homework-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                    }
+                    return homework;
+                });
+            } catch (e) {
+                console.error('获取作业数据失败:', e);
+                return [];
+            }
+        }
+
+        // 初始化应用
+        async function initApp() {
+            try {
+                showLoading();
+                
+                // 异步获取作业数据
+                homeworkData = await getAllHomework();
+                
+                // 过滤和排序
+                filterAndSortHomework();
+                
+                hideLoading();
+            } catch (error) {
+                console.error('初始化应用失败:', error);
+                hideLoading();
+                showEmptyState();
+            }
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            isLoading = true;
+            loadingState.style.display = 'flex';
+            emptyState.style.display = 'none';
+            virtualList.style.display = 'none';
+        }
+
+        // 隐藏加载状态
+        function hideLoading() {
+            isLoading = false;
+            loadingState.style.display = 'none';
+            virtualList.style.display = 'block';
+        }
+
+        // 显示空状态
+        function showEmptyState() {
+            emptyState.style.display = 'flex';
+            virtualList.style.display = 'none';
+            loadingState.style.display = 'none';
+        }
+
+        // 隐藏空状态
+        function hideEmptyState() {
+            emptyState.style.display = 'none';
+            virtualList.style.display = 'block';
+        }
+
+        // 渲染作业列表（虚拟滚动）
+        function renderHomeworkList(homeworkList) {
+            if (homeworkList.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            hideEmptyState();
+
+            // 更新虚拟滚动配置
+            updateVirtualScrollConfig(homeworkList.length);
+
+            // 更新占位符高度
+            const totalHeight = homeworkList.length * VIRTUAL_SCROLL_CONFIG.itemHeight;
+            virtualListPlaceholder.style.height = `${totalHeight}px`;
+
+            // 渲染可见区域的作业
+            renderVisibleItems(homeworkList);
+        }
+
+        // 更新虚拟滚动配置
+        function updateVirtualScrollConfig(totalItems) {
+            // 计算可见项数量
+            const containerHeight = homeworkListContainer.clientHeight;
+            VIRTUAL_SCROLL_CONFIG.visibleCount = Math.ceil(containerHeight / VIRTUAL_SCROLL_CONFIG.itemHeight) + VIRTUAL_SCROLL_CONFIG.buffer * 2;
+            
+            // 更新可见区域
+            updateVisibleRange();
+        }
+
+        // 更新可见范围
+        function updateVisibleRange() {
+            const scrollTop = homeworkListContainer.scrollTop;
+            const startIndex = Math.max(0, Math.floor(scrollTop / VIRTUAL_SCROLL_CONFIG.itemHeight) - VIRTUAL_SCROLL_CONFIG.buffer);
+            const endIndex = Math.min(filteredHomework.length, startIndex + VIRTUAL_SCROLL_CONFIG.visibleCount);
+            
+            VIRTUAL_SCROLL_CONFIG.startIndex = startIndex;
+            VIRTUAL_SCROLL_CONFIG.endIndex = endIndex;
+        }
+
+        // 渲染可见项
+        function renderVisibleItems(homeworkList) {
+            if (homeworkList.length === 0) return;
+
+            updateVisibleRange();
+
+            // 获取可见范围内的作业
+            const visibleItems = homeworkList.slice(VIRTUAL_SCROLL_CONFIG.startIndex, VIRTUAL_SCROLL_CONFIG.endIndex);
+            
+            // 计算偏移量
+            const offsetY = VIRTUAL_SCROLL_CONFIG.startIndex * VIRTUAL_SCROLL_CONFIG.itemHeight;
+            virtualListItems.style.transform = `translateY(${offsetY}px)`;
+
+            // 使用文档片段减少DOM操作
+            const fragment = document.createDocumentFragment();
+
+            // 缓存当前时间，避免重复创建Date对象
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            // 批量渲染可见项
+            visibleItems.forEach((item, index) => {
+                const actualIndex = VIRTUAL_SCROLL_CONFIG.startIndex + index;
+                const homeworkItem = createHomeworkItem(item, actualIndex);
+                fragment.appendChild(homeworkItem);
+            });
+
+            // 一次性清空并添加所有元素
+            virtualListItems.innerHTML = '';
+            virtualListItems.appendChild(fragment);
+
+            // 添加事件监听器（使用事件委托）
+            addEventListeners();
+        }
+
+        // 创建作业项元素
+        function createHomeworkItem(item, index) {
+            const homeworkItem = document.createElement('div');
+            homeworkItem.className = 'homework-item';
+            homeworkItem.dataset.id = item.id;
+            homeworkItem.dataset.index = index;
+
+            // 格式化截止日期
+            let dueDateStr = '无截止日期';
+            let isOverdue = false;
+            if (item.dueDate) {
+                const dueDate = new Date(item.dueDate);
+                const dueDateOnly = new Date(dueDate);
+                dueDateOnly.setHours(0, 0, 0, 0);
+                
+                // 检查是否过期
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+                if (dueDateOnly < now) {
+                    isOverdue = true;
+                }
+                
+                const formattedDate = `${dueDate.getFullYear()}-${String(dueDate.getMonth()+1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`;
+                dueDateStr = `截止: ${formattedDate}`;
+            }
+
+            // 格式化时间戳
+            const timestamp = item.timestamp ? new Date(item.timestamp) : new Date();
+            const timeStr = `${timestamp.getFullYear()}-${String(timestamp.getMonth()+1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}`;
+
+            // 将换行符替换为<br>标签
+            const contentWithLineBreaks = item.content.replace(/\n/g, '<br>');
+
+            homeworkItem.innerHTML = `
+                <div class="item-header">
+                    <span class="subject-tag ${item.subject}">${getSubjectName(item.subject)}</span>
+                    <div class="item-meta">
+                        <span class="item-date">${timeStr}</span>
+                        <span class="due-date ${isOverdue ? 'overdue' : ''}">${dueDateStr}</span>
+                    </div>
+                </div>
+                <div class="item-content">${contentWithLineBreaks}</div>
+                <div class="item-actions">
+                    <fluent-button appearance="neutral" class="detail-btn" data-id="${item.id}">详情</fluent-button>
+                    <fluent-button appearance="neutral" class="edit-btn" data-id="${item.id}">编辑</fluent-button>
+                    <fluent-button appearance="accent" class="delete-btn" data-id="${item.id}">删除</fluent-button>
+                </div>
+            `;
+
+            return homeworkItem;
+        }
+
+        // 获取科目名称（使用缓存）
+        const subjectCache = {};
+        function getSubjectName(subjectValue) {
+            // 检查缓存
+            if (subjectCache[subjectValue]) {
+                return subjectCache[subjectValue];
+            }
+            
+            const subjects = {
+                'chinese': '语文',
+                'math': '数学',
+                'english': '英语',
+                'physics': '物理',
+                'chemistry': '化学',
+                'biology': '生物',
+                'history': '历史',
+                'geography': '地理',
+                'politics': '道法',
+                'other': '其他'
+            };
+            
+            const result = subjects[subjectValue] || subjectValue;
+            // 缓存结果
+            subjectCache[subjectValue] = result;
+            return result;
+        }
+
+        // 过滤和排序作业（防抖处理）
+        const filterAndSortHomework = debounce(function() {
+            if (isLoading) return;
+
+            try {
+                let result = [...homeworkData];
+
+                // 搜索过滤
+                const searchTerm = searchInput.value.trim().toLowerCase();
+                if (searchTerm) {
+                    result = result.filter(item => 
+                        item.content.toLowerCase().includes(searchTerm) ||
+                        getSubjectName(item.subject).toLowerCase().includes(searchTerm)
+                    );
+                }
+
+                // 科目过滤
+                const selectedSubject = subjectFilter.value;
+                if (selectedSubject) {
+                    result = result.filter(item => item.subject === selectedSubject);
+                }
+
+                // 排序
+                const order = sortOrder.value;
+                result.sort((a, b) => {
+                    switch (order) {
+                        case 'newest':
+                            return new Date(b.timestamp || b.dateAdded || 0) - new Date(a.timestamp || a.dateAdded || 0);
+                        case 'oldest':
+                            return new Date(a.timestamp || a.dateAdded || 0) - new Date(b.timestamp || b.dateAdded || 0);
+                        case 'dueDateAsc':
+                            const dateA = a.dueDate ? new Date(a.dueDate) : new Date(8640000000000000); // 最大日期
+                            const dateB = b.dueDate ? new Date(b.dueDate) : new Date(8640000000000000);
+                            return dateA - dateB;
+                        case 'dueDateDesc':
+                            const dateA2 = a.dueDate ? new Date(a.dueDate) : new Date(-8640000000000000); // 最小日期
+                            const dateB2 = b.dueDate ? new Date(b.dueDate) : new Date(-8640000000000000);
+                            return dateB2 - dateA2;
+                        default:
+                            return 0;
+                    }
+                });
+
+                filteredHomework = result;
+                renderHomeworkList(filteredHomework);
+            } catch (error) {
+                console.error('过滤和排序作业失败:', error);
+            }
+        }, 100); // 100ms防抖
+
+        // 添加事件监听器（使用事件委托）
+        function addEventListeners() {
+            // 移除现有的事件监听器，避免重复添加
+            virtualListItems.removeEventListener('click', handleHomeworkItemClick);
+            
+            // 添加事件委托
+            virtualListItems.addEventListener('click', handleHomeworkItemClick);
+        }
+
+        // 处理作业项目点击事件（事件委托）
+        function handleHomeworkItemClick(e) {
+            const target = e.target.closest('fluent-button');
+            if (!target) return;
+
+            const id = target.getAttribute('data-id');
+            if (!id) return;
+
+            if (target.classList.contains('delete-btn')) {
+                deleteHomeworkById(id);
+            } else if (target.classList.contains('detail-btn')) {
+                openHomeworkDetailById(id);
+            } else if (target.classList.contains('edit-btn')) {
+                editHomeworkById(id);
+            }
+        }
+
+        // 删除作业
+        function deleteHomeworkById(id) {
+            if (confirm('确定要删除这个作业吗？')) {
+                // 查找作业在原始数据中的索引
+                const originalIndex = homeworkData.findIndex(item => item.id === id);
+                
+                if (originalIndex >= 0) {
+                    homeworkData.splice(originalIndex, 1);
+                    localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
+                    filterAndSortHomework();
+                    
+                    // 通知主进程作业已删除，以便更新主窗口
+                    ipcRenderer.send('homework-deleted', id);
+                }
+            }
+        }
+
+        // 打开作业详情
+        function openHomeworkDetailById(id) {
+            // 查找作业在原始数据中的索引
+            const originalIndex = homeworkData.findIndex(item => item.id === id);
+            
+            if (originalIndex >= 0) {
+                // 确保原始作业数据被传递，包含完整的模板信息
+                const originalHomework = homeworkData[originalIndex];
+                
+                // 发送作业详情到主进程，打开详情窗口
+                ipcRenderer.send('open-homework-detail-window', originalHomework, originalIndex);
+            }
+        }
+
+        // 编辑作业
+        function editHomeworkById(id) {
+            // 查找作业在原始数据中的索引
+            const originalIndex = homeworkData.findIndex(item => item.id === id);
+            
+            if (originalIndex >= 0) {
+                // 确保原始作业数据被传递，包含完整的模板信息
+                const originalHomework = homeworkData[originalIndex];
+                
+                // 发送编辑请求到主进程
+                ipcRenderer.send('edit-homework', originalHomework, originalIndex);
+            }
+        }
+
+        // 删除过期作业
+        function deleteExpiredHomework() {
+            // 检查是否有过期作业
+            const now = new Date();
+            // 重置时间到当天零点，确保只按日期比较，不按时间
+            now.setHours(0, 0, 0, 0);
+            
+            const expiredHomework = homeworkData.filter(item => {
+                if (!item.dueDate) return false;
+                
+                const dueDate = new Date(item.dueDate);
+                // 重置截止日期到当天零点，确保只按日期比较
+                dueDate.setHours(0, 0, 0, 0);
+                
+                return dueDate < now;
+            });
+
+            if (expiredHomework.length === 0) {
+                alert('没有过期作业需要删除');
+                return;
+            }
+
+            if (confirm(`确定要删除所有 ${expiredHomework.length} 个过期作业吗？`)) {
+                // 过滤掉过期作业
+                homeworkData = homeworkData.filter(item => {
+                    if (!item.dueDate) return true;
+                    
+                    const dueDate = new Date(item.dueDate);
+                    // 重置截止日期到当天零点，确保只按日期比较
+                    dueDate.setHours(0, 0, 0, 0);
+                    
+                    return dueDate >= now;
+                });
+
+                // 保存到本地存储
+                localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
+                
+                // 重新渲染列表
+                filterAndSortHomework();
+                
+                // 通知主进程作业已更新
+                ipcRenderer.send('homework-updated');
+            }
+        }
+
+        // 删除全部作业
+        function deleteAllHomework() {
+            if (homeworkData.length === 0) {
+                alert('没有作业需要删除');
+                return;
+            }
+
+            if (confirm(`确定要删除所有 ${homeworkData.length} 个作业吗？此操作不可恢复！`)) {
+                // 清空作业数据
+                homeworkData = [];
+                localStorage.setItem('homeworkData', JSON.stringify(homeworkData));
+                
+                // 重新渲染列表
+                filterAndSortHomework();
+                
+                // 通知主进程作业已更新
+                ipcRenderer.send('homework-updated');
+            }
+        }
+
+        // 关闭窗口
+        function closeWindow() {
+            window.close();
+        }
+
+        // 初始化事件监听器
+        function initEventListeners() {
+            // 搜索和过滤事件
+            searchInput.addEventListener('input', filterAndSortHomework);
+            subjectFilter.addEventListener('change', filterAndSortHomework);
+            sortOrder.addEventListener('change', filterAndSortHomework);
+
+            // 按钮事件
+            emptyAddBtn.addEventListener('click', () => {
+                ipcRenderer.send('add-homework');
+            });
+
+            deleteExpiredBtn.addEventListener('click', deleteExpiredHomework);
+            deleteAllBtn.addEventListener('click', deleteAllHomework);
+
+            // 关闭按钮事件
+            titleCloseBtn.addEventListener('click', closeWindow);
+
+            // 滚动事件 - 虚拟滚动
+            homeworkListContainer.addEventListener('scroll', () => {
+                if (filteredHomework.length > 0) {
+                    renderVisibleItems(filteredHomework);
+                }
+            });
+
+            // 窗口大小变化事件
+            window.addEventListener('resize', () => {
+                if (filteredHomework.length > 0) {
+                    updateVirtualScrollConfig(filteredHomework.length);
+                    renderHomeworkList(filteredHomework);
+                }
+            });
+
+            // 监听作业更新事件
+            ipcRenderer.on('homework-updated', () => {
+                // 重新加载作业数据
+                initApp();
+            });
+
+            // 监听作业删除事件
+            ipcRenderer.on('homework-deleted', (event, id) => {
+                // 重新加载作业数据
+                initApp();
+            });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Homework page loaded');
+            
+            // 添加触摸支持
+            addTouchSupport();
+            
+            // 添加窗口拖动功能
+            addWindowDragSupport();
+            
+            // 初始化事件监听器
+            initEventListeners();
+            
+            // 初始化应用
+            await initApp();
+        });
+    </script>
+</body>
+</html>

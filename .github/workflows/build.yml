@@ -1,0 +1,61 @@
+name: Build
+on:
+  push:
+    branches: [ main ]
+jobs:
+ build:
+   runs-on: ${{ matrix.os }}
+   continue-on-error: true
+   strategy:
+     matrix:
+       os: [windows-latest, macos-latest, ubuntu-latest]
+   steps:
+     - name: Checkout Code
+       uses: actions/checkout@v2
+     - name: Setup Node.js
+       uses: actions/setup-node@v6.1.0
+       with:
+         node-version: 24
+     - name: Install Yarn
+       run: npm install -g yarn
+     - name: Install Dependencies
+       run: yarn
+     - name: Delete Unnecessary Files on Windows
+       if: matrix.os == 'windows-latest'
+       run: |
+         del /f /q README.md
+         rmdir /S /Q .git
+         rmdir /S /Q .github
+         del /f /q .gitignore
+         del /f /q .gitattributes
+         rmdir /S /Q .vscode
+         rmdir /S /Q readme
+         rmdir /S /Q installer
+         rmdir /S /Q changelog
+       shell: cmd
+     - name: Delete Unnecessary Files on Unix
+       if: matrix.os != 'windows-latest'
+       run: rm -rf README.md && rm -rf .git && rm -rf .github && rm -rf .gitignore && rm -rf .gitattributes && rm -rf .vscode && rm -rf readme && rm -rf installer && rm -rf changelog
+       shell: bash
+     - name: Build with electron-forge
+       run: "yarn make"
+     - name: Upload Build Artifacts (Windows)
+       if: matrix.os == 'windows-latest'
+       uses: actions/upload-artifact@v6.0.0
+       with:
+         name: classwindows-${{ matrix.os }}
+         path: |
+           ./out/**
+           !./out/make/**
+     - name: Upload Build Artifacts (Unix)
+       if: matrix.os != 'windows-latest'
+       uses: actions/upload-artifact@v6.0.0
+       with:
+         name: classwindows-${{ matrix.os }}
+         path: ./out/make/**
+     - name: Upload ASAR Artifacts
+       if: matrix.os == 'ubuntu-latest'
+       uses: actions/upload-artifact@v6.0.0
+       with:
+         name: update
+         path: ./out/**/app.asar
