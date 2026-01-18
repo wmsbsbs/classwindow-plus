@@ -4,12 +4,16 @@ const {
 	screen,
 	ipcMain,
 	Tray,
-	Menu
+	Menu,
+	shell,
+	dialog
 } = require('electron/main');
 const path = require('path');
 const {
 	nativeImage
 } = require('electron/common');
+const fs = require('fs');
+const os = require('os');
 
 // 配置模块
 const {
@@ -18,6 +22,13 @@ const {
 	saveConfig,
 	createSettingHandler,
 } = require('./config');
+
+// 窗口位置管理
+const {
+	loadWindowPosition,
+	saveWindowPosition,
+	clearWindowPosition
+} = require('./window-position');
 
 // 启动台
 const {
@@ -30,8 +41,80 @@ const {
 let iconPath;
 let resourcesRoot = path.resolve(app.getAppPath());
 
+
 // 初始化配置路径
 initConfigPath(resourcesRoot);
+
+// 获取Windows开机启动文件夹路径
+function getStartupFolderPath() {
+    if (process.platform === 'win32') {
+        // 获取当前用户的开机启动文件夹
+        return path.join(process.env.APPDATA, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup');
+    }
+    return null;
+}
+
+// 获取应用程序可执行文件路径
+function getAppExePath() {
+    if (app.isPackaged) {
+        return process.execPath;
+    }
+    return process.argv[0];
+}
+
+// 创建快捷方式到开机启动
+function createStartupShortcut() {
+    try {
+        // 使用Electron内置的方法设置开机自启动
+        // 这是最可靠的方法，会在Windows注册表中正确设置开机启动项
+        app.setLoginItemSettings({
+            openAtLogin: true,
+            name: 'ClassWindow Plus',
+            // 确保指定可执行文件路径，这样更可靠
+            path: process.execPath,
+            // 添加命令行参数，确保应用正确启动
+            args: []
+        });
+        
+        console.log('设置开机自启动成功');
+        return true;
+    } catch (error) {
+        console.error('设置开机自启动失败:', error);
+        return false;
+    }
+}
+
+// 从开机启动中移除
+function removeStartupShortcut() {
+    try {
+        // 使用Electron内置的方法禁用开机自启动
+        app.setLoginItemSettings({
+            openAtLogin: false,
+            name: 'ClassWindow Plus'
+        });
+        
+        console.log('禁用开机自启动成功');
+        return true;
+    } catch (error) {
+        console.error('禁用开机自启动失败:', error);
+        return false;
+    }
+}
+
+// 检查开机自启动是否已启用
+function checkStartupEnabled() {
+    try {
+        // 使用Electron内置的方法检查开机自启动状态
+        const loginItemSettings = app.getLoginItemSettings();
+        const isEnabled = loginItemSettings.openAtLogin;
+        console.log('检查开机自启动状态:', isEnabled);
+        return isEnabled;
+    } catch (error) {
+        console.error('检查开机自启动状态失败:', error);
+        return false;
+    }
+}
+
 
 if (app.isPackaged) {
 	iconPath = path.join(resourcesRoot, "assets/logo.jpg");
@@ -89,28 +172,23 @@ const getWindowPosition = () => {
 };
 
 // 读取/保存窗口位置
-const loadWindowPosition = () => {
-	const config = loadConfig();
-	if (config.window?.x !== undefined && config.window?.y !== undefined && !config.windowPosition) {
-		return [config.window.x, config.window.y];
+const getSavedWindowPosition = () => {
+	const savedPosition = loadWindowPosition();
+	if (savedPosition && savedPosition.x !== undefined && savedPosition.y !== undefined) {
+		return [savedPosition.x, savedPosition.y];
 	}
 	return getWindowPosition();
 };
 
-const saveWindowPosition = (x, y) => {
-	const config = loadConfig();
-	config.window = {
-		x,
-		y
-	};
-	saveConfig(config);
+const saveCurrentWindowPosition = (x, y) => {
+	saveWindowPosition(x, y);
 };
 
 // 主窗口
 let mainWindow;
 
 const createWindow = () => {
-	const [defaultX, defaultY] = loadWindowPosition();
+	const [defaultX, defaultY] = getSavedWindowPosition();
 
 	// 读取配置
 	const config = loadConfig();
@@ -164,10 +242,9 @@ const createWindow = () => {
 		isWindowLocked = locked;
 	});
 
-	// 处理窗口大小锁定请求
+// 监听窗口大小锁定请求
 ipcMain.on('set-window-resizable', (event, resizable) => {
 	if (mainWindow) {
-		// 设置窗口是否可调整大小
 		mainWindow.setResizable(resizable);
 		console.log('Window resizable property actually set to:', mainWindow.isResizable());
 		
@@ -232,22 +309,19 @@ ipcMain.on('set-window-resizable', (event, resizable) => {
 
 	// 监听窗口移动事件，保存位置
 	mainWindow.on('moved', () => {
-		// 只有当位置设置为自定义时才保存位置
-		const config = loadConfig();
-		if (config.windowPosition === undefined || config.windowPosition === null) {
-			const [x, y] = mainWindow.getPosition();
-			saveWindowPosition(x, y);
-		}
+		const [x, y] = mainWindow.getPosition();
+		saveCurrentWindowPosition(x, y);
 	});
 
 	// 监听窗口关闭事件，保存位置
 	mainWindow.on('close', () => {
-		// 只有当位置设置为自定义时才保存位置
-		const config = loadConfig();
-		if (config.windowPosition === undefined || config.windowPosition === null) {
-			const [x, y] = mainWindow.getPosition();
-			saveWindowPosition(x, y);
-		}
+		const [x, y] = mainWindow.getPosition();
+		saveCurrentWindowPosition(x, y);
+	});
+	
+	// 监听窗口关闭事件，清理引用
+	mainWindow.on('closed', () => {
+		mainWindow = null;
 	});
 
 	return mainWindow;
@@ -602,7 +676,10 @@ let isClockEnabled = clockSettingHandler.load();
 let isHomeworkEnabled = homeworkSettingHandler.load();
 let isAlwaysOnTop = alwaysOnTopSettingHandler.load(); // 添加置顶状态变量
 let isDarkThemeEnabled = darkThemeSettingHandler.load(); // 添加暗色主题状态变量
-let currentTheme = themeSettingHandler.load() || 'personal'; // 添加主题状态变量
+let currentTheme = (() => {
+    const theme = themeSettingHandler.load();
+    return typeof theme === 'string' ? theme : 'personal';
+})(); // 添加主题状态变量
 // 大屏作业窗口
 let bigScreenHomeworkWindow;
 // 账号管理窗口
@@ -716,6 +793,9 @@ const handleThemeChange = (theme) => {
 		// 如果主窗口存在，显示它
 		if (mainWindow && !mainWindow.isDestroyed()) {
 			mainWindow.show();
+		} else {
+			// 如果主窗口不存在，创建它
+			createWindow();
 		}
 	}
 };
@@ -853,6 +933,35 @@ let autoCloudSyncInterval;
 // 每天下午8点自动同步定时器
 let eightPMCloudSyncInterval;
 const icon = nativeImage.createFromPath(iconPath);
+
+// 检查单实例应用
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    // 如果已经有实例在运行，显示提示并退出
+    app.quit();
+} else {
+    // 当第二个实例启动时触发
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        console.log('检测到第二个实例启动');
+        
+        // 显示提示对话框
+        dialog.showMessageBox({
+            type: 'info',
+            title: '应用已启动',
+            message: '课堂窗已经在运行中',
+            detail: '应用已最小化到系统托盘，请查看托盘图标进行操作。',
+            buttons: ['确定'],
+            icon: nativeImage.createFromPath(iconPath)
+        });
+        
+        // 如果主窗口存在，尝试显示它
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+        }
+    });
+}
 
 // 自动云端同步相关功能
 const checkAutoCloudSyncSettings = () => {
@@ -1008,10 +1117,15 @@ app.whenReady().then(() => {
 			}
 			createBigScreenHomeworkWindow();
 		} else {
-			// 如果当前主题不是大屏模式，确保大屏作业窗口不存在
+			// 如果大屏作业窗口存在，关闭它
 			if (bigScreenHomeworkWindow && !bigScreenHomeworkWindow.isDestroyed()) {
 				bigScreenHomeworkWindow.close();
 				bigScreenHomeworkWindow = null;
+			}
+			
+			// 如果主窗口存在，显示它
+			if (mainWindow && !mainWindow.isDestroyed()) {
+				mainWindow.show();
 			}
 		}
 	}
@@ -1185,8 +1299,6 @@ ipcMain.on('update-homework', (event, homework, index) => {
 ipcMain.on('get-settings', () => {
 	if (settingsWindow) {
 		const config = loadConfig();
-		// 检查开机自启动状态
-		const isStartupEnabled = app.getLoginItemSettings().openAtLogin;
 		settingsWindow.webContents.send('settings-updated', {
 			clockEnabled: isClockEnabled,
 			homeworkEnabled: isHomeworkEnabled,
@@ -1201,22 +1313,41 @@ ipcMain.on('get-settings', () => {
 			windowPosition: config.windowPosition || 'center',
 			windowOffset: config.windowOffset || { x: 0, y: 0 },
 			mainInterfaceScale: config.mainInterfaceScale || 100,
-			homeworkColumns: config.homeworkColumns || 1,
+			
 			theme: currentTheme, // 添加主题设置
-			launchpadApps: getLaunchpadApps(),
-			startupEnabled: isStartupEnabled // 添加开机自启动状态
+			launchpadApps: getLaunchpadApps()
 		});
 	}
 });
-
-// 监听开机自启动开关变化
-ipcMain.on('toggle-startup', (event, isEnabled) => {
-	// 设置开机自启动
-	app.setLoginItemSettings({
-		openAtLogin: isEnabled
-	});
+// 监听打开自启动文件夹请求
+ipcMain.on('open-startup-folder', (event) => {
+    console.log('打开自启动文件夹请求');
+    
+    try {
+        // 获取自启动文件夹路径
+        const startupFolder = getStartupFolderPath();
+        
+        if (startupFolder) {
+            // 确保文件夹存在
+            if (!fs.existsSync(startupFolder)) {
+                fs.mkdirSync(startupFolder, { recursive: true });
+            }
+            
+            // 打开文件夹
+            shell.openPath(startupFolder).then((result) => {
+                if (result) {
+                    console.error('打开自启动文件夹失败:', result);
+                } else {
+                    console.log('成功打开自启动文件夹:', startupFolder);
+                }
+            });
+        } else {
+            console.error('无法获取自启动文件夹路径');
+        }
+    } catch (error) {
+        console.error('打开自启动文件夹失败:', error);
+    }
 });
-
 	// 监听时钟开关变化
 	ipcMain.on('toggle-clock', (event, isEnabled) => {
 		handleClockToggle(isEnabled);
@@ -1582,12 +1713,23 @@ ipcMain.on('stop-resizing', (event) => {
 			const [width, height] = senderWindow.getSize();
 			const [x, y] = senderWindow.getPosition();
 			const config = loadConfig();
-			config.bigScreenWindow = {
-				width,
-				height,
-				x,
-				y
-			};
+			
+			// 检查发送事件的窗口是个人模式窗口还是大屏模式窗口
+			if (senderWindow === mainWindow) {
+				// 个人模式窗口，只更新位置，不更新大小
+			if (config.windowPosition === undefined || config.windowPosition === null) {
+				saveCurrentWindowPosition(x, y);
+			}
+			} else if (senderWindow === bigScreenHomeworkWindow) {
+				// 大屏模式窗口，更新大小和位置
+				config.bigScreenWindow = {
+					width,
+					height,
+					x,
+					y
+				};
+			}
+			
 			saveConfig(config);
 		} catch (error) {
 			console.error('保存窗口大小和位置失败:', error);
@@ -1773,12 +1915,7 @@ ipcMain.on('adjust-window-size', () => {
 	}
 });
 
-// 监听窗口大小锁定请求
-ipcMain.on('set-window-resizable', (event, resizable) => {
-	if (mainWindow) {
-		mainWindow.setResizable(resizable);
-	}
-});
+
 
 	// 监听作业面板缩放设置变化
 ipcMain.on('set-homework-scale', (event, scale) => {
@@ -1853,26 +1990,7 @@ ipcMain.on('set-main-interface-scale', (event, scale) => {
 	}
 });
 
-// 监听作业列数设置变化
-ipcMain.on('set-homework-columns', (event, columns) => {
-	const config = loadConfig();
-	config.homeworkColumns = columns;
-	saveConfig(config);
-	
-	// 如果主窗口已经打开，立即更新作业列数
-	if (mainWindow) {
-		mainWindow.webContents.send('update-homework-columns', columns);
-		
-		// 根据作业列数调整窗口宽度
-		const config = loadConfig();
-		const mainInterfaceScale = config.mainInterfaceScale || 100;
-		const baseWidth = 300;
-		const winWidth = Math.round(baseWidth * mainInterfaceScale / 100);
-		// 根据列数动态调整宽度，每列增加约300px
-		const newWidth = Math.round(winWidth * columns);
-		mainWindow.setSize(newWidth, mainWindow.getSize()[1], true);
-	}
-});
+
 
 	app.on('activate', () => {
 		if (BrowserWindow.getAllWindows().length === 0) {

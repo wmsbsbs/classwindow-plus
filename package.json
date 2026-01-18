@@ -26,7 +26,7 @@
     "appId": "com.classwindow.plus",
     "productName": "ClassWindow Plus",
     "directories": {
-      "output": "build"
+      "output": "dist"
     },
     "files": [
       "**/*",
