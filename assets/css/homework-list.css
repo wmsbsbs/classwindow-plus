@@ -1,0 +1,341 @@
+/* 重置和基础样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #ffffff;
+    color: #333;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* 标题栏样式 */
+.title-bar {
+    height: 32px;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    -webkit-app-region: drag;
+    border-bottom: 1px solid #d9d9d9;
+}
+
+.title {
+    font-size: 14px;
+    font-weight: 500;
+    -webkit-app-region: drag;
+}
+
+.title-bar-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.title-bar-button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+}
+
+.close-button {
+    background: #ff5f57;
+}
+
+.close-button:hover {
+    background: #e04a43;
+}
+
+/* 主容器 */
+.container {
+    padding: 20px;
+    height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header h2 {
+    font-size: 20px;
+    color: #333;
+}
+
+/* 搜索栏 */
+.search-bar {
+    margin-bottom: 15px;
+}
+
+.search-bar fluent-text-field {
+    width: 100%;
+}
+
+/* 筛选控件 */
+.filter-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+filter-select, .filter-controls fluent-select {
+    min-width: 150px;
+}
+
+/* 作业列表容器 */
+.homework-list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.homework-item {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.2s;
+}
+
+/* 为不同科目的作业项添加边框颜色 */
+.homework-item .subject-tag.chinese ~ .item-content {
+    border-color: #E74C3C;
+}
+
+.homework-item .subject-tag.math ~ .item-content {
+    border-color: #3498DB;
+}
+
+.homework-item .subject-tag.english ~ .item-content {
+    border-color: #F39C12;
+}
+
+.homework-item .subject-tag.physics ~ .item-content {
+    border-color: #2980B9;
+}
+
+.homework-item .subject-tag.chemistry ~ .item-content {
+    border-color: #9B59B6;
+}
+
+.homework-item .subject-tag.biology ~ .item-content {
+    border-color: #27AE60;
+}
+
+.homework-item .subject-tag.history ~ .item-content {
+    border-color: #E67E22;
+}
+
+.homework-item .subject-tag.geography ~ .item-content {
+    border-color: #27AE60;
+}
+
+.homework-item .subject-tag.politics ~ .item-content {
+    border-color: #1ABC9C;
+}
+
+.homework-item .subject-tag.other ~ .item-content {
+    border-color: #95A5A6;
+}
+
+/* 为整个作业项添加科目边框 */
+.homework-item:has(.subject-tag.chinese) {
+    border-color: #E74C3C;
+}
+
+.homework-item:has(.subject-tag.math) {
+    border-color: #3498DB;
+}
+
+.homework-item:has(.subject-tag.english) {
+    border-color: #F39C12;
+}
+
+.homework-item:has(.subject-tag.physics) {
+    border-color: #2980B9;
+}
+
+.homework-item:has(.subject-tag.chemistry) {
+    border-color: #9B59B6;
+}
+
+.homework-item:has(.subject-tag.biology) {
+    border-color: #27AE60;
+}
+
+.homework-item:has(.subject-tag.history) {
+    border-color: #E67E22;
+}
+
+.homework-item:has(.subject-tag.geography) {
+    border-color: #27AE60;
+}
+
+.homework-item:has(.subject-tag.politics) {
+    border-color: #1ABC9C;
+}
+
+.homework-item:has(.subject-tag.other) {
+    border-color: #95A5A6;
+}
+
+.homework-item:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.item-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    color: #666;
+}
+
+.due-date.overdue {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.item-content {
+    margin-bottom: 12px;
+    line-height: 1.5;
+    color: #444;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.item-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.item-actions fluent-button {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+/* 空状态 */
+.empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #999;
+}
+
+.empty-state p {
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 科目标签样式 */
+.subject-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.subject-tag.chinese {
+    background-color: #E74C3C; /* 深红色 - 语文课本的红色 */
+    color: white;
+}
+
+.subject-tag.math {
+    background-color: #3498DB; /* 深蓝色 - 数学课本的蓝色 */
+    color: white;
+}
+
+.subject-tag.english {
+    background-color: #F39C12;
+    color: white;
+}
+
+.subject-tag.physics {
+    background-color: #2980B9;
+    color: white;
+}
+
+.subject-tag.chemistry {
+    background-color: #9B59B6;
+    color: white;
+}
+
+.subject-tag.biology {
+    background-color: #27AE60;
+    color: white;
+}
+
+.subject-tag.history {
+    background-color: #E67E22;
+    color: white;
+}
+
+.subject-tag.geography {
+    background-color: #27AE60;
+    color: white;
+}
+
+.subject-tag.politics {
+    background-color: #1ABC9C;
+    color: white;
+}
+
+.subject-tag.other {
+    background-color: #95A5A6;
+}
+
+/* Fluent UI 组件定制 */
+fluent-design-system-provider {
+    --base-height-multiplier: 8;
+    --base-horizontal-spacing-multiplier: 3;
+}
+
+fluent-button {
+    margin: 0;
+}

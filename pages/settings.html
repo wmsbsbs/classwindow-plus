@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>设置 - 课堂窗</title>
+    <!-- 延迟加载 Fluent UI Web Components -->
+    <script>
+        // 优化：使用异步加载并添加加载状态
+        document.addEventListener('DOMContentLoaded', () => {
+            // 首先显示所有按钮的占位符样式
+            const buttons = document.querySelectorAll('fluent-button, fluent-switch, fluent-anchor, fluent-badge, fluent-card');
+            buttons.forEach(button => {
+                button.style.opacity = '0.7';
+                button.style.transition = 'opacity 0.3s ease';
+            });
+            
+            // 动态加载 Fluent UI 组件
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'https://unpkg.com/@fluentui/web-components';
+            script.onload = () => {
+                // 组件加载完成后显示完整样式
+                buttons.forEach(button => {
+                    button.style.opacity = '1';
+                });
+            };
+            document.head.appendChild(script);
+        });
+    </script>
+    <link rel="stylesheet" href="../assets/css/settings.css"></link>
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css"></link>
+</head>
+<body>
+    <!-- 标题栏 -->
+    <div class="title-bar">
+        <div class="title">设置</div>
+        <div class="title-bar-buttons">
+            <div class="title-bar-button close-button" title="关闭" id="titleCloseBtn"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 侧边栏 -->
+        <div class="sidebar" id="sidebar">
+            <!-- 折叠/展开按钮 -->
+            <div class="sidebar-toggle" id="sidebarToggle" style="position: absolute; top: 10px; right: 10px; cursor: pointer; z-index: 1000;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item active expanded" data-tab="general">
+                    <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+                        <div class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </div>
+                        <div class="nav-text">设置</div>
+                    </div>
+                    <div class="sub-nav">
+                            <div class="sub-nav-item" data-subtab="appearance">外观设置</div>
+                            <div class="sub-nav-item" data-subtab="big-screen">大屏模式设置</div>
+                            <div class="sub-nav-item" data-subtab="cloud">云端同步设置</div>
+                            <div class="sub-nav-item" data-subtab="operations">系统操作</div>
+                            <div class="sub-nav-item" data-subtab="ci-integration">CI联动设置</div>
+                        </div>
+                </div>
+                <div class="nav-item" data-tab="templates">
+                    <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+                        <div class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                                <path d="M16 2v4"></path>
+                                <path d="M8 2v4"></path>
+                                <path d="M3 10h18"></path>
+                            </svg>
+                        </div>
+                        <div class="nav-text">模板管理</div>
+                    </div>
+                </div>
+                <div class="nav-item" data-tab="about">
+                    <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+                        <div class="nav-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                            </svg>
+                        </div>
+                        <div class="nav-text">关于</div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 通用设置标签 -->
+            <div class="tab-content active" id="general">
+                
+                
+                
+                
+                <!-- 外观设置 -->
+                <div class="sub-tab-content" data-subtab="appearance">
+                    <div class="setting-section">
+                        <h2>外观设置</h2>
+                        <div class="setting-group">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">主题选择</div>
+                                    <div class="setting-description">选择作业显示模式：个人模式或大屏模式</div>
+                                </div>
+                                <div class="actions">
+                                    <select id="themeSelect" style="padding: 8px; border: 1px solid #edebe9; border-radius: 4px; font-size: 14px;">
+                                        <option value="personal">个人模式</option>
+                                        <option value="big-screen">大屏模式</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 大屏模式设置 -->
+                <div class="sub-tab-content" data-subtab="big-screen">
+                    <div class="setting-section">
+                        <h2>大屏模式设置</h2>
+                        <div class="setting-group">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">大屏模式列数</div>
+                                    <div class="setting-description">调整大屏模式作业列表的列数</div>
+                                </div>
+                                <div class="actions">
+                                    <select id="bigScreenColumnsSelect" style="padding: 8px; border: 1px solid #edebe9; border-radius: 4px; font-size: 14px;">
+                                        <option value="1">1列</option>
+                                        <option value="2">2列</option>
+                                        <option value="3">3列</option>
+                                        <option value="4">4列</option>
+                                        <option value="auto">自适应</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">大屏模式字号</div>
+                                    <div class="setting-description">调整大屏模式作业内容的字号</div>
+                                </div>
+                                <div class="actions">
+                                    <input type="range" 
+                                        id="bigScreenFontSizeSlider" 
+                                        min="10" 
+                                        max="48" 
+                                        step="1" 
+                                        value="14"
+                                        style="width: 150px; margin-right: 10px;">
+                                    <span id="bigScreenFontSizeValue" style="margin-left: 10px; min-width: 30px; text-align: center;">14</span>px
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">大屏模式不透明度</div>
+                                    <div class="setting-description">调整大屏模式窗口的不透明度</div>
+                                </div>
+                                <div class="actions">
+                                    <input type="range" 
+                                        id="bigScreenOpacitySlider" 
+                                        min="10" 
+                                        max="100" 
+                                        step="1" 
+                                        value="95"
+                                        style="width: 150px; margin-right: 10px;">
+                                    <span id="bigScreenOpacityValue" style="margin-left: 10px; min-width: 30px; text-align: center;">95</span>%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 窗口设置 -->
+                <div class="sub-tab-content" data-subtab="window">
+                    <div class="setting-section">
+                        <h2>窗口设置</h2>
+                        <div class="setting-group">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">主窗口显示位置</div>
+                                    <div class="setting-description">设置主窗口在屏幕上的显示位置</div>
+                                </div>
+                                <div class="actions">
+                                    <select id="windowPositionSelect" style="padding: 8px; border: 1px solid #edebe9; border-radius: 4px; font-size: 14px;">
+                                        <option value="center">屏幕居中</option>
+                                        <option value="top-left">屏幕左上</option>
+                                        <option value="top-right">屏幕右上</option>
+                                        <option value="bottom-right">屏幕右下</option>
+                                        <option value="bottom-left">屏幕左下</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">主界面组件缩放</div>
+                                    <div class="setting-description">调整桌面悬浮的时间和作业卡片的大小</div>
+                                </div>
+                                <div class="actions">
+                                    <input type="range" 
+                                        id="mainInterfaceScaleSlider" 
+                                        min="80" 
+                                        max="150" 
+                                        step="5" 
+                                        value="100"
+                                        style="width: 150px; margin-right: 10px;">
+                                    <span id="mainInterfaceScaleValue" style="margin-left: 10px; min-width: 30px; text-align: center;">100%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">页面X轴偏移</div>
+                                    <div class="setting-description">调整主窗口在水平方向的偏移位置</div>
+                                </div>
+                                <div class="actions">
+                                    <input type="range" 
+                                        id="windowOffsetXSlider" 
+                                        min="-500" 
+                                        max="500" 
+                                        step="5" 
+                                        value="0"
+                                        style="width: 150px; margin-right: 10px;">
+                                    <span id="windowOffsetXValue" style="margin-left: 10px; min-width: 30px; text-align: center;">0px</span>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">页面Y轴偏移</div>
+                                    <div class="setting-description">调整主窗口在垂直方向的偏移位置</div>
+                                </div>
+                                <div class="actions">
+                                    <input type="range" 
+                                        id="windowOffsetYSlider" 
+                                        min="-500" 
+                                        max="500" 
+                                        step="5" 
+                                        value="0"
+                                        style="width: 150px; margin-right: 10px;">
+                                    <span id="windowOffsetYValue" style="margin-left: 10px; min-width: 30px; text-align: center;">0px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+            
+            <!-- 云端同步设置 -->
+            <div class="sub-tab-content" data-subtab="cloud">
+                <div class="setting-section">
+                    <h2>云端同步设置</h2>
+                    <p style="color: #605e5c; margin-bottom: 16px;">配置作业云端同步功能，实现作业数据的远程存储和学生访问</p>
+                    
+                    <!-- 首次使用引导 -->
+                    <div class="setting-group" id="firstTimeGuide" style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 16px; margin-bottom: 20px; display: none;">
+                        <h3 style="margin-top: 0; color: #0078d4;">首次使用引导</h3>
+                        <ol style="margin-bottom: 0;">
+                            <li>准备一个支持PHP 7.0+的服务器</li>
+                            <li>将 <code>cloud</code> 目录上传到服务器</li>
+                            <li>在下方输入服务器地址（如：<code>http://your-server.com/homework/homework-sync.php</code>）</li>
+                            <li>设置学校代码、班级代码和教师密码</li>
+                            <li>点击"同步到云端"按钮开始同步</li>
+                        </ol>
+                    </div>
+                    
+                    <!-- 云端服务赞助说明 -->
+                    <div class="setting-group" style="background-color: #fff3e0; border: 1px solid #ffcc80; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h3 style="margin-top: 0; color: #ef6c00;">云端服务赞助说明</h3>
+                        <p style="margin-bottom: 12px;">
+                            为了维持云端服务的可持续性，我需要支付服务器费用和维护成本。如果您觉得这个功能对您有帮助，欢迎通过以下方式赞助我：
+                        </p>
+                        <div style="margin-bottom: 12px;">
+                            <a href="https://afdian.com/a/cwinp" target="_blank" style="display: inline-block; padding: 8px 16px; background-color: #ff6b6b; color: white; border-radius: 4px; text-decoration: none; font-weight: bold;">
+                                访问我的爱发电主页
+                            </a>
+                        </div>
+                        <p style="margin-bottom: 0; font-size: 14px; color: #666;">
+                            <strong>赞助福利：</strong>赞助用户将优先获得新功能体验、技术支持，以及更稳定的云端服务。您的支持是我持续改进的动力！
+                        </p>
+                    </div>
+                    
+                    <!-- 自己部署云端服务教程 -->
+                    <div class="setting-group" style="background-color: #e8f5e8; border: 1px solid #c8e6c9; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h3 style="margin-top: 0; color: #2e7d32;">自己部署云端服务教程</h3>
+                        <p style="margin-bottom: 12px;">
+                            您可以在 GitHub 仓库的 cloud 分支查看完整的服务端文件：
+                        </p>
+                        <div style="margin-bottom: 16px;">
+                            <a href="https://github.com/wmsbsbs/cwpcloud" target="_blank" style="display: inline-block; padding: 8px 16px; background-color: #4caf50; color: white; border-radius: 4px; text-decoration: none; font-weight: bold;">
+                                访问 GitHub 仓库 (服务器端源代码)
+                            </a>
+                        </div>
+                        <h4 style="margin-bottom: 8px;">部署步骤：</h4>
+                        <ol style="margin-bottom: 16px;">
+                            <li>从 GitHub 仓库的 cloud 分支下载完整的服务端文件</li>
+                            <li>准备一个支持PHP 7.0+的服务器（推荐使用阿里云、腾讯云等云服务器）</li>
+                            <li>在服务器上创建一个新的目录，如 <code>/homework</code></li>
+                            <li>将下载的服务端文件上传到服务器的 <code>/homework</code> 目录</li>
+                            <li>确保服务器的PHP环境已安装并启用</li>
+                            <li>设置服务器的文件权限，确保 <code>schools.json</code> 文件可写</li>
+                            <li>访问您的服务器地址，如：<code>http://your-server.com/homework/index.php</code>，测试是否可以正常访问</li>
+                            <li>在下方输入完整的服务器地址，如：<code>http://your-server.com/homework/homework-sync.php</code></li>
+                        </ol>
+                        <h4 style="margin-bottom: 8px;">服务器要求：</h4>
+                        <ul style="margin-bottom: 0;">
+                            <li>PHP 7.0 或更高版本</li>
+                            <li>支持 JSON 扩展（PHP默认已启用）</li>
+                            <li>文件系统写入权限</li>
+                            <li>足够的存储空间（根据作业数量而定）</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 学生查看作业教程 -->
+                    <div class="setting-group" style="background-color: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h3 style="margin-top: 0; color: #1976d2;">学生查看作业教程</h3>
+                        <div style="margin-bottom: 12px;">
+                            <h4 style="margin-bottom: 8px;">当前账号信息：</h4>
+                            <div id="accountInfo" style="background-color: #ffffff; padding: 12px; border-radius: 6px; font-family: monospace;">
+                                <div>学校代码：<span id="displaySchoolCode">未设置</span></div>
+                                <div>班级代码：<span id="displayClassCode">未设置</span></div>
+                            </div>
+                        </div>
+                        <h4 style="margin-bottom: 8px;">学生查看步骤：</h4>
+                        <ol style="margin-bottom: 0;">
+                            <li>打开浏览器，访问服务器地址（如：<code>http://your-server.com/homework/</code>）</li>
+                            <li>在学生访问页面输入上方显示的 <strong>学校代码</strong> 和 <strong>班级代码</strong></li>
+                            <li>点击"查看作业"按钮</li>
+                            <li>学生将看到当前班级的所有作业</li>
+                            <li>作业按截止日期自动排序，方便查看</li>
+                        </ol>
+                        <p style="margin-top: 12px; font-size: 14px; color: #666;">
+                            <strong>提示：</strong> 将学校代码和班级代码告诉学生，他们就可以通过浏览器查看作业了。
+                        </p>
+                    </div>
+                    
+                    <!-- 安全服务提示 -->
+                    <div class="setting-group" style="background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h3 style="margin-top: 0; color: #856404;">安全服务提示</h3>
+                        <p>如果您的服务器使用了Cloudflare或其他安全服务，可能会拦截请求。建议：</p>
+                        <ul>
+                            <li>将您的IP添加到安全服务的白名单</li>
+                            <li>暂时禁用安全服务的JavaScript验证</li>
+                            <li>或使用不使用安全服务的服务器</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">启用云端同步</div>
+                                <div class="setting-description">开启作业数据的云端同步功能</div>
+                            </div>
+                            <div class="actions">
+                                <fluent-switch id="cloudSyncToggle" label="启用"></fluent-switch>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">自动云端同步</div>
+                                <div class="setting-description">定期自动将作业同步到云端，无需手动操作</div>
+                            </div>
+                            <div class="actions">
+                                <fluent-switch id="autoCloudSyncToggle" label="启用"></fluent-switch>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">服务器地址</div>
+                                <div class="setting-description">云端服务器的地址，格式如 http://your-server.com/homework</div>
+                            </div>
+                            <div class="actions" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <input type="text" class="text-input" id="serverAddressInput" placeholder="http://your-server.com/homework" style="flex: 1; min-width: 200px;">
+                                <fluent-button appearance="outline" id="usePresetServerBtn" style="white-space: nowrap; min-width: 120px;">使用预设地址</fluent-button>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">账号管理</div>
+                                <div class="setting-description">管理学校代码、班级代码和教师密码，防止误修改</div>
+                            </div>
+                            <div class="actions">
+                                <fluent-button appearance="accent" id="openAccountManagementBtn">打开账号管理</fluent-button>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">同步操作</div>
+                                <div class="setting-description">手动执行云端同步操作</div>
+                            </div>
+                            <div class="actions">
+                                <fluent-button appearance="accent" id="syncToCloudBtn">同步到云端</fluent-button>
+                                <fluent-button appearance="outline" id="syncFromCloudBtn">从云端同步</fluent-button>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">缓存管理</div>
+                                <div class="setting-description">清空云端同步设置缓存，重置为首次使用状态</div>
+                            </div>
+                            <div class="actions">
+                                <fluent-button appearance="outline" id="clearCacheBtn" style="background-color: #fff3f3; border-color: #ffcccc; color: #d13438;">清空缓存</fluent-button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 错误详情显示区域 -->
+                    <div class="setting-group" id="errorDetails" style="background-color: #fff3f3; border: 1px solid #ffcccc; border-radius: 8px; padding: 16px; margin-top: 20px; display: none;">
+                        <h3 style="margin-top: 0; color: #d13438;">同步错误详情</h3>
+                        <div id="errorDetailsContent" style="font-family: monospace; white-space: pre-wrap; word-break: break-all; background-color: #f8f9fa; padding: 12px; border-radius: 4px;"></div>
+                        <button onclick="document.getElementById('errorDetails').style.display='none'" style="margin-top: 12px; padding: 6px 12px; background-color: #f1f1f1; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer;">关闭</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 系统操作 -->
+            <div class="sub-tab-content" data-subtab="operations">
+                    <div class="setting-section">
+                        <h2>系统操作</h2>
+                        <div class="setting-group">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">开机自启动</div>
+                                    <div class="setting-description">应用程序在系统启动时自动运行</div>
+                                </div>
+                                <div class="actions">
+                                    <fluent-switch id="startupToggle" label="启用"></fluent-switch>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-description">打开自启动文件夹手动管理快捷方式</div>
+                                </div>
+                                <div class="actions">
+                                    <fluent-button appearance="outline" id="openStartupFolderBtn">打开自启动文件夹</fluent-button>
+                                </div>
+                            </div>
+                            <div class="setting-item" style="padding-top: 8px; padding-bottom: 0;">
+                                <div class="setting-info">
+                                    <div class="setting-description" style="font-size: 12px; color: #666;">
+                                        <strong>设置教程：</strong><br>
+                                        1. 点击"打开自启动文件夹"按钮<br>
+                                        2. 将应用程序快捷方式拖入文件夹<br>
+                                        3. 重启电脑后应用将自动启动
+                                    </div>
+                                </div>
+                                <div class="actions">
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <div class="setting-title">重启应用</div>
+                                    <div class="setting-description">应用设置更改后重启应用</div>
+                                </div>
+                                <div class="actions">
+                                    <fluent-button appearance="primary" id="restartAppBtn">立即重启</fluent-button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CI联动设置 -->
+                <div class="sub-tab-content" data-subtab="ci-integration">
+                    <div class="setting-section">
+                        <h2>CI联动设置</h2>
+                        <div class="setting-group">
+                            <!-- CI联动大选项 -->
+                            <div class="setting-item ci-main-option" style="cursor: pointer; user-select: none;">
+                                <div class="setting-info" style="flex: 1;">
+                                    <div class="setting-title">ClassIsland 联动</div>
+                                    <div class="setting-description">与 ClassIsland 进行联动，实现自动作业提醒等功能</div>
+                                </div>
+                                <div class="actions">
+                                    <fluent-switch id="ciIntegrationToggle" label="启用"></fluent-switch>
+                                </div>
+                            </div>
+                            
+                            <!-- CI联动小选项（默认折叠） -->
+                            <div class="setting-group ci-sub-options" style="margin-left: 20px; border-left: 2px solid #edebe9; padding-left: 20px; display: none;">
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <div class="setting-title">下课后自动询问布置作业</div>
+                                        <div class="setting-description">当 ClassIsland 下课后，自动询问是否布置作业</div>
+                                    </div>
+                                    <div class="actions">
+                                        <fluent-switch id="ciAutoHomeworkToggle" label="启用"></fluent-switch>
+                                    </div>
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <div class="setting-title">测试CI联动</div>
+                                        <div class="setting-description">模拟ClassIsland课程结束事件，测试自动作业提醒功能</div>
+                                    </div>
+                                    <div class="actions">
+                                        <fluent-button appearance="outline" id="testCiIntegrationBtn">测试</fluent-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 启动台标签 -->
+            <div class="tab-content" id="launchpad">
+                <div class="setting-section">
+                    <h2>启动台设置</h2>
+                    <p style="color: #605e5c; margin-bottom: 16px;">管理快捷启动的应用程序和链接</p>
+                    
+                    <div class="launchpad-list" id="launchpadList">
+                        <!-- 启动项将在这里显示 -->
+                    </div>
+                    
+                    <div class="add-form">
+                        <div class="form-row">
+                            <input type="text" class="add-input" id="appNameInput" placeholder="名称">
+                            <select class="type-selector" id="appTypeInput">
+                                <option value="app">应用程序</option>
+                                <option value="link">链接</option>
+                            </select>
+                        </div>
+                        <input type="text" class="add-input" id="appPathInput" placeholder="应用程序路径或链接地址">
+                        <input type="text" class="add-input" id="appIconInput" placeholder="图标路径（可选）">
+                        <fluent-button id="addAppBtn" appearance="accent" class="add-btn">添加</fluent-button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 模板管理标签 -->
+            <div class="tab-content" id="templates">
+                <div class="setting-section">
+                    <h2>模板管理</h2>
+                    <p style="color: #605e5c; margin-bottom: 16px;">管理作业模板，创建、编辑和删除模板</p>
+                    
+                    <div class="template-list" id="templateList">
+                        <!-- 模板列表将在这里显示 -->
+                    </div>
+                    
+                    <div class="template-actions">
+                        <fluent-button id="createTemplateBtn" appearance="accent">创建模板</fluent-button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 关于标签 -->
+            <div class="tab-content" id="about">
+                <div class="about-section">
+                    <div class="header-section">
+                        <div class="promo-text">
+                            <img src="../assets/logo.jpg" alt="Logo" style="width: 80px; height: 80px; border-radius: 12px;">
+                        </div>
+                        <div class="slogan">快如闪电</div>
+                        <div class="app-name">ClassWindow Plus</div>
+                    </div>
+                    
+                    <fluent-card class="info-card">
+                        <div class="about-content">
+                            <div class="about-text">开发者：R3N</div>
+                            <div class="about-text">版本: <fluent-badge>1.1.1</fluent-badge></div>
+                            <div style="color: red; font-weight: bold; margin-top: 12px; font-size: 14px;">内测版本，如有问题请加QQ群（1077485994）反馈</div>
+                        </div>
+                    </fluent-card>
+                    
+                    <div class="footer">
+                        <div class="adapt-info">基于classwindow改编</div>
+                        <div class="original-info">
+                            原作者 GitHub：
+                            <fluent-anchor href="https://github.com/xinghai-smartedu/classwindow" target="_blank">
+                                https://github.com/xinghai-smartedu/classwindow
+                            </fluent-anchor>
+                        </div>
+                        <div class="copyright">© 2026 ClassWindow Plus. 保留所有权利.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    /* 侧边栏整体样式 */
+    .nav-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 16px 0;
+        width: 100%;
+    }
+    
+    /* 侧边栏折叠/展开样式 */
+    .sidebar {
+        position: relative;
+        transition: width 0.3s ease;
+    }
+    
+    .sidebar.collapsed {
+        width: 60px !important;
+    }
+    
+    .sidebar.collapsed .nav-text {
+        display: none;
+    }
+    
+    .sidebar.collapsed .sub-nav {
+        display: none !important;
+    }
+    
+    .sidebar.collapsed .nav-item {
+        padding: 10px;
+    }
+    
+    .sidebar.collapsed .nav-icon {
+        margin: 0 auto;
+    }
+    
+    .sidebar-toggle {
+        transition: transform 0.3s ease;
+    }
+    
+    .sidebar-toggle.collapsed {
+        transform: rotate(180deg);
+    }
+    
+    .sidebar-toggle:hover {
+        opacity: 0.8;
+    }
+    
+    /* 主导航项样式 */
+    .nav-item {
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        text-align: left;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .nav-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .nav-item.active {
+        background-color: rgba(0, 120, 212, 0.1);
+    }
+    
+    .nav-item > div {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        position: relative;
+    }
+    
+    .nav-item .nav-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+    
+    .nav-item .nav-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .nav-item .nav-text {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: left;
+        flex: 1;
+    }
+    
+    .nav-item.active .nav-text {
+        color: #0078d4;
+    }
+    
+    /* 侧边栏子菜单样式 */
+    .sub-nav {
+        margin-left: 32px;
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        text-align: left;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .nav-item.expanded .sub-nav {
+        display: flex;
+    }
+    
+    .sub-nav-item {
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        width: 100%;
+        box-sizing: border-box;
+        white-space: nowrap;
+        text-align: left;
+        display: flex;
+        align-items: center;
+    }
+    
+    .sub-nav-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    .sub-nav-item.active {
+        background-color: rgba(0, 120, 212, 0.15);
+        color: #0078d4;
+        font-weight: 500;
+    }
+    
+    /* 子标签内容样式 */
+    .sub-tab-content {
+        display: none;
+    }
+    
+    .sub-tab-content.active {
+        display: block;
+    }
+    
+    /* 启动台和模板管理样式 */
+    .launchpad-list, .template-list {
+        margin: 20px 0;
+        border: 1px solid #edebe9;
+        border-radius: 8px;
+        padding: 16px;
+        min-height: 200px;
+    }
+    
+    .launchpad-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid #edebe9;
+    }
+    
+    .launchpad-item:last-child {
+        border-bottom: none;
+    }
+    
+    .app-info {
+        flex: 1;
+    }
+    
+    .app-name {
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+    
+    .app-path {
+        font-size: 12px;
+        color: #605e5c;
+        word-break: break-all;
+    }
+    
+    .app-actions {
+        margin-left: 16px;
+    }
+    
+    .remove-btn {
+        padding: 6px 12px;
+        background-color: #f1f1f1;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+    
+    .remove-btn:hover {
+        background-color: #e0e0e0;
+    }
+    
+    .add-form {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .add-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #edebe9;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .type-selector {
+        padding: 8px 12px;
+        border: 1px solid #edebe9;
+        border-radius: 4px;
+        font-size: 14px;
+        min-width: 120px;
+    }
+    
+    .add-btn {
+        align-self: flex-start;
+    }
+    
+    .template-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid #edebe9;
+    }
+    
+    .template-item:last-child {
+        border-bottom: none;
+    }
+    
+    .template-info {
+        flex: 1;
+    }
+    
+    .template-name {
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+    
+    .template-description {
+        font-size: 12px;
+        color: #605e5c;
+    }
+    
+    .template-actions {
+        margin-left: 16px;
+    }
+    
+    /* 文本输入框样式 */
+    .text-input {
+        padding: 8px 12px;
+        border: 1px solid #edebe9;
+        border-radius: 4px;
+        font-size: 14px;
+        min-width: 300px;
+    }
+    
+    /* 启动台和模板管理样式 */
+    .template-components {
+        margin-top: 8px;
+        padding: 8px;
+        background-color: rgba(0, 0, 0, 0.02);
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    
+    .components-title {
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: #333;
+    }
+    
+    .components-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .component-item {
+        padding: 4px 8px;
+        background-color: rgba(0, 0, 0, 0.03);
+        border-radius: 3px;
+        color: #666;
+        word-break: break-all;
+    }
+    </style>
+    
+    <script>
+    // 简单的设置页面脚本，修复交互问题
+    const { ipcRenderer, shell } = require('electron');
+    
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Settings page loaded');
+        
+        // 确保所有输入框可以正常工作
+        fixInputFields();
+        
+        // 添加窗口拖动功能
+        addWindowDragSupport();
+        
+        // 等待Fluent UI组件加载完成后再初始化核心功能
+        setTimeout(function() {
+            // 初始化核心功能
+            initCore();
+            
+            // 添加触摸支持
+            addTouchSupport();
+        }, 1000);
+    });
+    
+    // 修复输入框无法输入的问题
+    function fixInputFields() {
+        console.log('Fixing input fields...');
+        
+        // 获取所有输入框
+        const inputFields = document.querySelectorAll('input, select, textarea');
+        console.log('Found input fields:', inputFields.length);
+        
+        // 为每个输入框添加事件监听器，确保它们可以正常工作
+        inputFields.forEach((input, index) => {
+            // 确保输入框的基本属性正确
+            input.style.pointerEvents = 'auto';
+            input.style.zIndex = '100';
+            input.style.position = 'relative';
+            
+            // 添加焦点事件监听器
+            input.addEventListener('focus', function() {
+                console.log('Input focused:', input.id || input.name || `input-${index}`);
+                this.style.outline = '2px solid #0078d4';
+            });
+            
+            // 添加输入事件监听器
+            input.addEventListener('input', function() {
+                console.log('Input changed:', input.id || input.name || `input-${index}`, this.value);
+            });
+            
+            // 添加键盘事件监听器
+            input.addEventListener('keydown', function(e) {
+                console.log('Key pressed:', e.key, 'on', input.id || input.name || `input-${index}`);
+            });
+            
+            // 确保没有事件监听器阻止输入
+            input.addEventListener('mousedown', function(e) {
+                console.log('Mouse down on input:', input.id || input.name || `input-${index}`);
+                // 确保不会阻止默认行为
+                // 这里不调用 e.preventDefault()，因为这会阻止输入
+            });
+        });
+        
+        // 检查是否有全局事件监听器阻止输入
+        console.log('Checking global event listeners...');
+        
+        // 确保文档级别的事件监听器不会阻止输入
+        document.addEventListener('mousedown', function(e) {
+            // 检查是否点击在输入框上
+            const target = e.target;
+            if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA') {
+                console.log('Click on input element, allowing default behavior');
+                // 不阻止默认行为，让输入框可以正常获取焦点
+            }
+        }, true); // 使用捕获阶段，确保先于其他监听器执行
+    }
+    
+    // 初始化核心功能
+    function initCore() {
+        // 请求获取当前设置
+        ipcRenderer.send('get-settings');
+        
+        // 初始化标签页切换
+        initTabSwitching();
+        
+        // 初始化子标签页切换
+        initSubTabSwitching();
+        
+        // 初始化事件监听器
+        initEventListeners();
+        
+        // 处理外部链接
+        initExternalLinks();
+        
+        // 初始化启动台管理
+        initLaunchpadManagement();
+        
+        // 初始化模板管理
+        initTemplateManagement();
+        
+        // 加载云端同步设置
+        loadCloudSyncSettings();
+        
+        // 添加云端同步设置保存事件
+        addCloudSyncEventListeners();
+        
+        // 初始化侧边栏折叠/展开功能
+        initSidebarToggle();
+    }
+    
+    // 初始化侧边栏折叠/展开功能
+    function initSidebarToggle() {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        
+        if (sidebar && sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                this.classList.toggle('collapsed');
+            });
+        }
+    }
+    
+    // 初始化标签页切换
+    function initTabSwitching() {
+        const navItems = document.querySelectorAll('.nav-item');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                // 检查是否点击了子菜单项，如果是则阻止事件冒泡
+                if (e.target.closest('.sub-nav-item')) {
+                    return;
+                }
+                
+                console.log('Tab clicked:', this.dataset.tab);
+                
+                // 移除所有active类和expanded类
+                navItems.forEach(nav => {
+                    nav.classList.remove('active');
+                    nav.classList.remove('expanded');
+                });
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // 添加active类和expanded类到当前点击的标签
+                const tabId = this.dataset.tab;
+                this.classList.add('active');
+                this.classList.add('expanded');
+                document.getElementById(tabId).classList.add('active');
+                
+                // 如果是设置标签，确保默认显示第一个子标签
+                if (tabId === 'general') {
+                    const firstSubNavItem = this.querySelector('.sub-nav-item');
+                    if (firstSubNavItem) {
+                        firstSubNavItem.click();
+                    }
+                }
+            });
+        });
+    }
+    
+    // 初始化子标签页切换
+    function initSubTabSwitching() {
+        // 使用事件委托方式添加事件监听器，确保动态添加的元素也能响应
+        document.addEventListener('click', function(e) {
+            const subNavItem = e.target.closest('.sub-nav-item');
+            if (subNavItem) {
+                e.stopPropagation(); // 阻止事件冒泡到父元素
+                console.log('Sub-tab clicked:', subNavItem.dataset.subtab);
+                
+                // 移除所有active类
+                const parentSubNav = subNavItem.closest('.sub-nav');
+                parentSubNav.querySelectorAll('.sub-nav-item').forEach(subNav => subNav.classList.remove('active'));
+                
+                // 隐藏所有子标签内容
+                const activeTabContent = document.querySelector('.tab-content.active');
+                if (activeTabContent) {
+                    const allSubTabContents = activeTabContent.querySelectorAll('.sub-tab-content');
+                    allSubTabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // 添加active类到当前点击的子标签
+                    const subtabId = subNavItem.dataset.subtab;
+                    subNavItem.classList.add('active');
+                    
+                    // 显示对应子标签内容
+                    const targetSubTab = activeTabContent.querySelector(`.sub-tab-content[data-subtab="${subtabId}"]`);
+                    if (targetSubTab) {
+                        targetSubTab.classList.add('active');
+                        console.log('Showing sub-tab content:', subtabId);
+                    } else {
+                        console.error('Sub-tab content not found:', subtabId);
+                    }
+                }
+            }
+        });
+    }
+    
+    // 初始化事件监听器
+    function initEventListeners() {
+        console.log('Initializing event listeners');
+        
+        // 添加CI联动大选项点击事件
+        const ciMainOption = document.querySelector('.ci-main-option');
+        if (ciMainOption) {
+            ciMainOption.addEventListener('click', function() {
+                // 切换CI联动开关状态
+                const toggle = document.getElementById('ciIntegrationToggle');
+                if (toggle) {
+                    toggle.checked = !toggle.checked;
+                    // 触发change事件
+                    const event = new Event('change');
+                    toggle.dispatchEvent(event);
+                }
+            });
+        }
+        
+        // 监听所有可交互元素
+        const elements = {
+            // 开关
+            clockToggle: '#clockToggle',
+            homeworkToggle: '#homeworkToggle',
+            startupToggle: '#startupToggle',
+            ciIntegrationToggle: '#ciIntegrationToggle',
+            ciAutoHomeworkToggle: '#ciAutoHomeworkToggle',
+            openStartupFolderBtn: '#openStartupFolderBtn',
+            
+            // 滑块
+            bigScreenFontSizeSlider: '#bigScreenFontSizeSlider',
+            bigScreenOpacitySlider: '#bigScreenOpacitySlider',
+            mainInterfaceScaleSlider: '#mainInterfaceScaleSlider',
+            
+            // 选择框
+            themeSelect: '#themeSelect',
+            bigScreenColumnsSelect: '#bigScreenColumnsSelect',
+            windowPositionSelect: '#windowPositionSelect',
+            
+            // 按钮
+            adjustBigScreenPositionBtn: '#adjustBigScreenPositionBtn',
+            restartAppBtn: '#restartAppBtn',
+            addAppBtn: '#addAppBtn',
+            createTemplateBtn: '#createTemplateBtn',
+            syncToCloudBtn: '#syncToCloudBtn',
+            syncFromCloudBtn: '#syncFromCloudBtn',
+            testCiIntegrationBtn: '#testCiIntegrationBtn',
+            titleCloseBtn: '#titleCloseBtn'
+        };
+        
+        // 遍历并添加事件监听器
+        Object.entries(elements).forEach(([name, selector]) => {
+            const element = document.querySelector(selector);
+            if (element) {
+                console.log('Adding listener for:', name);
+                
+                switch (name) {
+                    // 开关事件
+                    case 'clockToggle':
+                        element.addEventListener('change', function() {
+                            console.log('Clock toggle changed:', this.checked);
+                            ipcRenderer.send('toggle-clock', this.checked);
+                        });
+                        break;
+                    case 'homeworkToggle':
+                        element.addEventListener('change', function() {
+                            console.log('Homework toggle changed:', this.checked);
+                            ipcRenderer.send('toggle-homework', this.checked);
+                        });
+                        break;
+                    case 'alwaysOnTopToggle':
+                        element.addEventListener('change', function() {
+                            console.log('Always on top toggle changed:', this.checked);
+                            ipcRenderer.send('toggle-always-on-top', this.checked);
+                        });
+                        break;
+                    case 'startupToggle':
+                        element.addEventListener('change', function() {
+                            console.log('Startup toggle changed:', this.checked);
+                            ipcRenderer.send('toggle-startup', this.checked);
+                        });
+                        break;
+                    case 'ciIntegrationToggle':
+                        element.addEventListener('change', function() {
+                            console.log('CI integration toggle changed:', this.checked);
+                            // 当CI联动开关变化时，控制小选项的显示/隐藏
+                            const subOptions = document.querySelector('.ci-sub-options');
+                            if (subOptions) {
+                                subOptions.style.display = this.checked ? 'block' : 'none';
+                            }
+                        });
+                        break;
+                    case 'ciAutoHomeworkToggle':
+                        element.addEventListener('change', function() {
+                            console.log('CI auto homework toggle changed:', this.checked);
+                            ipcRenderer.send('toggle-ci-auto-homework', this.checked);
+                        });
+                        break;
+                    case 'openStartupFolderBtn':
+                        element.addEventListener('click', function() {
+                            console.log('Open startup folder clicked');
+                            ipcRenderer.send('open-startup-folder');
+                        });
+                        break;
+                        
+                    // 滑块事件
+
+
+                    case 'bigScreenFontSizeSlider':
+                        element.addEventListener('input', function() {
+                            const value = document.querySelector('#bigScreenFontSizeValue');
+                            if (value) value.textContent = this.value;
+                            ipcRenderer.send('set-big-screen-font-size', parseInt(this.value));
+                        });
+                        break;
+                    case 'bigScreenOpacitySlider':
+                        element.addEventListener('input', function() {
+                            const value = document.querySelector('#bigScreenOpacityValue');
+                            if (value) value.textContent = this.value;
+                            ipcRenderer.send('set-big-screen-opacity', parseInt(this.value));
+                        });
+                        break;
+                    case 'bigScreenWidthSlider':
+                        element.addEventListener('input', function() {
+                            const value = document.querySelector('#bigScreenWidthValue');
+                            if (value) value.textContent = this.value;
+                            ipcRenderer.send('set-big-screen-width', parseInt(this.value));
+                        });
+                        break;
+                    case 'bigScreenHeightSlider':
+                        element.addEventListener('input', function() {
+                            const value = document.querySelector('#bigScreenHeightValue');
+                            if (value) value.textContent = this.value;
+                            ipcRenderer.send('set-big-screen-height', parseInt(this.value));
+                        });
+                        break;
+                    case 'mainInterfaceScaleSlider':
+                        element.addEventListener('input', function() {
+                            const value = document.querySelector('#mainInterfaceScaleValue');
+                            if (value) value.textContent = this.value + '%';
+                            ipcRenderer.send('set-main-interface-scale', parseInt(this.value));
+                        });
+                        break;
+                    case 'windowOffsetXSlider':
+                        element.addEventListener('input', function() {
+                            const value = document.querySelector('#windowOffsetXValue');
+                            if (value) value.textContent = this.value + 'px';
+                            ipcRenderer.send('set-window-offset', { 
+                                x: parseInt(this.value), 
+                                y: parseInt(document.querySelector('#windowOffsetYSlider')?.value || 0) 
+                            });
+                        });
+                        break;
+                    case 'windowOffsetYSlider':
+                        element.addEventListener('input', function() {
+                            const value = document.querySelector('#windowOffsetYValue');
+                            if (value) value.textContent = this.value + 'px';
+                            ipcRenderer.send('set-window-offset', { 
+                                x: parseInt(document.querySelector('#windowOffsetXSlider')?.value || 0), 
+                                y: parseInt(this.value) 
+                            });
+                        });
+                        break;
+                        
+                    // 选择框事件
+                    case 'themeSelect':
+                        element.addEventListener('change', function() {
+                            console.log('Theme changed:', this.value);
+                            ipcRenderer.send('set-theme', this.value);
+                        });
+                        break;
+                    case 'bigScreenColumnsSelect':
+                        element.addEventListener('change', function() {
+                            console.log('Columns changed:', this.value);
+                            ipcRenderer.send('set-big-screen-columns', this.value);
+                        });
+                        break;
+                    case 'windowPositionSelect':
+                        element.addEventListener('change', function() {
+                            console.log('Window position changed:', this.value);
+                            ipcRenderer.send('set-window-position', this.value);
+                        });
+                        break;
+                        
+                    // 按钮事件
+                    case 'adjustBigScreenPositionBtn':
+                        element.addEventListener('click', function() {
+                            console.log('Adjust big screen position clicked');
+                            ipcRenderer.send('open-big-screen-position-adjuster');
+                        });
+                        break;
+                    case 'restartAppBtn':
+                        element.addEventListener('click', function() {
+                            console.log('Restart app clicked');
+                            ipcRenderer.send('restart-app');
+                        });
+                        break;
+                    case 'addAppBtn':
+                        element.addEventListener('click', function() {
+                            console.log('Add app clicked');
+                            const name = document.getElementById('appNameInput').value.trim();
+                            const path = document.getElementById('appPathInput').value.trim();
+                            const type = document.getElementById('appTypeInput').value;
+                            const icon = document.getElementById('appIconInput').value.trim();
+                            
+                            if (!name || !path) {
+                                alert('请输入名称和路径/链接');
+                                return;
+                            }
+                            
+                            console.log('Adding app:', { name, path, type, icon });
+                            ipcRenderer.send('add-launchpad-app', { 
+                                name, 
+                                path, 
+                                type,
+                                icon: icon || null
+                            });
+                            
+                            // 清空输入框
+                            document.getElementById('appNameInput').value = '';
+                            document.getElementById('appPathInput').value = '';
+                            document.getElementById('appIconInput').value = '';
+                        });
+                        break;
+                    case 'createTemplateBtn':
+                        element.addEventListener('click', function() {
+                            console.log('Create template clicked');
+                            ipcRenderer.send('open-template-designer-window');
+                        });
+                        break;
+                    case 'syncToCloudBtn':
+                        element.addEventListener('click', function() {
+                            console.log('Sync to cloud clicked');
+                            syncToCloud().catch(err => console.error('同步失败:', err));
+                        });
+                        break;
+                    case 'syncFromCloudBtn':
+                        element.addEventListener('click', function() {
+                            console.log('Sync from cloud clicked');
+                            syncFromCloud();
+                        });
+                        break;
+                    case 'testCiIntegrationBtn':
+                        element.addEventListener('click', function() {
+                            console.log('Test CI integration button clicked');
+                            // 模拟ClassIsland课程结束事件
+                            ipcRenderer.send('test-ci-integration');
+                        });
+                        break;
+                    case 'titleCloseBtn':
+                        element.addEventListener('click', function() {
+                            console.log('Close button clicked');
+                            window.close();
+                        });
+                        break;
+                }
+            }
+        });
+    }
+    
+    // 初始化外部链接处理
+    function initExternalLinks() {
+        document.addEventListener('click', function(event) {
+            const anchor = event.target.closest('fluent-anchor');
+            if (anchor && anchor.href) {
+                event.preventDefault();
+                shell.openExternal(anchor.href);
+            }
+        });
+    }
+    
+    // 添加窗口拖动功能
+    function addWindowDragSupport() {
+        const titleBar = document.querySelector('.title-bar');
+        if (!titleBar) return;
+        
+        let isDragging = false;
+        let startX, startY;
+        
+        // 鼠标事件
+        titleBar.addEventListener('mousedown', function(e) {
+            if (!e.target.closest('.title-bar-button')) {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                console.log('Start dragging:', startX, startY);
+            }
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                ipcRenderer.send('move-window', deltaX, deltaY);
+            }
+        });
+        
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                console.log('Stop dragging');
+            }
+        });
+    }
+    
+    // 添加触摸支持
+    function addTouchSupport() {
+        const clickableElements = document.querySelectorAll('button, .nav-item, .ci-main-option, fluent-switch, fluent-anchor, fluent-button');
+        
+        clickableElements.forEach(element => {
+            element.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.95)';
+            });
+            
+            element.addEventListener('touchend', function() {
+                this.style.transform = '';
+            });
+        });
+    }
+    
+    // 监听设置状态更新
+    ipcRenderer.on('settings-updated', function(event, settings) {
+        console.log('Settings updated:', settings);
+                // 更新开关状态
+        const clockToggle = document.querySelector('#clockToggle');
+        if (clockToggle) clockToggle.checked = settings.clockEnabled;
+        
+        const homeworkToggle = document.querySelector('#homeworkToggle');
+        if (homeworkToggle) homeworkToggle.checked = settings.homeworkEnabled;
+        
+        const startupToggle = document.querySelector('#startupToggle');
+        if (startupToggle) startupToggle.checked = settings.startupEnabled;
+        
+        const ciAutoHomeworkToggle = document.querySelector('#ciAutoHomeworkToggle');
+        if (ciAutoHomeworkToggle) ciAutoHomeworkToggle.checked = settings.ciAutoHomeworkEnabled;
+        
+        // 更新滑块状态
+        const sliders = [
+            { id: 'bigScreenFontSizeSlider', value: settings.bigScreenFontSize || 14, display: '#bigScreenFontSizeValue' },
+            { id: 'bigScreenOpacitySlider', value: settings.bigScreenOpacity || 95, display: '#bigScreenOpacityValue' },
+            { id: 'mainInterfaceScaleSlider', value: settings.mainInterfaceScale || 100, display: '#mainInterfaceScaleValue', suffix: '%' }
+        ];        
+        sliders.forEach(slider => {
+            const element = document.querySelector(`#${slider.id}`);
+            const display = document.querySelector(slider.display);
+            if (element) {
+                element.value = slider.value;
+                if (display) {
+                    display.textContent = slider.value + (slider.suffix || '');
+                }
+            }
+        });
+        
+        // 更新选择框状态
+        const selects = [
+            { id: 'themeSelect', value: settings.theme || 'personal' },
+            { id: 'bigScreenColumnsSelect', value: settings.bigScreenColumns || '2' }
+        ];
+        
+        selects.forEach(select => {
+            const element = document.querySelector(`#${select.id}`);
+            if (element) {
+                element.value = select.value;
+            }
+        });
+    });
+    
+    // 监听启动台应用更新
+    ipcRenderer.on('launchpad-apps-updated', function(event, apps) {
+        console.log('Launchpad apps updated:', apps);
+        updateLaunchpadList(apps);
+    });
+    
+    // 更新启动台列表
+    function updateLaunchpadList(apps) {
+        const launchpadList = document.getElementById('launchpadList');
+        if (!launchpadList) return;
+        
+        if (apps.length === 0) {
+            launchpadList.innerHTML = '<p style="text-align: center; color: #605e5c; padding: 20px;">暂无启动项</p>';
+            return;
+        }
+        
+        launchpadList.innerHTML = '';
+        
+        apps.forEach((app, index) => {
+            const appItem = document.createElement('div');
+            appItem.className = 'launchpad-item';
+            
+            appItem.innerHTML = `
+                <div class="app-info">
+                    <div class="app-name">${app.name}</div>
+                    <div class="app-path">${app.path}</div>
+                </div>
+                <div class="app-actions">
+                    <button class="remove-btn" onclick="removeLaunchpadApp(${index})">删除</button>
+                </div>
+            `;
+            
+            launchpadList.appendChild(appItem);
+        });
+    }
+    
+    // 移除启动台应用
+    window.removeLaunchpadApp = function(index) {
+        console.log('Remove app at index:', index);
+        ipcRenderer.send('remove-launchpad-app', index);
+    }
+    
+    // 初始化模板管理
+    function initTemplateManagement() {
+        console.log('Initializing template management');
+        // 加载并显示模板列表
+        loadTemplateList();
+        
+        // 监听模板更新事件
+        ipcRenderer.on('template-updated', () => {
+            console.log('Template updated event received, refreshing template list');
+            loadTemplateList();
+        });
+    }
+    
+    // 加载模板列表
+    function loadTemplateList() {
+        try {
+            // 引入模板模块
+            const templateModule = require('../template.js');
+            const templates = templateModule.getAllTemplates();
+            
+            const templateList = document.getElementById('templateList');
+            if (!templateList) return;
+            
+            if (templates.length === 0) {
+                templateList.innerHTML = '<p style="text-align: center; color: #605e5c; padding: 20px;">暂无模板</p>';
+                return;
+            }
+            
+            templateList.innerHTML = '';
+            
+            templates.forEach((template, index) => {
+                const templateItem = document.createElement('div');
+                templateItem.className = 'template-item';
+                
+                // 生成组件预览HTML
+                let componentsPreview = '';
+                if (template.components && template.components.length > 0) {
+                    componentsPreview = `
+                        <div class="template-components">
+                            <div class="components-title">组件:</div>
+                            <div class="components-list">
+                                ${template.components.map(component => {
+                                    let componentHTML = '';
+                                    switch (component.type) {
+                                        case 'fixedText':
+                                            componentHTML = `<div class="component-item">固定文本: ${component.content.substring(0, 50)}${component.content.length > 50 ? '...' : ''}</div>`;
+                                            break;
+                                        case 'numberSelect':
+                                            componentHTML = `<div class="component-item">数字选择: ${component.label} (${component.min}-${component.max})</div>`;
+                                            break;
+                                        case 'textDropdown':
+                                            componentHTML = `<div class="component-item">文本下拉: ${component.label} (${component.options.length}个选项)</div>`;
+                                            break;
+                                        default:
+                                            componentHTML = `<div class="component-item">未知组件</div>`;
+                                            break;
+                                    }
+                                    return componentHTML;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                templateItem.innerHTML = `
+                    <div class="template-info">
+                        <div class="template-name">${template.name}</div>
+                        <div class="template-description">${template.description || '无描述'}</div>
+                        ${componentsPreview}
+                    </div>
+                    <div class="template-actions">
+                        <button class="remove-btn" onclick="deleteTemplate('${template.id}')">删除</button>
+                    </div>
+                `;
+                
+                templateList.appendChild(templateItem);
+            });
+        } catch (error) {
+            console.error('加载模板列表失败:', error);
+            const templateList = document.getElementById('templateList');
+            if (templateList) {
+                templateList.innerHTML = '<p style="text-align: center; color: #f44336; padding: 20px;">加载模板失败</p>';
+            }
+        }
+    }
+    
+    // 删除模板
+    window.deleteTemplate = function(id) {
+        if (confirm('确定要删除这个模板吗？')) {
+            try {
+                const templateModule = require('../template.js');
+                const success = templateModule.deleteTemplate(id);
+                
+                if (success) {
+                    // 重新加载模板列表
+                    loadTemplateList();
+                    // 通知其他窗口模板已更新
+                    ipcRenderer.send('template-updated');
+                } else {
+                    alert('删除模板失败');
+                }
+            } catch (error) {
+                console.error('删除模板失败:', error);
+                alert('删除模板失败');
+            }
+        }
+    }
+    
+    // 监听模板更新事件
+    ipcRenderer.on('template-updated', function(event) {
+        console.log('Template updated');
+        // 更新模板列表
+        loadTemplateList();
+    });
+    
+    // 初始化启动台管理
+    function initLaunchpadManagement() {
+        console.log('Initializing launchpad management');
+        // 这里可以添加启动台列表的初始化逻辑
+    }
+    
+    // 云端同步相关函数
+    async function syncToCloud() {
+        console.log('========================================');
+        console.log('开始执行同步到云端操作...');
+        console.log('========================================');
+        
+        try {
+            // 显示加载状态
+            showSyncStatus('正在同步到云端...', 'info');
+            
+            // 从localStorage获取云端同步设置
+            let cloudSyncEnabled = false;
+            let serverAddress = '';
+            let schoolCode = '';
+            let classCode = '';
+            let teacherPassword = '';
+            
+            try {
+                const existingSettings = localStorage.getItem('cloudSyncSettings');
+                if (existingSettings) {
+                    const cloudSyncSettings = JSON.parse(existingSettings);
+                    cloudSyncEnabled = cloudSyncSettings.enabled || false;
+                    serverAddress = cloudSyncSettings.serverAddress || '';
+                    schoolCode = cloudSyncSettings.schoolCode || '';
+                    classCode = cloudSyncSettings.classCode || '';
+                    teacherPassword = cloudSyncSettings.teacherPassword || '';
+                    console.log('从localStorage获取设置:', { 
+                        cloudSyncEnabled, 
+                        serverAddress, 
+                        schoolCode, 
+                        classCode, 
+                        teacherPassword: teacherPassword ? '******' : '' 
+                    });
+                }
+            } catch (e) {
+                console.error('获取云端同步设置失败:', e);
+                showErrorDetails('获取设置失败', '读取本地设置时出错: ' + e.message);
+                showSyncStatus('获取设置失败', 'error');
+                return { success: false, message: '获取云端同步设置失败' };
+            }
+            
+            // 尝试从UI元素获取设置（如果存在）
+            try {
+                const cloudSyncToggle = document.getElementById('cloudSyncToggle');
+                if (cloudSyncToggle) {
+                    cloudSyncEnabled = cloudSyncToggle.checked;
+                    console.log('从UI获取cloudSyncEnabled:', cloudSyncEnabled);
+                }
+                
+                const serverAddressInput = document.getElementById('serverAddressInput');
+                if (serverAddressInput) {
+                    serverAddress = serverAddressInput.value.trim();
+                    console.log('从UI获取serverAddress:', serverAddress);
+                }
+                
+                // 获取账号信息
+                const accountInfo = localStorage.getItem('cloudSyncAccount');
+                if (accountInfo) {
+                    const accountData = JSON.parse(accountInfo);
+                    schoolCode = accountData.schoolCode || schoolCode;
+                    classCode = accountData.classCode || classCode;
+                    teacherPassword = accountData.password || teacherPassword;
+                    console.log('从cloudSyncAccount获取账号信息:', { 
+                        schoolCode, 
+                        classCode 
+                    });
+                }
+            } catch (e) {
+                console.error('获取UI元素设置失败:', e);
+                // 继续执行，使用已获取的设置
+            }
+            
+            // 验证设置
+            console.log('开始验证设置...');
+            
+            if (!cloudSyncEnabled) {
+                console.log('云端同步功能未启用，跳过同步');
+                showSyncStatus('云端同步功能未启用', 'warning');
+                alert('请先启用云端同步功能');
+                return { success: false, message: '云端同步功能未启用' };
+            }
+            
+            if (!serverAddress) {
+                console.log('服务器地址为空，跳过同步');
+                showSyncStatus('服务器地址为空', 'warning');
+                alert('请输入服务器地址');
+                return { success: false, message: '服务器地址为空' };
+            }
+            
+            if (!schoolCode) {
+                console.log('学校代码为空，跳过同步');
+                showSyncStatus('学校代码为空', 'warning');
+                alert('请输入学校代码');
+                return { success: false, message: '学校代码为空' };
+            }
+            
+            if (!classCode) {
+                console.log('班级代码为空，跳过同步');
+                showSyncStatus('班级代码为空', 'warning');
+                alert('请输入班级代码');
+                return { success: false, message: '班级代码为空' };
+            }
+            
+            if (!teacherPassword) {
+                console.log('教师密码为空，跳过同步');
+                showSyncStatus('教师密码为空', 'warning');
+                alert('请输入教师密码');
+                return { success: false, message: '教师密码为空' };
+            }
+            
+            console.log('设置验证通过');
+            
+            // 验证并修正URL格式
+            if (!serverAddress.startsWith('http://') && !serverAddress.startsWith('https://')) {
+                serverAddress = 'http://' + serverAddress;
+                console.log('自动修正服务器地址:', serverAddress);
+            }
+            
+            // 确保URL指向正确的API文件
+            if (!serverAddress.endsWith('/homework-sync.php') && !serverAddress.endsWith('/homework-sync.php/')) {
+                if (serverAddress.endsWith('/')) {
+                    serverAddress += 'homework-sync.php';
+                } else {
+                    serverAddress += '/homework-sync.php';
+                }
+                console.log('修正服务器地址，添加API文件名:', serverAddress);
+            }
+            
+            // 获取作业数据
+            let homeworkData = [];
+            try {
+                console.log('开始获取作业数据...');
+                showSyncStatus('正在获取作业数据...', 'info');
+                
+                // 从配置文件获取作业数据
+                if (typeof require !== 'undefined') {
+                    try {
+                        const { ipcRenderer } = require('electron');
+                        
+                        // 使用Promise包装IPC通信
+                        homeworkData = await new Promise((resolve, reject) => {
+                            // 发送请求获取作业数据
+                            ipcRenderer.send('get-homework-data');
+                            
+                            // 等待响应
+                            ipcRenderer.once('homework-data', (event, data) => {
+                                console.log('收到作业数据响应:', data);
+                                if (data === undefined) {
+                                    resolve([]);
+                                } else {
+                                    resolve(data || []);
+                                }
+                            });
+                            
+                            // 超时处理
+                            setTimeout(() => {
+                                console.log('获取作业数据超时，使用空数组');
+                                resolve([]);
+                            }, 10000); // 10秒超时
+                        });
+                        
+                        console.log('获取到作业数据:', homeworkData);
+                        console.log('作业数据数量:', homeworkData.length);
+                        showSyncStatus(`获取到 ${homeworkData.length} 个作业`, 'info');
+                    } catch (e) {
+                        console.error('获取作业数据失败:', e);
+                        showErrorDetails('获取作业数据失败', '连接到主进程时出错: ' + e.message);
+                        showSyncStatus('获取作业数据失败', 'error');
+                        alert('获取作业数据失败');
+                        return { success: false, message: '获取作业数据失败' };
+                    }
+                } else {
+                    console.error('不在Electron环境中');
+                    showErrorDetails('环境错误', '当前不在Electron环境中，无法获取作业数据');
+                    showSyncStatus('环境错误', 'error');
+                    alert('不在Electron环境中');
+                    return { success: false, message: '不在Electron环境中' };
+                }
+            } catch (e) {
+                console.error('获取作业数据失败:', e);
+                showErrorDetails('获取作业数据失败', e.message);
+                showSyncStatus('获取作业数据失败', 'error');
+                alert('获取作业数据失败');
+                return { success: false, message: '获取作业数据失败' };
+            }
+            
+            // 构建同步数据
+            const syncData = {
+                action: 'upload',
+                schoolCode: schoolCode,
+                classCode: classCode,
+                password: teacherPassword,
+                homeworkData: homeworkData
+            };
+            
+            console.log('构建同步数据:', {
+                action: syncData.action,
+                schoolCode: syncData.schoolCode,
+                classCode: syncData.classCode,
+                password: '******',
+                homeworkCount: syncData.homeworkData.length
+            });
+            
+            // 发送到服务器，使用AbortController实现超时
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.error('同步到云端超时');
+                controller.abort();
+            }, 60000); // 60秒超时
+            
+            console.log('开始发送请求到服务器...');
+            console.log('服务器地址:', serverAddress);
+            showSyncStatus('正在上传到服务器...', 'info');
+            
+            try {
+                const response = await fetch(serverAddress, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Referer': serverAddress,
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    },
+                    body: JSON.stringify(syncData),
+                    signal: controller.signal,
+                    timeout: 60000 // 额外的超时设置
+                });
+                
+                clearTimeout(timeoutId);
+                
+                console.log('服务器响应状态:', response.status);
+                console.log('服务器响应URL:', response.url);
+                console.log('服务器响应类型:', response.type);
+                
+                if (!response.ok) {
+                    throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+                }
+                
+                // 获取响应文本
+                const text = await response.text();
+                console.log('服务器响应文本:', text);
+                console.log('服务器响应文本长度:', text.length);
+                
+                // 处理空响应
+                if (!text || text.trim() === '') {
+                    throw new Error('服务器返回空内容');
+                }
+                
+                // 检查是否为Cloudflare安全验证页面
+                if (text.includes('Cloudflare') || text.includes('aes.js') || text.includes('toNumbers')) {
+                    throw new Error('Cloudflare安全验证拦截');
+                }
+                
+                // 尝试JSON解析
+                let data;
+                try {
+                    data = JSON.parse(text);
+                    console.log('同步响应数据:', data);
+                } catch (jsonError) {
+                    console.error('JSON解析失败:', jsonError);
+                    throw new Error('服务器返回的不是有效JSON格式');
+                }
+                
+                if (data.success) {
+                    console.log('作业已成功同步到云端');
+                    console.log('同步结果:', data);
+                    showSyncStatus('同步成功', 'success');
+                    alert(`作业已成功同步到云端\n共 ${data.homeworkCount || homeworkData.length} 个作业`);
+                } else {
+                    console.error('同步失败:', data.message || '未知错误');
+                    showErrorDetails('同步失败', data.message || '未知错误');
+                    showSyncStatus('同步失败', 'error');
+                    alert(`同步失败: ${data.message || '未知错误'}`);
+                }
+                
+                console.log('========================================');
+                console.log('同步到云端操作完成');
+                console.log('========================================');
+                return data;
+            } catch (error) {
+                clearTimeout(timeoutId);
+                console.error('同步到云端失败:', error);
+                
+                // 详细的错误处理
+                let errorMessage = error.message || '网络错误';
+                let detailedError = '';
+                
+                if (error.name === 'AbortError') {
+                    errorMessage = '同步超时，请检查网络连接和服务器状态';
+                    detailedError = '请求超过60秒未响应，可能的原因：\n1. 网络连接不稳定\n2. 服务器负载过高\n3. 服务器地址错误';
+                } else if (error.message.includes('Cloudflare')) {
+                    errorMessage = 'Cloudflare安全验证拦截';
+                    detailedError = '服务器使用了Cloudflare的安全验证功能，拦截了请求。\n\n解决方案：\n1. 将您的IP添加到Cloudflare白名单\n2. 暂时禁用Cloudflare的JavaScript Challenge\n3. 使用不使用Cloudflare的服务器';
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('网络错误')) {
+                    errorMessage = '网络连接失败';
+                    detailedError = '无法连接到服务器，请检查：\n1. 网络连接是否正常\n2. 服务器地址是否正确\n3. 服务器是否正在运行\n4. 防火墙是否阻止了请求';
+                } else if (error.message.includes('JSON')) {
+                    errorMessage = '服务器返回无效数据';
+                    detailedError = '服务器返回的不是有效的JSON格式，可能的原因：\n1. 服务器代码有错误\n2. 服务器返回了HTML错误页面\n3. 服务器配置不正确';
+                }
+                
+                showErrorDetails('同步失败', detailedError || errorMessage);
+                showSyncStatus('同步失败', 'error');
+                alert(`同步到云端失败: ${errorMessage}`);
+                return { success: false, message: errorMessage };
+            }
+        } catch (error) {
+            console.error('同步到云端失败:', error);
+            showErrorDetails('同步失败', error.message || '未知错误');
+            showSyncStatus('同步失败', 'error');
+            alert(`同步到云端失败: ${error.message || '未知错误'}`);
+            return { success: false, message: error.message || '未知错误' };
+        }
+    }
+
+    // 显示同步状态
+    function showSyncStatus(message, type = 'info') {
+        // 创建状态显示元素
+        let statusElement = document.getElementById('syncStatus');
+        if (!statusElement) {
+            statusElement = document.createElement('div');
+            statusElement.id = 'syncStatus';
+            statusElement.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 16px;
+                border-radius: 8px;
+                color: white;
+                font-size: 14px;
+                font-weight: 500;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                transition: all 0.3s ease;
+                max-width: 300px;
+                word-wrap: break-word;
+            `;
+            document.body.appendChild(statusElement);
+        }
+        
+        // 设置状态样式
+        switch (type) {
+            case 'success':
+                statusElement.style.backgroundColor = '#0078d4';
+                break;
+            case 'error':
+                statusElement.style.backgroundColor = '#d13438';
+                break;
+            case 'warning':
+                statusElement.style.backgroundColor = '#f7b955';
+                break;
+            default:
+                statusElement.style.backgroundColor = '#0078d4';
+        }
+        
+        // 设置状态消息
+        statusElement.textContent = message;
+        statusElement.style.opacity = '1';
+        statusElement.style.transform = 'translateX(0)';
+        
+        // 3秒后隐藏
+        setTimeout(() => {
+            statusElement.style.opacity = '0';
+            statusElement.style.transform = 'translateX(100%)';
+        }, 3000);
+    }
+    
+    function syncFromCloud() {
+        const cloudSyncEnabled = document.getElementById('cloudSyncToggle').checked;
+        if (!cloudSyncEnabled) {
+            alert('请先启用云端同步功能');
+            return;
+        }
+        
+        let serverAddress = document.getElementById('serverAddressInput').value.trim();
+        
+        // 从localStorage获取账号信息
+        let schoolCode = '';
+        let classCode = '';
+        let teacherPassword = '';
+        
+        try {
+            const existingSettings = localStorage.getItem('cloudSyncSettings');
+            if (existingSettings) {
+                const cloudSyncSettings = JSON.parse(existingSettings);
+                schoolCode = cloudSyncSettings.schoolCode || '';
+                classCode = cloudSyncSettings.classCode || '';
+                teacherPassword = cloudSyncSettings.teacherPassword || '';
+            }
+        } catch (e) {
+            console.error('获取账号信息失败:', e);
+        }
+        
+        if (!serverAddress || !schoolCode || !classCode || !teacherPassword) {
+            alert('请填写完整的云端同步设置');
+            return;
+        }
+        
+        // 验证并修正URL格式
+        if (!serverAddress.startsWith('http://') && !serverAddress.startsWith('https://')) {
+            serverAddress = 'http://' + serverAddress;
+            console.log('自动修正服务器地址:', serverAddress);
+        }
+        
+        // 构建同步数据
+        const syncData = {
+            action: 'download',
+            schoolCode: schoolCode,
+            classCode: classCode,
+            password: teacherPassword
+        };
+        
+        // 发送到服务器，使用AbortController实现超时
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
+        
+        console.log('开始从云端同步...');
+        console.log('服务器地址:', serverAddress);
+        console.log('同步数据:', syncData);
+        
+        fetch(serverAddress, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Referer': serverAddress,
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            body: JSON.stringify(syncData),
+            signal: controller.signal
+        })
+        .finally(() => clearTimeout(timeoutId))
+        .then(response => {
+            console.log('服务器响应状态:', response.status);
+            console.log('服务器响应:', response);
+            console.log('服务器响应URL:', response.url);
+            
+            if (!response.ok) {
+                throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+            }
+            
+            // 尝试获取响应文本，以便在JSON解析失败时查看
+            return response.text().then(text => {
+                console.log('服务器响应文本:', text);
+                console.log('服务器响应文本长度:', text.length);
+                
+                // 处理空响应
+                if (!text || text.trim() === '') {
+                    showErrorDetails('服务器返回空内容', '服务器没有返回任何内容，请检查服务器地址是否正确');
+                    throw new Error('服务器返回空内容');
+                }
+                
+                // 检查是否为Cloudflare安全验证页面
+                if (text.includes('Cloudflare') || text.includes('aes.js') || text.includes('toNumbers')) {
+                    const cloudflareError = 'Cloudflare安全验证拦截\n\n' +
+                        '服务器使用了Cloudflare的安全验证功能，拦截了请求。\n' +
+                        '这是Cloudflare的"JavaScript Challenge"，用于防止自动化脚本访问。\n\n' +
+                        '解决方案：\n' +
+                        '1. 将您的IP添加到Cloudflare白名单\n' +
+                        '2. 暂时禁用Cloudflare的"Bot Fight Mode"或"JavaScript Challenge"\n' +
+                        '3. 使用不使用Cloudflare的服务器\n' +
+                        '4. 或联系服务器管理员，请求将您的应用添加到白名单';
+                    
+                    showErrorDetails('Cloudflare安全验证拦截', cloudflareError);
+                    throw new Error('Cloudflare安全验证拦截');
+                }
+                
+                // 增强健壮性：即使文本被部分解析，也要能正确处理
+                try {
+                    // 尝试JSON解析
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('JSON解析失败:', e);
+                    
+                    // 确保文本能够正确显示，即使包含HTML
+                    let safeText = text;
+                    try {
+                        // 转义HTML标签，确保能够正确显示
+                        safeText = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    } catch (escapeError) {
+                        console.error('HTML转义失败:', escapeError);
+                        // 如果转义失败，使用原始文本
+                        safeText = text;
+                    }
+                    
+                    // 显示详细的错误信息
+                    showErrorDetails('服务器返回的不是有效JSON', safeText);
+                    
+                    // 抛出更详细的错误信息
+                    const errorPreview = text.length > 200 ? text.substring(0, 200) + '...' : text;
+                    throw new Error(`服务器返回的不是有效JSON: ${errorPreview}`);
+                }
+            });
+        })
+        .then(data => {
+            console.log('同步响应数据:', data);
+            if (data.success && data.homeworkData) {
+                // 保存作业数据到本地存储
+                localStorage.setItem('homeworkData', JSON.stringify(data.homeworkData));
+                alert('作业已成功从云端同步');
+                // 通知主窗口更新作业列表
+                ipcRenderer.send('refresh-homework-list');
+            } else {
+                alert('同步失败: ' + (data.message || '未知错误'));
+            }
+        })
+        .catch(error => {
+            console.error('从云端同步失败:', error);
+            if (error.name === 'AbortError') {
+                alert('从云端同步超时，请检查网络连接');
+            } else {
+                alert('从云端同步失败: ' + error.message);
+            }
+        });
+    }
+    
+    // 保存云端同步设置
+    function saveCloudSyncSettings() {
+        const cloudSyncEnabled = document.getElementById('cloudSyncToggle').checked;
+        const autoCloudSyncEnabled = document.getElementById('autoCloudSyncToggle').checked;
+        const serverAddress = document.getElementById('serverAddressInput').value.trim();
+        
+        try {
+            const existingSettings = localStorage.getItem('cloudSyncSettings');
+            let cloudSyncSettings = {};
+            if (existingSettings) {
+                cloudSyncSettings = JSON.parse(existingSettings);
+            }
+            
+            // 只更新核心设置，保留账号信息
+            cloudSyncSettings.enabled = cloudSyncEnabled;
+            cloudSyncSettings.autoSyncEnabled = autoCloudSyncEnabled;
+            cloudSyncSettings.serverAddress = serverAddress;
+            
+            // 保存到本地存储
+            localStorage.setItem('cloudSyncSettings', JSON.stringify(cloudSyncSettings));
+            console.log('云端同步设置已保存');
+            
+            // 通知主进程更新自动同步状态
+            ipcRenderer.send('update-auto-cloud-sync', autoCloudSyncEnabled);
+        } catch (e) {
+            console.error('保存云端同步设置失败:', e);
+        }
+    }
+    
+    // 加载云端同步设置
+    function loadCloudSyncSettings() {
+        try {
+            const settings = localStorage.getItem('cloudSyncSettings');
+            if (settings) {
+                const cloudSyncSettings = JSON.parse(settings);
+                document.getElementById('cloudSyncToggle').checked = cloudSyncSettings.enabled || false;
+                document.getElementById('autoCloudSyncToggle').checked = cloudSyncSettings.autoSyncEnabled || false;
+                document.getElementById('serverAddressInput').value = cloudSyncSettings.serverAddress || '';
+                
+                // 显示学校代码和班级代码
+                const displaySchoolCode = document.getElementById('displaySchoolCode');
+                const displayClassCode = document.getElementById('displayClassCode');
+                if (displaySchoolCode && displayClassCode) {
+                    displaySchoolCode.textContent = cloudSyncSettings.schoolCode || '未设置';
+                    displayClassCode.textContent = cloudSyncSettings.classCode || '未设置';
+                }
+            } else {
+                // 首次使用，显示引导信息
+                document.getElementById('firstTimeGuide').style.display = 'block';
+            }
+        } catch (e) {
+            console.error('加载云端同步设置失败:', e);
+        }
+    }
+    
+    // 显示错误详情
+    function showErrorDetails(errorMessage, errorContent) {
+        const errorDetails = document.getElementById('errorDetails');
+        const errorDetailsContent = document.getElementById('errorDetailsContent');
+        
+        // 构建完整的错误信息
+        let fullErrorContent = `错误信息: ${errorMessage}\n\n`;
+        
+        // 添加服务器返回内容
+        if (errorContent) {
+            fullErrorContent += `服务器返回内容:\n${errorContent}\n\n`;
+        }
+        
+        // 添加解决方案建议
+        if (errorMessage.includes('不是有效JSON') && errorContent.includes('<html>')) {
+            fullErrorContent += `解决方案:\n`;
+            fullErrorContent += `1. 检查服务器地址是否正确\n`;
+            fullErrorContent += `2. 如果服务器使用了Cloudflare，请将您的IP添加到白名单\n`;
+            fullErrorContent += `3. 暂时禁用服务器的安全服务JavaScript验证\n`;
+            fullErrorContent += `4. 或使用不使用安全服务的服务器\n`;
+            fullErrorContent += `5. 确保服务器上的homework-sync.php文件存在且可访问\n`;
+        }
+        
+        errorDetailsContent.innerHTML = fullErrorContent;
+        errorDetails.style.display = 'block';
+    }
+    
+    // 添加云端同步事件监听器
+    function addCloudSyncEventListeners() {
+        // 为云端同步相关元素添加事件监听器
+            const elements = [
+                'cloudSyncToggle',
+                'autoCloudSyncToggle',
+                'serverAddressInput',
+                'schoolCodeInput',
+                'classCodeInput',
+                'teacherPasswordInput'
+            ];
+        
+        elements.forEach(elementId => {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.addEventListener('change', saveCloudSyncSettings);
+                // 对于输入框，也添加input事件，以便实时保存
+                if (element.type === 'text' || element.type === 'password') {
+                    element.addEventListener('input', saveCloudSyncSettings);
+                }
+            }
+        });
+        
+        // 添加使用预设地址按钮事件
+            const usePresetServerBtn = document.getElementById('usePresetServerBtn');
+            if (usePresetServerBtn) {
+                usePresetServerBtn.addEventListener('click', function() {
+                    const presetAddress = 'http://1.12.218.107:345/homework-sync.php';
+                    document.getElementById('serverAddressInput').value = presetAddress;
+                    saveCloudSyncSettings();
+                    alert('已设置为预设服务器地址');
+                });
+            }
+            
+            // 添加打开账号管理窗口按钮事件
+            const openAccountManagementBtn = document.getElementById('openAccountManagementBtn');
+            if (openAccountManagementBtn) {
+                openAccountManagementBtn.addEventListener('click', function() {
+                    ipcRenderer.send('open-account-management-window');
+                });
+            }
+            
+            // 添加清空缓存按钮事件
+            const clearCacheBtn = document.getElementById('clearCacheBtn');
+            if (clearCacheBtn) {
+                clearCacheBtn.addEventListener('click', function() {
+                    if (confirm('确定要清空云端同步设置缓存吗？这将重置为首次使用状态。')) {
+                        localStorage.removeItem('cloudSyncSettings');
+                        localStorage.removeItem('cloudSyncRegistered');
+                        localStorage.removeItem('cloudSyncLoggedIn');
+                        // 重新加载设置
+                        loadCloudSyncSettings();
+                        // 显示成功消息
+                        alert('缓存已清空，已重置为首次使用状态。');
+                    }
+                });
+            }
+    }
+    
+    // 监听自动云端同步请求
+    ipcRenderer.on('perform-auto-cloud-sync', function() {
+        console.log('收到自动云端同步请求');
+        // 执行同步到云端操作
+        syncToCloud().catch(err => console.error('自动同步失败:', err));
+    });
+    
+    // 监听账号信息更新
+    ipcRenderer.on('account-info-updated', function() {
+        console.log('账号信息已更新，重新加载设置');
+        loadCloudSyncSettings();
+    });
+
+    </script>
+</body>
+</html>

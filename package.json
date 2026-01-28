@@ -1,0 +1,51 @@
+{
+  "name": "classwindow-plus",
+  "productName": "ClassWindow plus",
+  "description": "ClassWindow plus is an enhanced version of ClassWindow, designed to provide additional features and improvements for classroom management and interaction.",
+  "version": "1.0.1",
+  "main": "main.js",
+  "repository": "https://github.com/wmsbsbs/classwindow-plus",
+  "author": "R3N",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "changelog": "conventional-changelog -p conventionalcommits",
+    "build": "electron-builder"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.10.2",
+    "@electron-forge/maker-deb": "^7.10.2",
+    "@electron-forge/maker-squirrel": "^7.10.2",
+    "@electron-forge/maker-zip": "^7.10.2",
+    "electron": "^39.2.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.classwindow.plus",
+    "productName": "ClassWindow Plus",
+    "directories": {
+      "output": "build-final"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/**/*",
+      "!dist/**/*",
+      "!dist-new/**/*",
+      "!build-output/**/*",
+      "!installer/**/*",
+      "!cloud/**/*",
+      "!changelog/**/*",
+      "!readme/**/*"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "icon": "assets/logo.jpg"
+    }
+  }
+}

@@ -1,0 +1,705 @@
+/* 整体布局 */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: white;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    height: calc(100vh - 32px);
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 32px; /* 为标题栏留出空间 */
+}
+
+/* 暗色主题样式 */
+body.dark-theme {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+body.dark-theme .container {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+body.dark-theme .sidebar {
+    background-color: #252526;
+    border-right: 1px solid #3e3e42;
+}
+
+body.dark-theme .nav-item {
+    color: #cccccc;
+}
+
+body.dark-theme .nav-item:hover {
+    background-color: #2a2d2e;
+}
+
+body.dark-theme .nav-item.active {
+    background-color: #0e639c;
+    border-left-color: #4ec9b0;
+    color: #ffffff;
+}
+
+body.dark-theme .main-content {
+    background: #1e1e1e;
+    color: #cccccc;
+}
+
+body.dark-theme .setting-section h2 {
+    color: #ffffff;
+    border-bottom-color: #3e3e42;
+}
+
+body.dark-theme .setting-group {
+    background: #252526;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+body.dark-theme .setting-title {
+    color: #ffffff;
+}
+
+body.dark-theme .setting-description {
+    color: #999999;
+}
+
+body.dark-theme .launchpad-section {
+    background-color: #252526;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+body.dark-theme .launchpad-list {
+    background: #1e1e1e;
+    border-color: #3e3e42;
+}
+
+body.dark-theme .launchpad-item {
+    background: #252526;
+    border-color: #3e3e42;
+}
+
+body.dark-theme .launchpad-item-name {
+    color: #ffffff;
+}
+
+body.dark-theme .launchpad-item-path {
+    color: #999999;
+}
+
+body.dark-theme .template-list {
+    background: #1e1e1e;
+    border-color: #3e3e42;
+}
+
+body.dark-theme .template-item {
+    background: #252526;
+    border-color: #3e3e42;
+}
+
+body.dark-theme .template-name {
+    color: #ffffff;
+}
+
+body.dark-theme .template-desc {
+    color: #999999;
+}
+
+body.dark-theme .add-input, body.dark-theme .type-selector {
+    background: #3c3c3c;
+    border-color: #3e3e42;
+    color: #ffffff;
+}
+
+body.dark-theme .add-input::placeholder {
+    color: #999999;
+}
+
+body.dark-theme .info-card {
+    background: #252526;
+    color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+body.dark-theme .about-text {
+    color: #cccccc;
+}
+
+/* 表单元素暗色主题 */
+body.dark-theme input, 
+body.dark-theme select, 
+body.dark-theme textarea {
+    background: #3c3c3c;
+    border: 1px solid #3e3e42;
+    color: #ffffff;
+    border-radius: 4px;
+}
+
+body.dark-theme input:focus, 
+body.dark-theme select:focus, 
+body.dark-theme textarea:focus {
+    outline: none;
+    border-color: #0e639c;
+    box-shadow: 0 0 0 2px rgba(14, 99, 156, 0.5);
+}
+
+body.dark-theme input::placeholder, 
+body.dark-theme textarea::placeholder {
+    color: #999999;
+}
+
+/* 按钮暗色主题 */
+body.dark-theme .remove-btn {
+    background-color: #d13438;
+    color: white;
+    border: none;
+}
+
+body.dark-theme .remove-btn:hover {
+    background-color: #a80000;
+}
+
+/* 标题栏完整暗色主题 */
+body.dark-theme .title-bar {
+    background: #252526;
+    border-bottom: 1px solid #3e3e42;
+}
+
+body.dark-theme .title {
+    color: white;
+}
+
+/* 启动台添加表单暗色主题 */
+body.dark-theme .add-form {
+    background: #252526;
+    border-color: #3e3e42;
+}
+
+/* 启动台列表暗色主题 */
+body.dark-theme .launchpad-list {
+    background: #1e1e1e;
+    border-color: #3e3e42;
+}
+
+body.dark-theme .launchpad-item {
+    background: #252526;
+    border-color: #3e3e42;
+}
+
+body.dark-theme .launchpad-item-name {
+    color: white;
+}
+
+body.dark-theme .launchpad-item-path {
+    color: #cccccc;
+}
+
+/* 模板列表暗色主题 */
+body.dark-theme .template-list {
+    background: #1e1e1e;
+    border-color: #3e3e42;
+}
+
+body.dark-theme .template-item {
+    background: #252526;
+    border-color: #3e3e42;
+}
+
+body.dark-theme .template-name {
+    color: white;
+}
+
+body.dark-theme .template-desc {
+    color: #cccccc;
+}
+
+/* Fluent UI 组件暗色主题支持 */
+body.dark-theme fluent-switch::part(control) {
+    background: #3c3c3c;
+    border-color: #3e3e42;
+}
+
+body.dark-theme fluent-switch::part(checked-indicator) {
+    background: #0e639c;
+}
+
+body.dark-theme fluent-badge {
+    background: #252526;
+    color: white;
+    border-color: #3e3e42;
+}
+
+/* 卡片暗色主题 */
+body.dark-theme fluent-card {
+    background: #252526;
+    color: white;
+    border-color: #3e3e42;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* 链接暗色主题 */
+body.dark-theme fluent-anchor {
+    color: #4ec9b0;
+}
+
+body.dark-theme fluent-anchor:hover {
+    color: #56d3b8;
+}
+
+/* 标题栏样式 */
+.title-bar {
+    height: 32px;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    box-sizing: border-box;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    cursor: default;
+    user-select: none;
+    -webkit-app-region: drag;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+.title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+.title-bar-buttons {
+    display: flex;
+    gap: 5px;
+    -webkit-app-region: no-drag;
+}
+
+.title-bar-button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.close-button {
+    background-color: #ff5f57;
+}
+
+.minimize-button {
+    background-color: #febc2e;
+}
+
+.maximize-button {
+    background-color: #28c840;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+    width: 200px;
+    background-color: #f5f5f5;
+    border-right: 1px solid #e0e0e0;
+    padding: 20px 0;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    gap: 12px;
+    color: #333;
+    min-height: 60px;
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.nav-item:hover {
+    background-color: #e8e8e8;
+    transform: translateX(4px);
+}
+
+.nav-item:active {
+    transform: translateX(2px);
+    background-color: #d8d8d8;
+}
+
+.nav-item.active {
+    background-color: #e1f5fe;
+    border-left-color: #3498db;
+    color: #3498db;
+    font-weight: 600;
+}
+
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon svg {
+    fill: currentColor;
+    stroke: currentColor;
+    width: 100%;
+    height: 100%;
+}
+
+.nav-text {
+    font-size: 14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 主内容区域 */
+.main-content {
+    flex: 1;
+    padding: 20px;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* 标签页内容 */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 设置项样式 */
+.setting-section {
+    margin-bottom: 30px;
+}
+
+.setting-section h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #323130;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.setting-group {
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #edebe9;
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.setting-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #323130;
+    margin-bottom: 4px;
+}
+
+.setting-description {
+    font-size: 14px;
+    color: #605e5c;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    margin-left: 16px;
+}
+
+/* 启动台设置样式 */
+.launchpad-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.launchpad-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    border: 1px solid #edebe9;
+    border-radius: 6px;
+    background: #faf9f8;
+    padding: 8px;
+}
+
+.launchpad-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: white;
+    border: 1px solid #edebe9;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+}
+
+.launchpad-item:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.launchpad-item-info {
+    flex: 1;
+}
+
+.launchpad-item-name {
+    font-weight: 600;
+    color: #323130;
+}
+
+.launchpad-item-path {
+    font-size: 12px;
+    color: #605e5c;
+    word-break: break-all;
+}
+
+.launchpad-item-type {
+    font-size: 12px;
+    color: #0078d4;
+    background: #e6f4ff;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+}
+
+.launchpad-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.remove-btn {
+    background-color: #d13438;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.remove-btn:hover {
+    background-color: #a80000;
+    transform: scale(1.05);
+}
+
+.add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 16px;
+    background: #faf9f8;
+    border-radius: 8px;
+    border: 1px solid #edebe9;
+}
+
+.form-row {
+    display: flex;
+    gap: 8px;
+}
+
+.add-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #edebe9;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.type-selector {
+    width: 120px;
+    padding: 8px;
+    border: 1px solid #edebe9;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.add-btn {
+    margin-top: 8px;
+}
+
+/* 模板管理样式 */
+.template-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    border: 1px solid #edebe9;
+    border-radius: 6px;
+    background: #faf9f8;
+    padding: 8px;
+}
+
+.template-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: white;
+    border: 1px solid #edebe9;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+}
+
+.template-item:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.template-info {
+    flex: 1;
+}
+
+.template-name {
+    font-weight: 600;
+    color: #323130;
+    margin-bottom: 4px;
+}
+
+.template-desc {
+    font-size: 12px;
+    color: #605e5c;
+}
+
+.template-actions {
+    margin-top: 16px;
+}
+
+.template-actions fluent-button {
+    margin-right: 8px;
+}
+
+/* 关于页面样式 */
+.about-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+}
+
+.header-section {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.promo-text {
+    font-size: 80px;
+    margin: 0;
+    line-height: 1;
+    color: #ffcc00;
+    text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+}
+
+.slogan {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 10px 0;
+}
+
+.app-name {
+    font-size: 28px;
+    font-weight: bold;
+    color: #3498db;
+    margin: 10px 0 20px 0;
+}
+
+.info-card {
+    margin: 20px 0;
+    padding: 20px 40px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border: none;
+}
+
+.about-content {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.about-text {
+    margin: 15px 0;
+    color: #666;
+    font-size: 16px;
+    text-align: center;
+}
+
+.footer {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 14px;
+    color: #999;
+}
+
+.adapt-info {
+    margin-bottom: 10px;
+    font-style: italic;
+}
+
+.original-info {
+    margin-bottom: 15px;
+    font-size: 13px;
+}
+
+.original-info fluent-anchor {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.original-info fluent-anchor:hover {
+    text-decoration: underline;
+}
+
+.copyright {
+    margin-top: 20px;
+    font-size: 12px;
+    opacity: 0.8;
+}

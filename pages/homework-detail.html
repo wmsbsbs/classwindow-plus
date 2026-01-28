@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>作业详情</title>
+    <!-- 优化资源加载：使用defer和preload提升性能 -->
+    <link rel="preload" href="../assets/css/homework-detail.css" as="style">
+    <link rel="preload" href="../assets/css/hide-scrollbar.css" as="style">
+    <link rel="stylesheet" href="../assets/css/homework-detail.css">
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css">
+    <!-- 延迟加载Fluent UI组件，提升首屏加载速度 -->
+    <script type="module" src="https://unpkg.com/@fluentui/web-components" defer></script>
+</head>
+<body>
+    <!-- 标题栏 -->
+    <div class="title-bar">
+        <div class="title">作业详情</div>
+        <div class="title-bar-buttons">
+            <div class="title-bar-button close-button" title="关闭" id="titleCloseBtn"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="detail-card">
+            <div class="detail-header">
+                <span class="subject-tag" id="subjectTag"></span>
+            </div>
+            
+            <div class="detail-content">
+                <div class="detail-item">
+                    <label>作业内容：</label>
+                    <div id="contentDisplay"></div>
+                </div>
+                
+                <div class="detail-item">
+                    <label>添加时间：</label>
+                    <span id="timeDisplay"></span>
+                </div>
+                
+                <div class="detail-item">
+                    <label>截止日期：</label>
+                    <span id="dueDateDisplay"></span>
+                </div>
+            </div>
+            
+            <div class="detail-actions">
+                <fluent-button appearance="accent" id="editBtn">编辑作业</fluent-button>
+                <fluent-button appearance="neutral" id="closeBtn">关闭</fluent-button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // 当前作业数据
+        let currentHomework = null;
+        let homeworkIndex = -1;
+        
+        // DOM 元素
+        const subjectTag = document.getElementById('subjectTag');
+        const contentDisplay = document.getElementById('contentDisplay');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const dueDateDisplay = document.getElementById('dueDateDisplay');
+        const editBtn = document.getElementById('editBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const titleCloseBtn = document.getElementById('titleCloseBtn');
+        
+        // 获取科目名称
+        function getSubjectName(subjectValue) {
+            const subjects = {
+                'chinese': '语文',
+                'math': '数学',
+                'english': '英语',
+                'physics': '物理',
+                'chemistry': '化学',
+                'biology': '生物',
+                'history': '历史',
+                'geography': '地理',
+                'politics': '道法',
+                'other': '其他'
+            };
+            return subjects[subjectValue] || subjectValue;
+        }
+        
+        // 显示作业详情
+        function displayHomeworkDetail(homework) {
+            currentHomework = homework;
+            
+            // 设置科目标签
+            subjectTag.className = `subject-tag ${homework.subject}`;
+            subjectTag.textContent = getSubjectName(homework.subject);
+            
+            // 设置作业内容
+            const contentWithLineBreaks = homework.content.replace(/\n/g, '<br>');
+            contentDisplay.innerHTML = contentWithLineBreaks;
+            
+            // 设置添加时间
+            const timestamp = homework.timestamp ? new Date(homework.timestamp) : new Date();
+            timeDisplay.textContent = `${timestamp.getFullYear()}-${String(timestamp.getMonth()+1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}`;
+            
+            // 设置截止日期
+            if (homework.dueDate) {
+                const dueDate = new Date(homework.dueDate);
+                dueDateDisplay.textContent = `${dueDate.getFullYear()}-${String(dueDate.getMonth()+1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`;
+            } else {
+                dueDateDisplay.textContent = '无截止日期';
+            }
+        }
+        
+        // 编辑作业
+        function editHomework() {
+            if (currentHomework) {
+                // 发送编辑请求到主进程
+                ipcRenderer.send('open-homework-edit-window', currentHomework);
+                window.close();
+            }
+        }
+        
+        // 关闭窗口
+        function closeWindow() {
+            window.close();
+        }
+        
+        // 监听主进程发送的作业数据
+        ipcRenderer.on('homework-detail-data', (event, homework, index) => {
+            displayHomeworkDetail(homework);
+            homeworkIndex = index;
+        });
+        
+        // 事件监听器
+        editBtn.addEventListener('click', editHomework);
+        closeBtn.addEventListener('click', closeWindow);
+        titleCloseBtn.addEventListener('click', closeWindow);
+        
+        // 关闭窗口时清理引用
+        window.addEventListener('beforeunload', () => {
+            ipcRenderer.send('homework-detail-window-closed');
+        });
+        
+        // 页面加载完成后请求作业数据
+        document.addEventListener('DOMContentLoaded', () => {
+            // 作业数据会通过 IPC 发送过来
+        });
+    </script>
+</body>
+</html>

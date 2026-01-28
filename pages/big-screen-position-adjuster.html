@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>大屏模式位置调整</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f3f2f1;
+            color: #1a1a1a;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #ffffff;
+            padding: 16px 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: #0078d4;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #106ebe;
+        }
+
+        .btn-secondary {
+            background-color: #f3f2f1;
+            color: #1a1a1a;
+            border: 1px solid #edebe9;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e1dfdd;
+        }
+
+        .content {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .instructions {
+            background-color: #e6f7ff;
+            border-left: 4px solid #0078d4;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #0078d4;
+        }
+
+        .instructions p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #1a1a1a;
+        }
+
+        .screen-preview {
+            flex: 1;
+            background-color: #ffffff;
+            border: 1px solid #edebe9;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .screen-background {
+            width: 100%;
+            height: 100%;
+            background-color: #f9f9f9;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            position: relative;
+        }
+
+        .screen-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #605e5c;
+        }
+
+        .preview-window {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            height: 60%;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #0078d4;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            cursor: move;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .preview-window:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .preview-header {
+            background-color: #0078d4;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-content {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .preview-homework {
+            background-color: #f3f2f1;
+            border-radius: 4px;
+            padding: 12px;
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .preview-homework h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .preview-homework p {
+            font-size: 12px;
+            color: #605e5c;
+            line-height: 1.4;
+        }
+
+        .position-info {
+            background-color: #ffffff;
+            border: 1px solid #edebe9;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .position-info h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+
+        .position-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .position-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .position-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #605e5c;
+        }
+
+        .position-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            background-color: #f9f9f9;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #edebe9;
+        }
+
+        /* 触控支持样式 */
+        .preview-window {
+            touch-action: none;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .content {
+                padding: 16px;
+            }
+
+            .header {
+                padding: 12px 16px;
+            }
+
+            .header h1 {
+                font-size: 16px;
+            }
+
+            .preview-window {
+                width: 80%;
+                height: 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>大屏模式位置调整</h1>
+            <div class="header-buttons">
+                <button class="btn btn-secondary" id="resetBtn">重置位置</button>
+                <button class="btn btn-primary" id="saveBtn">保存位置</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="instructions">
+                <h2>操作说明</h2>
+                <p>• 拖动蓝色边框的窗口到您想要的位置</p>
+                <p>• 窗口位置将实时显示在下方</p>
+                <p>• 点击"保存位置"按钮应用设置</p>
+                <p>• 点击"重置位置"按钮恢复到默认位置</p>
+            </div>
+
+            <div class="screen-preview">
+                <div class="screen-background">
+                    <div class="screen-label">屏幕预览</div>
+                    <div class="preview-window" id="previewWindow">
+                        <div class="preview-header">
+                            <span>大屏作业</span>
+                        </div>
+                        <div class="preview-content">
+                            <div class="preview-homework">
+                                <h3>数学作业</h3>
+                                <p>完成课本第100页练习</p>
+                            </div>
+                            <div class="preview-homework">
+                                <h3>语文作业</h3>
+                                <p>背诵第5课课文</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="position-info">
+                <h2>位置信息</h2>
+                <div class="position-details">
+                    <div class="position-item">
+                        <div class="position-label">X 坐标</div>
+                        <div class="position-value" id="xPosition">0</div>
+                    </div>
+                    <div class="position-item">
+                        <div class="position-label">Y 坐标</div>
+                        <div class="position-value" id="yPosition">0</div>
+                    </div>
+                    <div class="position-item">
+                        <div class="position-label">宽度</div>
+                        <div class="position-value" id="widthValue">1920</div>
+                    </div>
+                    <div class="position-item">
+                        <div class="position-label">高度</div>
+                        <div class="position-value" id="heightValue">1080</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        // 获取DOM元素
+        const previewWindow = document.getElementById('previewWindow');
+        const xPosition = document.getElementById('xPosition');
+        const yPosition = document.getElementById('yPosition');
+        const widthValue = document.getElementById('widthValue');
+        const heightValue = document.getElementById('heightValue');
+        const saveBtn = document.getElementById('saveBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // 拖动状态
+        let isDragging = false;
+        let startX, startY;
+        let windowStartX, windowStartY;
+
+        // 触控拖动状态
+        let isTouchDragging = false;
+        let touchStartX, touchStartY;
+
+        // 屏幕尺寸
+        let screenWidth, screenHeight;
+
+        // 窗口尺寸
+        let windowWidth = 1920;
+        let windowHeight = 1080;
+
+        // 初始化
+        function init() {
+            // 获取屏幕尺寸
+            const { screen } = require('electron');
+            const primaryDisplay = screen.getPrimaryDisplay();
+            screenWidth = primaryDisplay.workAreaSize.width;
+            screenHeight = primaryDisplay.workAreaSize.height;
+
+            // 设置预览窗口尺寸
+            updatePreviewWindowSize();
+
+            // 获取当前位置设置
+            ipcRenderer.send('get-big-screen-position');
+
+            // 添加事件监听器
+            addEventListeners();
+        }
+
+        // 更新预览窗口尺寸
+        function updatePreviewWindowSize() {
+            const previewContainer = document.querySelector('.screen-preview');
+            const containerWidth = previewContainer.clientWidth;
+            const containerHeight = previewContainer.clientHeight;
+
+            // 计算预览窗口尺寸（基于容器大小的百分比）
+            const previewWidth = containerWidth * 0.6;
+            const previewHeight = containerHeight * 0.6;
+
+            previewWindow.style.width = `${previewWidth}px`;
+            previewWindow.style.height = `${previewHeight}px`;
+        }
+
+        // 添加事件监听器
+        function addEventListeners() {
+            // 鼠标事件
+            previewWindow.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+
+            // 触控事件
+            previewWindow.addEventListener('touchstart', startTouchDrag);
+            document.addEventListener('touchmove', touchDrag);
+            document.addEventListener('touchend', stopTouchDrag);
+            document.addEventListener('touchcancel', stopTouchDrag);
+
+            // 按钮事件
+            saveBtn.addEventListener('click', savePosition);
+            resetBtn.addEventListener('click', resetPosition);
+
+            // 窗口大小变化事件
+            window.addEventListener('resize', updatePreviewWindowSize);
+        }
+
+        // 开始拖动
+        function startDrag(e) {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            const rect = previewWindow.getBoundingClientRect();
+            const containerRect = document.querySelector('.screen-preview').getBoundingClientRect();
+            
+            windowStartX = rect.left - containerRect.left;
+            windowStartY = rect.top - containerRect.top;
+            
+            previewWindow.style.cursor = 'grabbing';
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // 拖动
+        function drag(e) {
+            if (!isDragging) return;
+            
+            const containerRect = document.querySelector('.screen-preview').getBoundingClientRect();
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            let newX = windowStartX + deltaX;
+            let newY = windowStartY + deltaY;
+            
+            // 限制在容器内
+            const previewWidth = previewWindow.clientWidth;
+            const previewHeight = previewWindow.clientHeight;
+            
+            newX = Math.max(0, Math.min(newX, containerRect.width - previewWidth));
+            newY = Math.max(0, Math.min(newY, containerRect.height - previewHeight));
+            
+            // 设置位置
+            previewWindow.style.left = `${newX}px`;
+            previewWindow.style.top = `${newY}px`;
+            previewWindow.style.transform = 'none';
+            
+            // 更新位置信息
+            updatePositionInfo(newX, newY);
+            
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // 停止拖动
+        function stopDrag() {
+            if (isDragging) {
+                isDragging = false;
+                previewWindow.style.cursor = 'move';
+            }
+        }
+
+        // 开始触控拖动
+        function startTouchDrag(e) {
+            if (e.touches.length === 1) {
+                isTouchDragging = true;
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                
+                const rect = previewWindow.getBoundingClientRect();
+                const containerRect = document.querySelector('.screen-preview').getBoundingClientRect();
+                
+                windowStartX = rect.left - containerRect.left;
+                windowStartY = rect.top - containerRect.top;
+                
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+
+        // 触控拖动
+        function touchDrag(e) {
+            if (isTouchDragging && e.touches.length === 1) {
+                const touch = e.touches[0];
+                const containerRect = document.querySelector('.screen-preview').getBoundingClientRect();
+                const deltaX = touch.clientX - touchStartX;
+                const deltaY = touch.clientY - touchStartY;
+                
+                let newX = windowStartX + deltaX;
+                let newY = windowStartY + deltaY;
+                
+                // 限制在容器内
+                const previewWidth = previewWindow.clientWidth;
+                const previewHeight = previewWindow.clientHeight;
+                
+                newX = Math.max(0, Math.min(newX, containerRect.width - previewWidth));
+                newY = Math.max(0, Math.min(newY, containerRect.height - previewHeight));
+                
+                // 设置位置
+                previewWindow.style.left = `${newX}px`;
+                previewWindow.style.top = `${newY}px`;
+                previewWindow.style.transform = 'none';
+                
+                // 更新位置信息
+                updatePositionInfo(newX, newY);
+                
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+
+        // 停止触控拖动
+        function stopTouchDrag() {
+            isTouchDragging = false;
+        }
+
+        // 更新位置信息
+        function updatePositionInfo(x, y) {
+            // 计算实际屏幕坐标（基于预览比例）
+            const containerRect = document.querySelector('.screen-preview').getBoundingClientRect();
+            const previewWidth = previewWindow.clientWidth;
+            const previewHeight = previewWindow.clientHeight;
+            
+            // 计算比例
+            const xRatio = screenWidth / (containerRect.width - previewWidth);
+            const yRatio = screenHeight / (containerRect.height - previewHeight);
+            
+            // 计算实际坐标
+            const actualX = Math.round(x * xRatio);
+            const actualY = Math.round(y * yRatio);
+            
+            // 更新显示
+            xPosition.textContent = actualX;
+            yPosition.textContent = actualY;
+            widthValue.textContent = windowWidth;
+            heightValue.textContent = windowHeight;
+        }
+
+        // 保存位置
+        function savePosition() {
+            const x = parseInt(xPosition.textContent);
+            const y = parseInt(yPosition.textContent);
+            
+            // 发送位置数据到主进程
+            ipcRenderer.send('set-big-screen-custom-position', { x, y });
+            
+            // 关闭窗口
+            window.close();
+        }
+
+        // 重置位置
+        function resetPosition() {
+            // 重置到屏幕中心
+            const previewContainer = document.querySelector('.screen-preview');
+            const containerWidth = previewContainer.clientWidth;
+            const containerHeight = previewContainer.clientHeight;
+            const previewWidth = previewWindow.clientWidth;
+            const previewHeight = previewWindow.clientHeight;
+            
+            const centerX = (containerWidth - previewWidth) / 2;
+            const centerY = (containerHeight - previewHeight) / 2;
+            
+            previewWindow.style.left = `${centerX}px`;
+            previewWindow.style.top = `${centerY}px`;
+            previewWindow.style.transform = 'none';
+            
+            // 更新位置信息
+            updatePositionInfo(centerX, centerY);
+        }
+
+        // 监听位置数据
+        ipcRenderer.on('big-screen-position', (event, position) => {
+            if (position.x !== undefined && position.y !== undefined) {
+                // 计算预览位置（基于屏幕比例）
+                const previewContainer = document.querySelector('.screen-preview');
+                const containerWidth = previewContainer.clientWidth;
+                const containerHeight = previewContainer.clientHeight;
+                const previewWidth = previewWindow.clientWidth;
+                const previewHeight = previewWindow.clientHeight;
+                
+                // 计算比例
+                const xRatio = (containerWidth - previewWidth) / screenWidth;
+                const yRatio = (containerHeight - previewHeight) / screenHeight;
+                
+                // 计算预览位置
+                const previewX = position.x * xRatio;
+                const previewY = position.y * yRatio;
+                
+                // 设置位置
+                previewWindow.style.left = `${previewX}px`;
+                previewWindow.style.top = `${previewY}px`;
+                previewWindow.style.transform = 'none';
+                
+                // 更新位置信息
+                updatePositionInfo(previewX, previewY);
+            }
+        });
+
+        // 监听窗口大小数据
+        ipcRenderer.on('big-screen-size', (event, size) => {
+            if (size.width && size.height) {
+                windowWidth = size.width;
+                windowHeight = size.height;
+                widthValue.textContent = windowWidth;
+                heightValue.textContent = windowHeight;
+            }
+        });
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
