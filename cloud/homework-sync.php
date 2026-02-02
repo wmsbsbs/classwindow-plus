@@ -418,6 +418,326 @@ function handleStudentAccess($data) {
     }
 }
 
+// 处理老师登录
+function handleTeacherLogin($data) {
+    logMessage('开始处理老师登录请求', 'INFO');
+    logMessage('老师登录请求数据: ' . json_encode($data), 'DEBUG');
+    
+    // 验证必要参数
+    $validationError = validateParams($data, ['schoolCode', 'classCode', 'password']);
+    if ($validationError) {
+        logMessage('老师登录参数验证失败: ' . $validationError['message'], 'WARN');
+        return $validationError;
+    }
+    
+    $schoolCode = $data['schoolCode'];
+    $classCode = $data['classCode'];
+    $password = $data['password'];
+    
+    try {
+        // 读取学校数据
+        $schoolsData = getSchoolsData();
+        
+        // 检查学校是否存在
+        if (!isset($schoolsData[$schoolCode])) {
+            logMessage('学校不存在: ' . $schoolCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '学校不存在'
+            ];
+        }
+        
+        // 检查班级是否存在
+        if (!isset($schoolsData[$schoolCode]['classes'][$classCode])) {
+            logMessage('班级不存在: ' . $schoolCode . '/' . $classCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '班级不存在'
+            ];
+        }
+        
+        // 验证密码
+        if ($schoolsData[$schoolCode]['classes'][$classCode]['password'] !== $password) {
+            logMessage('密码错误: ' . $schoolCode . '/' . $classCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '密码错误'
+            ];
+        }
+        
+        // 获取作业数据
+        $homeworkData = $schoolsData[$schoolCode]['classes'][$classCode]['homeworkData'] ?? [];
+        $lastUpdated = $schoolsData[$schoolCode]['classes'][$classCode]['lastUpdated'] ?? time();
+        
+        $response = [
+            'success' => true,
+            'message' => '登录成功',
+            'homeworkData' => $homeworkData,
+            'homeworkCount' => count($homeworkData),
+            'lastUpdated' => $lastUpdated
+        ];
+        
+        logMessage('老师登录成功: ' . $schoolCode . '/' . $classCode, 'INFO');
+        return $response;
+    } catch (Exception $e) {
+        logMessage('登录失败: ' . $e->getMessage(), 'ERROR');
+        return [
+            'success' => false,
+            'message' => '登录失败: ' . $e->getMessage()
+        ];
+    }
+}
+
+// 处理添加作业
+function handleAddHomework($data) {
+    logMessage('开始处理添加作业请求', 'INFO');
+    logMessage('添加作业请求数据: ' . json_encode($data), 'DEBUG');
+    
+    // 验证必要参数
+    $validationError = validateParams($data, ['schoolCode', 'classCode', 'subject', 'content']);
+    if ($validationError) {
+        logMessage('添加作业参数验证失败: ' . $validationError['message'], 'WARN');
+        return $validationError;
+    }
+    
+    $schoolCode = $data['schoolCode'];
+    $classCode = $data['classCode'];
+    $subject = $data['subject'];
+    $content = $data['content'];
+    $dueDate = $data['dueDate'] ?? '';
+    
+    try {
+        // 读取学校数据
+        $schoolsData = getSchoolsData();
+        
+        // 检查学校是否存在
+        if (!isset($schoolsData[$schoolCode])) {
+            logMessage('学校不存在: ' . $schoolCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '学校不存在'
+            ];
+        }
+        
+        // 检查班级是否存在
+        if (!isset($schoolsData[$schoolCode]['classes'][$classCode])) {
+            logMessage('班级不存在: ' . $schoolCode . '/' . $classCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '班级不存在'
+            ];
+        }
+        
+        // 创建新作业
+        $newHomework = [
+            'subject' => $subject,
+            'content' => $content,
+            'dueDate' => $dueDate,
+            'timestamp' => time()
+        ];
+        
+        // 添加到作业列表
+        if (!isset($schoolsData[$schoolCode]['classes'][$classCode]['homeworkData'])) {
+            $schoolsData[$schoolCode]['classes'][$classCode]['homeworkData'] = [];
+        }
+        array_push($schoolsData[$schoolCode]['classes'][$classCode]['homeworkData'], $newHomework);
+        $schoolsData[$schoolCode]['classes'][$classCode]['lastUpdated'] = time();
+        
+        // 保存数据
+        saveSchoolsData($schoolsData);
+        
+        $response = [
+            'success' => true,
+            'message' => '作业添加成功',
+            'homeworkData' => $schoolsData[$schoolCode]['classes'][$classCode]['homeworkData'],
+            'lastUpdated' => $schoolsData[$schoolCode]['classes'][$classCode]['lastUpdated']
+        ];
+        
+        logMessage('作业添加成功: ' . $schoolCode . '/' . $classCode, 'INFO');
+        return $response;
+    } catch (Exception $e) {
+        logMessage('添加作业失败: ' . $e->getMessage(), 'ERROR');
+        return [
+            'success' => false,
+            'message' => '添加作业失败: ' . $e->getMessage()
+        ];
+    }
+}
+
+// 处理删除作业
+function handleDeleteHomework($data) {
+    logMessage('开始处理删除作业请求', 'INFO');
+    logMessage('删除作业请求数据: ' . json_encode($data), 'DEBUG');
+    
+    // 验证必要参数
+    $validationError = validateParams($data, ['schoolCode', 'classCode', 'index']);
+    if ($validationError) {
+        logMessage('删除作业参数验证失败: ' . $validationError['message'], 'WARN');
+        return $validationError;
+    }
+    
+    $schoolCode = $data['schoolCode'];
+    $classCode = $data['classCode'];
+    $index = (int)$data['index'];
+    
+    try {
+        // 读取学校数据
+        $schoolsData = getSchoolsData();
+        
+        // 检查学校是否存在
+        if (!isset($schoolsData[$schoolCode])) {
+            logMessage('学校不存在: ' . $schoolCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '学校不存在'
+            ];
+        }
+        
+        // 检查班级是否存在
+        if (!isset($schoolsData[$schoolCode]['classes'][$classCode])) {
+            logMessage('班级不存在: ' . $schoolCode . '/' . $classCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '班级不存在'
+            ];
+        }
+        
+        // 检查作业数据是否存在
+        if (!isset($schoolsData[$schoolCode]['classes'][$classCode]['homeworkData'])) {
+            logMessage('作业数据不存在: ' . $schoolCode . '/' . $classCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '作业数据不存在'
+            ];
+        }
+        
+        // 检查索引是否有效
+        $homeworkData = $schoolsData[$schoolCode]['classes'][$classCode]['homeworkData'];
+        if ($index < 0 || $index >= count($homeworkData)) {
+            logMessage('无效的作业索引: ' . $index, 'WARN');
+            return [
+                'success' => false,
+                'message' => '无效的作业索引'
+            ];
+        }
+        
+        // 删除作业
+        array_splice($homeworkData, $index, 1);
+        $schoolsData[$schoolCode]['classes'][$classCode]['homeworkData'] = $homeworkData;
+        $schoolsData[$schoolCode]['classes'][$classCode]['lastUpdated'] = time();
+        
+        // 保存数据
+        saveSchoolsData($schoolsData);
+        
+        $response = [
+            'success' => true,
+            'message' => '作业删除成功',
+            'homeworkData' => $homeworkData,
+            'lastUpdated' => $schoolsData[$schoolCode]['classes'][$classCode]['lastUpdated']
+        ];
+        
+        logMessage('作业删除成功: ' . $schoolCode . '/' . $classCode . ', 索引: ' . $index, 'INFO');
+        return $response;
+    } catch (Exception $e) {
+        logMessage('删除作业失败: ' . $e->getMessage(), 'ERROR');
+        return [
+            'success' => false,
+            'message' => '删除作业失败: ' . $e->getMessage()
+        ];
+    }
+}
+
+// 处理模板同步
+function handleTemplateSync($data) {
+    logMessage('开始处理模板同步请求', 'INFO');
+    logMessage('模板同步请求数据: ' . json_encode($data), 'DEBUG');
+    
+    // 验证必要参数
+    $validationError = validateParams($data, ['schoolCode', 'classCode', 'password']);
+    if ($validationError) {
+        logMessage('模板同步参数验证失败: ' . $validationError['message'], 'WARN');
+        return $validationError;
+    }
+    
+    $schoolCode = $data['schoolCode'];
+    $classCode = $data['classCode'];
+    $password = $data['password'];
+    $templates = $data['templates'] ?? [];
+    $action = $data['syncAction'] ?? 'download'; // download or upload
+    
+    try {
+        // 读取学校数据
+        $schoolsData = getSchoolsData();
+        
+        // 检查学校是否存在
+        if (!isset($schoolsData[$schoolCode])) {
+            logMessage('学校不存在: ' . $schoolCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '学校不存在'
+            ];
+        }
+        
+        // 检查班级是否存在
+        if (!isset($schoolsData[$schoolCode]['classes'][$classCode])) {
+            logMessage('班级不存在: ' . $schoolCode . '/' . $classCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '班级不存在'
+            ];
+        }
+        
+        // 验证密码
+        if ($schoolsData[$schoolCode]['classes'][$classCode]['password'] !== $password) {
+            logMessage('密码错误: ' . $schoolCode . '/' . $classCode, 'WARN');
+            return [
+                'success' => false,
+                'message' => '密码错误'
+            ];
+        }
+        
+        if ($action === 'upload') {
+            // 上传模板
+            $schoolsData[$schoolCode]['classes'][$classCode]['templates'] = $templates;
+            $schoolsData[$schoolCode]['classes'][$classCode]['templatesLastUpdated'] = time();
+            
+            // 保存数据
+            saveSchoolsData($schoolsData);
+            
+            $response = [
+                'success' => true,
+                'message' => '模板上传成功',
+                'templateCount' => count($templates),
+                'lastUpdated' => $schoolsData[$schoolCode]['classes'][$classCode]['templatesLastUpdated']
+            ];
+            
+            logMessage('模板上传成功: ' . $schoolCode . '/' . $classCode . ', 共 ' . count($templates) . ' 个模板', 'INFO');
+        } else {
+            // 下载模板
+            $storedTemplates = $schoolsData[$schoolCode]['classes'][$classCode]['templates'] ?? [];
+            $lastUpdated = $schoolsData[$schoolCode]['classes'][$classCode]['templatesLastUpdated'] ?? time();
+            
+            $response = [
+                'success' => true,
+                'message' => '模板下载成功',
+                'templates' => $storedTemplates,
+                'templateCount' => count($storedTemplates),
+                'lastUpdated' => $lastUpdated
+            ];
+            
+            logMessage('模板下载成功: ' . $schoolCode . '/' . $classCode . ', 共 ' . count($storedTemplates) . ' 个模板', 'INFO');
+        }
+        
+        return $response;
+    } catch (Exception $e) {
+        logMessage('模板同步失败: ' . $e->getMessage(), 'ERROR');
+        return [
+            'success' => false,
+            'message' => '模板同步失败: ' . $e->getMessage()
+        ];
+    }
+}
+
 // 处理请求
 function handleRequest() {
     try {
@@ -469,6 +789,14 @@ function handleRequest() {
                 return handleDownload($requestData);
             case 'student':
                 return handleStudentAccess($requestData);
+            case 'teacherLogin':
+                return handleTeacherLogin($requestData);
+            case 'addHomework':
+                return handleAddHomework($requestData);
+            case 'deleteHomework':
+                return handleDeleteHomework($requestData);
+            case 'templateSync':
+                return handleTemplateSync($requestData);
             default:
                 logMessage('未知的action参数: ' . $action, 'WARN');
                 return [

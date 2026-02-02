@@ -1529,10 +1529,6 @@ ipcMain.on('get-settings', () => {
 	if (settingsWindow) {
 		const config = loadConfig();
 		settingsWindow.webContents.send('settings-updated', {
-			clockEnabled: isClockEnabled,
-			homeworkEnabled: isHomeworkEnabled,
-			alwaysOnTop: isAlwaysOnTop, // 添加置顶状态
-			darkThemeEnabled: isDarkThemeEnabled, // 添加暗色主题状态
 			startupEnabled: isStartupEnabled, // 添加开机自启动状态
 			ciAutoHomeworkEnabled: isCiAutoHomeworkEnabled, // 添加CI自动作业状态
 			windowBlur: config.windowBlur || 10,

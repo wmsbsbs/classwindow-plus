@@ -917,15 +917,55 @@
         // 添加窗口拖动功能
         addWindowDragSupport();
         
-        // 等待Fluent UI组件加载完成后再初始化核心功能
-        setTimeout(function() {
-            // 初始化核心功能
-            initCore();
-            
-            // 添加触摸支持
-            addTouchSupport();
-        }, 1000);
+        // 初始化核心功能
+        initCore();
+        
+        // 添加触摸支持
+        addTouchSupport();
+        
+        // 确保所有元素都能正确响应点击事件
+        ensureClickableElements();
     });
+    
+    // 确保所有元素都能正确响应点击事件
+    function ensureClickableElements() {
+        console.log('Ensuring all elements are clickable...');
+        
+        // 为所有可点击元素添加点击事件监听器
+        const clickableElements = document.querySelectorAll('button, input, select, textarea, fluent-switch, fluent-button, .nav-item, .sub-nav-item, .setting-item');
+        console.log('Found clickable elements:', clickableElements.length);
+        
+        clickableElements.forEach((element, index) => {
+            // 确保元素可点击
+            element.style.pointerEvents = 'auto';
+            element.style.zIndex = '1000';
+            element.style.position = 'relative';
+            
+            // 添加点击事件监听器
+            element.addEventListener('click', function(e) {
+                console.log('Element clicked:', this.id || this.className || `element-${index}`);
+                // 确保不会阻止默认行为
+            });
+            
+            // 添加鼠标按下事件监听器
+            element.addEventListener('mousedown', function(e) {
+                console.log('Mouse down on element:', this.id || this.className || `element-${index}`);
+                // 确保不会阻止默认行为
+            });
+            
+            // 添加鼠标释放事件监听器
+            element.addEventListener('mouseup', function(e) {
+                console.log('Mouse up on element:', this.id || this.className || `element-${index}`);
+                // 确保不会阻止默认行为
+            });
+        });
+        
+        // 确保文档级别的事件监听器不会阻止输入
+        document.addEventListener('click', function(e) {
+            console.log('Document clicked, target:', e.target.tagName);
+            // 确保不会阻止默认行为
+        }, true); // 使用捕获阶段，确保先于其他监听器执行
+    }
     
     // 修复输入框无法输入的问题
     function fixInputFields() {
@@ -1119,245 +1159,265 @@
             });
         }
         
-        // 监听所有可交互元素
-        const elements = {
-            // 开关
-            clockToggle: '#clockToggle',
-            homeworkToggle: '#homeworkToggle',
-            startupToggle: '#startupToggle',
-            ciIntegrationToggle: '#ciIntegrationToggle',
-            ciAutoHomeworkToggle: '#ciAutoHomeworkToggle',
-            openStartupFolderBtn: '#openStartupFolderBtn',
-            
-            // 滑块
-            bigScreenFontSizeSlider: '#bigScreenFontSizeSlider',
-            bigScreenOpacitySlider: '#bigScreenOpacitySlider',
-            mainInterfaceScaleSlider: '#mainInterfaceScaleSlider',
-            
-            // 选择框
-            themeSelect: '#themeSelect',
-            bigScreenColumnsSelect: '#bigScreenColumnsSelect',
-            windowPositionSelect: '#windowPositionSelect',
-            
-            // 按钮
-            adjustBigScreenPositionBtn: '#adjustBigScreenPositionBtn',
-            restartAppBtn: '#restartAppBtn',
-            addAppBtn: '#addAppBtn',
-            createTemplateBtn: '#createTemplateBtn',
-            syncToCloudBtn: '#syncToCloudBtn',
-            syncFromCloudBtn: '#syncFromCloudBtn',
-            testCiIntegrationBtn: '#testCiIntegrationBtn',
-            titleCloseBtn: '#titleCloseBtn'
-        };
-        
-        // 遍历并添加事件监听器
-        Object.entries(elements).forEach(([name, selector]) => {
-            const element = document.querySelector(selector);
-            if (element) {
-                console.log('Adding listener for:', name);
-                
-                switch (name) {
-                    // 开关事件
-                    case 'clockToggle':
-                        element.addEventListener('change', function() {
-                            console.log('Clock toggle changed:', this.checked);
-                            ipcRenderer.send('toggle-clock', this.checked);
-                        });
-                        break;
-                    case 'homeworkToggle':
-                        element.addEventListener('change', function() {
-                            console.log('Homework toggle changed:', this.checked);
-                            ipcRenderer.send('toggle-homework', this.checked);
-                        });
-                        break;
-                    case 'alwaysOnTopToggle':
-                        element.addEventListener('change', function() {
-                            console.log('Always on top toggle changed:', this.checked);
-                            ipcRenderer.send('toggle-always-on-top', this.checked);
-                        });
-                        break;
-                    case 'startupToggle':
-                        element.addEventListener('change', function() {
-                            console.log('Startup toggle changed:', this.checked);
-                            ipcRenderer.send('toggle-startup', this.checked);
-                        });
-                        break;
-                    case 'ciIntegrationToggle':
-                        element.addEventListener('change', function() {
-                            console.log('CI integration toggle changed:', this.checked);
-                            // 当CI联动开关变化时，控制小选项的显示/隐藏
-                            const subOptions = document.querySelector('.ci-sub-options');
-                            if (subOptions) {
-                                subOptions.style.display = this.checked ? 'block' : 'none';
-                            }
-                        });
-                        break;
-                    case 'ciAutoHomeworkToggle':
-                        element.addEventListener('change', function() {
-                            console.log('CI auto homework toggle changed:', this.checked);
-                            ipcRenderer.send('toggle-ci-auto-homework', this.checked);
-                        });
-                        break;
-                    case 'openStartupFolderBtn':
-                        element.addEventListener('click', function() {
-                            console.log('Open startup folder clicked');
-                            ipcRenderer.send('open-startup-folder');
-                        });
-                        break;
-                        
-                    // 滑块事件
-
-
-                    case 'bigScreenFontSizeSlider':
-                        element.addEventListener('input', function() {
-                            const value = document.querySelector('#bigScreenFontSizeValue');
-                            if (value) value.textContent = this.value;
-                            ipcRenderer.send('set-big-screen-font-size', parseInt(this.value));
-                        });
-                        break;
-                    case 'bigScreenOpacitySlider':
-                        element.addEventListener('input', function() {
-                            const value = document.querySelector('#bigScreenOpacityValue');
-                            if (value) value.textContent = this.value;
-                            ipcRenderer.send('set-big-screen-opacity', parseInt(this.value));
-                        });
-                        break;
-                    case 'bigScreenWidthSlider':
-                        element.addEventListener('input', function() {
-                            const value = document.querySelector('#bigScreenWidthValue');
-                            if (value) value.textContent = this.value;
-                            ipcRenderer.send('set-big-screen-width', parseInt(this.value));
-                        });
-                        break;
-                    case 'bigScreenHeightSlider':
-                        element.addEventListener('input', function() {
-                            const value = document.querySelector('#bigScreenHeightValue');
-                            if (value) value.textContent = this.value;
-                            ipcRenderer.send('set-big-screen-height', parseInt(this.value));
-                        });
-                        break;
-                    case 'mainInterfaceScaleSlider':
-                        element.addEventListener('input', function() {
-                            const value = document.querySelector('#mainInterfaceScaleValue');
-                            if (value) value.textContent = this.value + '%';
-                            ipcRenderer.send('set-main-interface-scale', parseInt(this.value));
-                        });
-                        break;
-                    case 'windowOffsetXSlider':
-                        element.addEventListener('input', function() {
-                            const value = document.querySelector('#windowOffsetXValue');
-                            if (value) value.textContent = this.value + 'px';
-                            ipcRenderer.send('set-window-offset', { 
-                                x: parseInt(this.value), 
-                                y: parseInt(document.querySelector('#windowOffsetYSlider')?.value || 0) 
-                            });
-                        });
-                        break;
-                    case 'windowOffsetYSlider':
-                        element.addEventListener('input', function() {
-                            const value = document.querySelector('#windowOffsetYValue');
-                            if (value) value.textContent = this.value + 'px';
-                            ipcRenderer.send('set-window-offset', { 
-                                x: parseInt(document.querySelector('#windowOffsetXSlider')?.value || 0), 
-                                y: parseInt(this.value) 
-                            });
-                        });
-                        break;
-                        
-                    // 选择框事件
-                    case 'themeSelect':
-                        element.addEventListener('change', function() {
-                            console.log('Theme changed:', this.value);
-                            ipcRenderer.send('set-theme', this.value);
-                        });
-                        break;
-                    case 'bigScreenColumnsSelect':
-                        element.addEventListener('change', function() {
-                            console.log('Columns changed:', this.value);
-                            ipcRenderer.send('set-big-screen-columns', this.value);
-                        });
-                        break;
-                    case 'windowPositionSelect':
-                        element.addEventListener('change', function() {
-                            console.log('Window position changed:', this.value);
-                            ipcRenderer.send('set-window-position', this.value);
-                        });
-                        break;
-                        
-                    // 按钮事件
-                    case 'adjustBigScreenPositionBtn':
-                        element.addEventListener('click', function() {
-                            console.log('Adjust big screen position clicked');
-                            ipcRenderer.send('open-big-screen-position-adjuster');
-                        });
-                        break;
-                    case 'restartAppBtn':
-                        element.addEventListener('click', function() {
-                            console.log('Restart app clicked');
-                            ipcRenderer.send('restart-app');
-                        });
-                        break;
-                    case 'addAppBtn':
-                        element.addEventListener('click', function() {
-                            console.log('Add app clicked');
-                            const name = document.getElementById('appNameInput').value.trim();
-                            const path = document.getElementById('appPathInput').value.trim();
-                            const type = document.getElementById('appTypeInput').value;
-                            const icon = document.getElementById('appIconInput').value.trim();
-                            
-                            if (!name || !path) {
-                                alert('请输入名称和路径/链接');
-                                return;
-                            }
-                            
-                            console.log('Adding app:', { name, path, type, icon });
-                            ipcRenderer.send('add-launchpad-app', { 
-                                name, 
-                                path, 
-                                type,
-                                icon: icon || null
-                            });
-                            
-                            // 清空输入框
-                            document.getElementById('appNameInput').value = '';
-                            document.getElementById('appPathInput').value = '';
-                            document.getElementById('appIconInput').value = '';
-                        });
-                        break;
-                    case 'createTemplateBtn':
-                        element.addEventListener('click', function() {
-                            console.log('Create template clicked');
-                            ipcRenderer.send('open-template-designer-window');
-                        });
-                        break;
-                    case 'syncToCloudBtn':
-                        element.addEventListener('click', function() {
-                            console.log('Sync to cloud clicked');
-                            syncToCloud().catch(err => console.error('同步失败:', err));
-                        });
-                        break;
-                    case 'syncFromCloudBtn':
-                        element.addEventListener('click', function() {
-                            console.log('Sync from cloud clicked');
-                            syncFromCloud();
-                        });
-                        break;
-                    case 'testCiIntegrationBtn':
-                        element.addEventListener('click', function() {
-                            console.log('Test CI integration button clicked');
-                            // 模拟ClassIsland课程结束事件
-                            ipcRenderer.send('test-ci-integration');
-                        });
-                        break;
-                    case 'titleCloseBtn':
-                        element.addEventListener('click', function() {
-                            console.log('Close button clicked');
-                            window.close();
-                        });
-                        break;
-                }
-            }
+        // 确保所有输入元素都能正常工作
+        const inputElements = document.querySelectorAll('input, select, button, fluent-switch, fluent-button');
+        inputElements.forEach(element => {
+            // 确保元素可点击
+            element.style.pointerEvents = 'auto';
+            element.style.zIndex = '100';
+            element.style.position = 'relative';
         });
+        
+        // 为所有设置选项添加点击事件监听器
+        const settingItems = document.querySelectorAll('.setting-item');
+        settingItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                console.log('Setting item clicked:', this);
+                // 确保不会阻止子元素的默认行为
+            });
+        });
+        
+        // 为所有按钮添加点击事件监听器
+        const buttons = document.querySelectorAll('button, fluent-button');
+        buttons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                console.log('Button clicked:', this.id || this.textContent);
+                // 确保不会阻止默认行为
+            });
+        });
+        
+        // 为所有开关添加change事件监听器
+        const switches = document.querySelectorAll('fluent-switch');
+        switches.forEach(switchEl => {
+            switchEl.addEventListener('change', function(e) {
+                console.log('Switch changed:', this.id, this.checked);
+            });
+        });
+        
+        // 为所有选择框添加change事件监听器
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.addEventListener('change', function(e) {
+                console.log('Select changed:', this.id, this.value);
+            });
+        });
+        
+        // 为所有滑块添加input事件监听器
+        const sliders = document.querySelectorAll('input[type="range"]');
+        sliders.forEach(slider => {
+            slider.addEventListener('input', function(e) {
+                console.log('Slider changed:', this.id, this.value);
+            });
+        });
+        
+        // 特定元素的事件监听器
+        
+        // 启动台添加按钮
+        const addAppBtn = document.getElementById('addAppBtn');
+        if (addAppBtn) {
+            addAppBtn.addEventListener('click', function() {
+                console.log('Add app clicked');
+                const name = document.getElementById('appNameInput').value.trim();
+                const path = document.getElementById('appPathInput').value.trim();
+                const type = document.getElementById('appTypeInput').value;
+                const icon = document.getElementById('appIconInput').value.trim();
+                
+                if (!name || !path) {
+                    alert('请输入名称和路径/链接');
+                    return;
+                }
+                
+                console.log('Adding app:', { name, path, type, icon });
+                ipcRenderer.send('add-launchpad-app', { 
+                    name, 
+                    path, 
+                    type,
+                    icon: icon || null
+                });
+                
+                // 清空输入框
+                document.getElementById('appNameInput').value = '';
+                document.getElementById('appPathInput').value = '';
+                document.getElementById('appIconInput').value = '';
+            });
+        }
+        
+        // 创建模板按钮
+        const createTemplateBtn = document.getElementById('createTemplateBtn');
+        if (createTemplateBtn) {
+            createTemplateBtn.addEventListener('click', function() {
+                console.log('Create template clicked');
+                ipcRenderer.send('open-template-designer-window');
+            });
+        }
+        
+        // 同步到云端按钮
+        const syncToCloudBtn = document.getElementById('syncToCloudBtn');
+        if (syncToCloudBtn) {
+            syncToCloudBtn.addEventListener('click', function() {
+                console.log('Sync to cloud clicked');
+                syncToCloud().catch(err => console.error('同步失败:', err));
+            });
+        }
+        
+        // 从云端同步按钮
+        const syncFromCloudBtn = document.getElementById('syncFromCloudBtn');
+        if (syncFromCloudBtn) {
+            syncFromCloudBtn.addEventListener('click', function() {
+                console.log('Sync from cloud clicked');
+                syncFromCloud();
+            });
+        }
+        
+        // 重启应用按钮
+        const restartAppBtn = document.getElementById('restartAppBtn');
+        if (restartAppBtn) {
+            restartAppBtn.addEventListener('click', function() {
+                console.log('Restart app clicked');
+                ipcRenderer.send('restart-app');
+            });
+        }
+        
+        // 打开自启动文件夹按钮
+        const openStartupFolderBtn = document.getElementById('openStartupFolderBtn');
+        if (openStartupFolderBtn) {
+            openStartupFolderBtn.addEventListener('click', function() {
+                console.log('Open startup folder clicked');
+                ipcRenderer.send('open-startup-folder');
+            });
+        }
+        
+        // 测试CI联动按钮
+        const testCiIntegrationBtn = document.getElementById('testCiIntegrationBtn');
+        if (testCiIntegrationBtn) {
+            testCiIntegrationBtn.addEventListener('click', function() {
+                console.log('Test CI integration button clicked');
+                ipcRenderer.send('test-ci-integration');
+            });
+        }
+        
+        // 关闭按钮
+        const titleCloseBtn = document.getElementById('titleCloseBtn');
+        if (titleCloseBtn) {
+            titleCloseBtn.addEventListener('click', function() {
+                console.log('Close button clicked');
+                window.close();
+            });
+        }
+        
+        // 主题选择
+        const themeSelect = document.getElementById('themeSelect');
+        if (themeSelect) {
+            themeSelect.addEventListener('change', function() {
+                console.log('Theme changed:', this.value);
+                ipcRenderer.send('set-theme', this.value);
+            });
+        }
+        
+        // 大屏模式列数选择
+        const bigScreenColumnsSelect = document.getElementById('bigScreenColumnsSelect');
+        if (bigScreenColumnsSelect) {
+            bigScreenColumnsSelect.addEventListener('change', function() {
+                console.log('Columns changed:', this.value);
+                ipcRenderer.send('set-big-screen-columns', this.value);
+            });
+        }
+        
+        // 窗口位置选择
+        const windowPositionSelect = document.getElementById('windowPositionSelect');
+        if (windowPositionSelect) {
+            windowPositionSelect.addEventListener('change', function() {
+                console.log('Window position changed:', this.value);
+                ipcRenderer.send('set-window-position', this.value);
+            });
+        }
+        
+        // 大屏模式字号滑块
+        const bigScreenFontSizeSlider = document.getElementById('bigScreenFontSizeSlider');
+        if (bigScreenFontSizeSlider) {
+            bigScreenFontSizeSlider.addEventListener('input', function() {
+                const value = document.querySelector('#bigScreenFontSizeValue');
+                if (value) value.textContent = this.value;
+                ipcRenderer.send('set-big-screen-font-size', parseInt(this.value));
+            });
+        }
+        
+        // 大屏模式不透明度滑块
+        const bigScreenOpacitySlider = document.getElementById('bigScreenOpacitySlider');
+        if (bigScreenOpacitySlider) {
+            bigScreenOpacitySlider.addEventListener('input', function() {
+                const value = document.querySelector('#bigScreenOpacityValue');
+                if (value) value.textContent = this.value;
+                ipcRenderer.send('set-big-screen-opacity', parseInt(this.value));
+            });
+        }
+        
+        // 主界面缩放滑块
+        const mainInterfaceScaleSlider = document.getElementById('mainInterfaceScaleSlider');
+        if (mainInterfaceScaleSlider) {
+            mainInterfaceScaleSlider.addEventListener('input', function() {
+                const value = document.querySelector('#mainInterfaceScaleValue');
+                if (value) value.textContent = this.value + '%';
+                ipcRenderer.send('set-main-interface-scale', parseInt(this.value));
+            });
+        }
+        
+        // 页面X轴偏移滑块
+        const windowOffsetXSlider = document.getElementById('windowOffsetXSlider');
+        if (windowOffsetXSlider) {
+            windowOffsetXSlider.addEventListener('input', function() {
+                const value = document.querySelector('#windowOffsetXValue');
+                if (value) value.textContent = this.value + 'px';
+                ipcRenderer.send('set-window-offset', { 
+                    x: parseInt(this.value), 
+                    y: parseInt(document.querySelector('#windowOffsetYSlider')?.value || 0) 
+                });
+            });
+        }
+        
+        // 页面Y轴偏移滑块
+        const windowOffsetYSlider = document.getElementById('windowOffsetYSlider');
+        if (windowOffsetYSlider) {
+            windowOffsetYSlider.addEventListener('input', function() {
+                const value = document.querySelector('#windowOffsetYValue');
+                if (value) value.textContent = this.value + 'px';
+                ipcRenderer.send('set-window-offset', { 
+                    x: parseInt(document.querySelector('#windowOffsetXSlider')?.value || 0), 
+                    y: parseInt(this.value) 
+                });
+            });
+        }
+        
+        // 启动开关
+        const startupToggle = document.getElementById('startupToggle');
+        if (startupToggle) {
+            startupToggle.addEventListener('change', function() {
+                console.log('Startup toggle changed:', this.checked);
+                ipcRenderer.send('toggle-startup', this.checked);
+            });
+        }
+        
+        // CI联动开关
+        const ciIntegrationToggle = document.getElementById('ciIntegrationToggle');
+        if (ciIntegrationToggle) {
+            ciIntegrationToggle.addEventListener('change', function() {
+                console.log('CI integration toggle changed:', this.checked);
+                // 当CI联动开关变化时，控制小选项的显示/隐藏
+                const subOptions = document.querySelector('.ci-sub-options');
+                if (subOptions) {
+                    subOptions.style.display = this.checked ? 'block' : 'none';
+                }
+            });
+        }
+        
+        // CI自动作业开关
+        const ciAutoHomeworkToggle = document.getElementById('ciAutoHomeworkToggle');
+        if (ciAutoHomeworkToggle) {
+            ciAutoHomeworkToggle.addEventListener('change', function() {
+                console.log('CI auto homework toggle changed:', this.checked);
+                ipcRenderer.send('toggle-ci-auto-homework', this.checked);
+            });
+        }
     }
     
     // 初始化外部链接处理
@@ -1426,13 +1486,8 @@
     // 监听设置状态更新
     ipcRenderer.on('settings-updated', function(event, settings) {
         console.log('Settings updated:', settings);
-                // 更新开关状态
-        const clockToggle = document.querySelector('#clockToggle');
-        if (clockToggle) clockToggle.checked = settings.clockEnabled;
         
-        const homeworkToggle = document.querySelector('#homeworkToggle');
-        if (homeworkToggle) homeworkToggle.checked = settings.homeworkEnabled;
-        
+        // 更新启动开关状态
         const startupToggle = document.querySelector('#startupToggle');
         if (startupToggle) startupToggle.checked = settings.startupEnabled;
         
@@ -1444,7 +1499,8 @@
             { id: 'bigScreenFontSizeSlider', value: settings.bigScreenFontSize || 14, display: '#bigScreenFontSizeValue' },
             { id: 'bigScreenOpacitySlider', value: settings.bigScreenOpacity || 95, display: '#bigScreenOpacityValue' },
             { id: 'mainInterfaceScaleSlider', value: settings.mainInterfaceScale || 100, display: '#mainInterfaceScaleValue', suffix: '%' }
-        ];        
+        ];
+        
         sliders.forEach(slider => {
             const element = document.querySelector(`#${slider.id}`);
             const display = document.querySelector(slider.display);
@@ -1819,6 +1875,28 @@
                 return { success: false, message: '获取作业数据失败' };
             }
             
+            // 获取模板数据
+            let templateData = [];
+            try {
+                console.log('开始获取模板数据...');
+                showSyncStatus('正在获取模板数据...', 'info');
+                
+                // 从localStorage获取模板数据
+                const templateStorageKey = 'homeworkTemplates';
+                const templates = localStorage.getItem(templateStorageKey);
+                templateData = templates ? JSON.parse(templates) : [];
+                
+                console.log('获取到模板数据:', templateData);
+                console.log('模板数据数量:', templateData.length);
+                showSyncStatus(`获取到 ${templateData.length} 个模板`, 'info');
+            } catch (e) {
+                console.error('获取模板数据失败:', e);
+                showErrorDetails('获取模板数据失败', e.message);
+                showSyncStatus('获取模板数据失败', 'error');
+                // 模板获取失败不影响作业同步
+                templateData = [];
+            }
+            
             // 构建同步数据
             const syncData = {
                 action: 'upload',
@@ -1899,8 +1977,69 @@
                 if (data.success) {
                     console.log('作业已成功同步到云端');
                     console.log('同步结果:', data);
-                    showSyncStatus('同步成功', 'success');
-                    alert(`作业已成功同步到云端\n共 ${data.homeworkCount || homeworkData.length} 个作业`);
+                    showSyncStatus('作业同步成功', 'success');
+                    
+                    // 执行模板同步
+                    try {
+                        console.log('开始执行模板同步...');
+                        showSyncStatus('正在同步模板...', 'info');
+                        
+                        // 构建模板同步数据
+                        const templateSyncData = {
+                            action: 'templateSync',
+                            schoolCode: schoolCode,
+                            classCode: classCode,
+                            password: teacherPassword,
+                            templates: templateData,
+                            syncAction: 'upload'
+                        };
+                        
+                        console.log('构建模板同步数据:', {
+                            action: templateSyncData.action,
+                            schoolCode: templateSyncData.schoolCode,
+                            classCode: templateSyncData.classCode,
+                            password: '******',
+                            templateCount: templateSyncData.templates.length,
+                            syncAction: templateSyncData.syncAction
+                        });
+                        
+                        // 发送模板同步请求
+                        const templateSyncResponse = await fetch(serverAddress, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Referer': serverAddress,
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                            },
+                            body: JSON.stringify(templateSyncData),
+                            signal: controller.signal
+                        });
+                        
+                        // 获取模板同步响应
+                        const templateSyncText = await templateSyncResponse.text();
+                        console.log('模板同步响应文本:', templateSyncText);
+                        
+                        // 解析模板同步响应
+                        const templateSyncResult = JSON.parse(templateSyncText);
+                        console.log('模板同步响应数据:', templateSyncResult);
+                        
+                        if (templateSyncResult.success) {
+                            console.log('模板已成功同步到云端');
+                            showSyncStatus('模板同步成功', 'success');
+                            alert(`作业和模板已成功同步到云端\n共 ${data.homeworkCount || homeworkData.length} 个作业\n共 ${templateSyncResult.templateCount || templateData.length} 个模板`);
+                        } else {
+                            console.error('模板同步失败:', templateSyncResult.message || '未知错误');
+                            showErrorDetails('模板同步失败', templateSyncResult.message || '未知错误');
+                            showSyncStatus('模板同步失败', 'error');
+                            alert(`作业已成功同步到云端，但模板同步失败:\n${templateSyncResult.message || '未知错误'}`);
+                        }
+                    } catch (templateError) {
+                        console.error('模板同步失败:', templateError);
+                        showErrorDetails('模板同步失败', templateError.message || '未知错误');
+                        showSyncStatus('模板同步失败', 'error');
+                        alert(`作业已成功同步到云端，但模板同步失败:\n${templateError.message || '未知错误'}`);
+                    }
                 } else {
                     console.error('同步失败:', data.message || '未知错误');
                     showErrorDetails('同步失败', data.message || '未知错误');
@@ -2132,9 +2271,66 @@
             if (data.success && data.homeworkData) {
                 // 保存作业数据到本地存储
                 localStorage.setItem('homeworkData', JSON.stringify(data.homeworkData));
-                alert('作业已成功从云端同步');
+                
+                // 执行模板同步下载
+                try {
+                    console.log('开始从云端下载模板...');
+                    
+                    // 构建模板同步数据
+                    const templateSyncData = {
+                        action: 'templateSync',
+                        schoolCode: schoolCode,
+                        classCode: classCode,
+                        password: teacherPassword,
+                        syncAction: 'download'
+                    };
+                    
+                    console.log('构建模板同步数据:', {
+                        action: templateSyncData.action,
+                        schoolCode: templateSyncData.schoolCode,
+                        classCode: templateSyncData.classCode,
+                        password: '******',
+                        syncAction: templateSyncData.syncAction
+                    });
+                    
+                    // 发送模板同步请求
+                    const templateSyncResponse = await fetch(serverAddress, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Referer': serverAddress,
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                        },
+                        body: JSON.stringify(templateSyncData)
+                    });
+                    
+                    // 获取模板同步响应
+                    const templateSyncText = await templateSyncResponse.text();
+                    console.log('模板同步响应文本:', templateSyncText);
+                    
+                    // 解析模板同步响应
+                    const templateSyncResult = JSON.parse(templateSyncText);
+                    console.log('模板同步响应数据:', templateSyncResult);
+                    
+                    if (templateSyncResult.success && templateSyncResult.templates) {
+                        // 保存模板数据到本地存储
+                        localStorage.setItem('homeworkTemplates', JSON.stringify(templateSyncResult.templates));
+                        console.log('模板已成功从云端同步');
+                        alert(`作业和模板已成功从云端同步\n共 ${data.homeworkCount || data.homeworkData.length} 个作业\n共 ${templateSyncResult.templateCount || templateSyncResult.templates.length} 个模板`);
+                    } else {
+                        console.error('模板同步失败:', templateSyncResult.message || '未知错误');
+                        alert(`作业已成功从云端同步，但模板同步失败:\n${templateSyncResult.message || '未知错误'}`);
+                    }
+                } catch (templateError) {
+                    console.error('模板同步失败:', templateError);
+                    alert(`作业已成功从云端同步，但模板同步失败:\n${templateError.message || '未知错误'}`);
+                }
+                
                 // 通知主窗口更新作业列表
                 ipcRenderer.send('refresh-homework-list');
+                // 通知模板管理窗口更新模板列表
+                ipcRenderer.send('template-updated');
             } else {
                 alert('同步失败: ' + (data.message || '未知错误'));
             }

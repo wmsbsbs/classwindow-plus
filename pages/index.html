@@ -944,6 +944,17 @@
                                 return;
                             }
                             
+                            // 获取模板数据
+                            let templateData = [];
+                            try {
+                                const templates = localStorage.getItem('homeworkTemplates');
+                                templateData = templates ? JSON.parse(templates) : [];
+                                console.log('获取到的模板数据:', templateData);
+                            } catch (e) {
+                                console.error('获取模板数据失败:', e);
+                                templateData = [];
+                            }
+                            
                             // 构建同步数据
                             const syncData = {
                                 action: 'upload',
@@ -1011,6 +1022,62 @@
                                 console.log('同步响应数据:', data);
                                 if (data.success) {
                                     console.log('作业已成功同步到云端');
+                                    
+                                    // 执行模板同步
+                                    try {
+                                        console.log('开始执行模板同步...');
+                                        
+                                        // 构建模板同步数据
+                                        const templateSyncData = {
+                                            action: 'templateSync',
+                                            schoolCode: schoolCode,
+                                            classCode: classCode,
+                                            password: teacherPassword,
+                                            templates: templateData,
+                                            syncAction: 'upload'
+                                        };
+                                        
+                                        console.log('构建模板同步数据:', {
+                                            action: templateSyncData.action,
+                                            schoolCode: templateSyncData.schoolCode,
+                                            classCode: templateSyncData.classCode,
+                                            password: '******',
+                                            templateCount: templateSyncData.templates.length,
+                                            syncAction: templateSyncData.syncAction
+                                        });
+                                        
+                                        // 发送模板同步请求
+                                        return fetch(serverAddress, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'X-Requested-With': 'XMLHttpRequest',
+                                                'Referer': serverAddress,
+                                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                                            },
+                                            body: JSON.stringify(templateSyncData),
+                                            signal: controller.signal
+                                        })
+                                        .then(response => {
+                                            if (!response.ok) {
+                                                throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+                                            }
+                                            return response.text();
+                                        })
+                                        .then(text => {
+                                            console.log('模板同步响应文本:', text);
+                                            const templateSyncResult = JSON.parse(text);
+                                            console.log('模板同步响应数据:', templateSyncResult);
+                                            
+                                            if (templateSyncResult.success) {
+                                                console.log('模板已成功同步到云端');
+                                            } else {
+                                                console.error('模板同步失败:', templateSyncResult.message || '未知错误');
+                                            }
+                                        });
+                                    } catch (templateError) {
+                                        console.error('模板同步失败:', templateError);
+                                    }
                                 } else {
                                     console.error('同步失败:', data.message || '未知错误');
                                 }
