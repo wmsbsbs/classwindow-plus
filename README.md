@@ -6,6 +6,8 @@
 
 与ci的ipc联动桥：
 https://github.com/wmsbsbs/cwpipc
+云端服务：
+https://github.com/wmsbsbs/cwpcloud
 
 
 
