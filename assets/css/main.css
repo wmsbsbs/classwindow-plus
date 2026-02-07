@@ -10,3 +10,21 @@
 
 /* Loading animation */
 @import "./loading.css";
+
+:root,
+.mdui-theme-light {
+  color: #000;
+  background-color: transparent;
+}
+
+.mdui-theme-dark {
+  color: #fff;
+  background-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mdui-theme-auto {
+    color: transparent;
+    background-color: transparent;
+  }
+}
