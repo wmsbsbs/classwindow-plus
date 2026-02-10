@@ -90,43 +90,103 @@
         
         .homework-list {
             background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
             display: none;
+            margin: 24px 0;
+        }
+        
+        /* 作业列表响应式设计 */
+        @media (max-width: 767px) {
+            .homework-list {
+                padding: 16px;
+                margin: 16px 0;
+            }
+        }
+        
+        /* 作业元信息样式 */
+        .homework-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* 截止日期样式 */
+        .due-date {
+            font-weight: 500;
+        }
+        
+        /* 过期样式 */
+        .due-date.overdue {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        
+        /* 作业内容样式 */
+        .homework-content {
+            margin-top: 12px;
+            line-height: 1.6;
+            color: #333;
         }
         
         .homework-item {
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 16px;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
             margin-bottom: 16px;
-            transition: box-shadow 0.3s;
+            transition: all 0.3s ease;
             background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         
         .homework-item:hover {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            border-color: #3498db;
         }
         
         .homework-header {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+        
+        /* 作业头部响应式设计 */
+        @media (max-width: 767px) {
+            .homework-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .homework-meta {
+                width: 100%;
+            }
         }
         
         .subject-tag {
             display: inline-block;
-            padding: 6px 12px;
-            border-radius: 16px;
+            padding: 8px 16px;
+            border-radius: 20px;
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 600;
             color: white;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .subject-tag:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         
         .subject-tag.chinese {
@@ -349,28 +409,56 @@
             <div class="error-message" id="errorMessage"></div>
         </div>
         
-        <div class="homework-form" id="homeworkForm" style="display: none;">
-            <h2>布置作业</h2>
-            <div class="school-info" id="teacherSchoolInfo"></div>
+        <div class="homework-form" id="homeworkForm" style="display: none; padding: 32px; background: linear-gradient(135deg, #f8f9fa, #ffffff); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin: 24px 0;">
+            <h2 style="margin-bottom: 32px; color: #2c3e50; font-size: 28px; font-weight: 700; text-align: center;">布置作业</h2>
+            <div class="school-info" id="teacherSchoolInfo" style="margin-bottom: 32px; padding: 20px; background-color: #ffffff; border-radius: 12px; border: 1px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.05); font-size: 16px; color: #495057;"></div>
             
             <!-- 拖拽式作业编辑器 -->
-            <div class="form-container" style="display: flex; gap: 20px; margin-top: 20px; min-height: 500px;">
+            <div class="form-container" style="display: flex; gap: 24px; margin-top: 24px; min-height: 500px;">
                 <!-- 模板库区域 -->
-                <div class="template-library" style="width: 250px; background: #f5f5f5; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; overflow-y: auto; border: 1px solid #e0e0e0; flex-shrink: 0;">
-                    <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 16px; color: #333;">模板库</h3>
+                <div class="template-library" style="width: 280px; background: #ffffff; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; border: 1px solid #e9ecef; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 18px; color: #2c3e50; font-weight: 600; display: flex; align-items: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        模板库
+                    </h3>
                     <div id="templateLibraryList" style="flex: 1;">
                         <!-- 模板项将在这里动态添加 -->
                     </div>
                 </div>
                 
                 <!-- 作业编辑区域 -->
-                <div class="homework-editor" id="homeworkEditor" style="flex: 1; background: white; border: 2px dashed #ddd; border-radius: 8px; padding: 20px; overflow: hidden; position: relative; display: flex; flex-direction: column; min-width: 0;">
+                <div class="homework-editor" id="homeworkEditor" style="flex: 1; background: white; border-radius: 12px; padding: 28px; overflow: hidden; position: relative; display: flex; flex-direction: column; min-width: 0; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
                     <!-- 作业头部信息 -->
-                    <div class="homework-header" style="background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <div style="flex: 1;">
-                                <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 500;">科目</label>
-                                <select id="newSubject" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background-color: #f9f9f9;">
+                    <div class="homework-header" style="background: white; border-radius: 12px; padding: 0; margin-bottom: 28px;">
+                        <!-- 作业类型选择 -->
+                        <div style="margin-bottom: 28px; padding: 24px; background-color: #f8f9fa; border-radius: 12px; border: 1px solid #e9ecef;">
+                            <label style="display: block; margin-bottom: 16px; font-size: 18px; font-weight: 600; color: #2c3e50;">作业类型</label>
+                            <div style="display: flex; gap: 32px; align-items: center;">
+                                <label style="display: flex; align-items: center; gap: 10px; font-size: 16px; color: #495057; cursor: pointer; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;">
+                                    <input type="radio" name="homeworkType" value="normal" checked style="accent-color: #3498db; transform: scale(1.3);">
+                                    <span>普通作业</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px; font-size: 16px; color: #495057; cursor: pointer; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;">
+                                    <input type="radio" name="homeworkType" value="template" style="accent-color: #3498db; transform: scale(1.3);">
+                                    <span>模板作业</span>
+                                </label>
+                            </div>
+                            <div id="templateTestNotice" style="margin-top: 16px; padding: 16px; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; font-size: 14px; color: #856404; display: none;">
+                                <strong>提示：</strong>模板作业功能目前还在测试中，可能存在一些问题。
+                            </div>
+                        </div>
+                        
+                        <!-- 表单网格 -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 28px;">
+                            <div style="display: flex; flex-direction: column;">
+                                <label style="display: block; margin-bottom: 12px; font-size: 16px; font-weight: 600; color: #495057;">科目</label>
+                                <select id="newSubject" style="width: 100%; padding: 14px 16px; border: 1px solid #ced4da; border-radius: 10px; font-size: 16px; background-color: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.3s ease;">
                                     <option value="chinese">语文</option>
                                     <option value="math">数学</option>
                                     <option value="english">英语</option>
@@ -383,36 +471,79 @@
                                     <option value="other">其他</option>
                                 </select>
                             </div>
-                            <div style="flex: 1;">
-                                <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 500;">截止日期</label>
-                                <input type="date" id="newDueDate" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background-color: #f9f9f9;">
+                            <div style="display: flex; flex-direction: column;">
+                                <label style="display: block; margin-bottom: 12px; font-size: 16px; font-weight: 600; color: #495057;">截止日期</label>
+                                <input type="date" id="newDueDate" style="width: 100%; padding: 14px 16px; border: 1px solid #ced4da; border-radius: 10px; font-size: 16px; background-color: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.3s ease;">
                             </div>
                         </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 5px; font-size: 14px; font-weight: 500;">作业标题</label>
-                            <input type="text" id="homeworkTitle" placeholder="请输入作业标题" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background-color: #f9f9f9;">
+                        
+                        <div style="margin-bottom: 28px; display: flex; flex-direction: column;">
+                            <label style="display: block; margin-bottom: 12px; font-size: 16px; font-weight: 600; color: #495057;">作业标题</label>
+                            <input type="text" id="homeworkTitle" placeholder="请输入作业标题" style="width: 100%; padding: 14px 16px; border: 1px solid #ced4da; border-radius: 10px; font-size: 16px; background-color: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.3s ease;">
+                        </div>
+                        
+                        <!-- 普通作业内容输入 -->
+                        <div id="normalHomeworkGroup" style="margin-bottom: 28px; display: flex; flex-direction: column;">
+                            <label style="display: block; margin-bottom: 12px; font-size: 16px; font-weight: 600; color: #495057;">作业内容</label>
+                            <textarea id="newContent" rows="6" placeholder="请输入作业内容" style="width: 100%; padding: 16px; border: 1px solid #ced4da; border-radius: 10px; font-size: 16px; background-color: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.3s ease; resize: vertical; font-family: inherit;"></textarea>
+                        </div>
+                        
+                        <!-- 模板作业区域 -->
+                        <div id="templateHomeworkGroup" style="margin-bottom: 28px; padding: 24px; background-color: #f8f9fa; border-radius: 12px; border: 1px solid #e9ecef; display: none;">
+                            <label style="display: block; margin-bottom: 16px; font-size: 18px; font-weight: 600; color: #2c3e50;">模板作业</label>
+                            <p style="font-size: 16px; color: #6c757d; margin-bottom: 0;">从左侧模板库选择模板添加到作业内容区域</p>
                         </div>
                     </div>
                     
                     <!-- 作业内容区域 -->
-                    <div class="homework-content-area" id="homeworkContentArea" style="flex: 1; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; overflow-y: auto; background-color: #f9f9f9;">
-                        <div class="empty-state" style="text-align: center; color: #999; padding: 40px 20px;">
-                            <p>从左侧模板库中拖拽模板到此处，或直接输入作业内容</p>
+                    <div class="homework-content-area" id="homeworkContentArea" style="flex: 1; border: 1px solid #e9ecef; border-radius: 12px; padding: 28px; overflow-y: auto; background-color: #f8f9fa; box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);">
+                        <div class="empty-state" style="text-align: center; color: #6c757d; padding: 80px 20px;">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 32px; opacity: 0.4;">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <p style="font-size: 18px; margin-bottom: 12px; font-weight: 500;">从左侧模板库中拖拽模板到此处</p>
+                            <p style="font-size: 14px; color: #adb5bd;">或直接输入作业内容</p>
                         </div>
-                        <div id="homeworkContent" style="min-height: 200px;"></div>
+                        <div id="homeworkContent" style="min-height: 300px;"></div>
                     </div>
                     
                     <!-- 作业操作按钮 -->
-                    <div class="homework-actions" style="display: flex; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
-                        <button id="addHomeworkBtn" style="flex: 1; padding: 12px 24px; background: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 14px; transition: all 0.2s ease;">添加作业</button>
-                        <button id="manageTemplatesBtn" style="flex: 1; padding: 12px 24px; background-color: #95a5a6; color: #333; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 14px; transition: all 0.2s ease;">管理模板</button>
+                    <div class="homework-actions" style="display: flex; gap: 16px; margin-top: 28px; padding-top: 28px; border-top: 1px solid #e9ecef;">
+                        <button id="addHomeworkBtn" style="flex: 1; padding: 16px 24px; background: linear-gradient(135deg, #27ae60, #219653); color: white; border: none; border-radius: 12px; cursor: pointer; font-family: inherit; font-size: 16px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4); display: flex; align-items: center; justify-content: center;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            添加作业
+                        </button>
+                        <button id="manageTemplatesBtn" style="flex: 1; padding: 16px 24px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); color: #495057; border: 1px solid #dee2e6; border-radius: 12px; cursor: pointer; font-family: inherit; font-size: 16px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            管理模板
+                        </button>
                     </div>
                 </div>
             </div>
             
-            <button class="back-button" id="teacherBackBtn">返回</button>
-            <div class="error-message" id="teacherErrorMessage"></div>
-            <div id="teacherHomeworkList" style="margin-top: 20px;"></div>
+            <div style="margin-top: 40px; display: flex; justify-content: center;">
+                <button class="back-button" id="teacherBackBtn" style="padding: 14px 40px; background: linear-gradient(135deg, #6c757d, #5a6268); color: white; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-size: 16px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4); display: flex; align-items: center;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    返回
+                </button>
+            </div>
+            <div class="error-message" id="teacherErrorMessage" style="margin-top: 32px; padding: 16px; border-radius: 8px; font-size: 16px;"></div>
+            <div id="teacherHomeworkList" style="margin-top: 40px;"></div>
         </div>
         
         <!-- 响应式布局 -->
@@ -466,47 +597,219 @@
             /* 模板项样式 */
             .template-item {
                 background: white;
-                border: 1px solid #ddd;
-                border-radius: 6px;
-                padding: 12px;
-                margin-bottom: 10px;
+                border: 1px solid #e9ecef;
+                border-radius: 10px;
+                padding: 16px;
+                margin-bottom: 12px;
                 cursor: move;
-                transition: all 0.2s;
+                transition: all 0.3s ease;
                 user-select: none;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             }
             
             .template-item:hover {
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transform: translateY(-2px);
+                border-color: #3498db;
             }
             
             .template-item.dragging {
-                opacity: 0.5;
-                transform: rotate(5deg);
+                opacity: 0.6;
+                transform: rotate(5deg) scale(0.98);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.2);
             }
             
             .template-item .template-name {
-                font-weight: bold;
-                margin-bottom: 5px;
-                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 8px;
+                font-size: 16px;
+                color: #2c3e50;
             }
             
             .template-item .template-desc {
-                font-size: 12px;
-                color: #666;
-                margin-bottom: 8px;
+                font-size: 14px;
+                color: #6c757d;
+                margin-bottom: 12px;
+                line-height: 1.4;
             }
             
             .template-item .template-type {
-                font-size: 11px;
-                color: #999;
+                font-size: 12px;
+                color: #adb5bd;
                 text-align: right;
+                margin-bottom: 12px;
+                padding-top: 8px;
+                border-top: 1px solid #f1f3f5;
+            }
+            
+            .add-template-btn {
+                width: 100%;
+                padding: 10px 16px;
+                background: linear-gradient(135deg, #3498db, #2980b9);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-family: inherit;
+                font-size: 14px;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+            }
+            
+            .add-template-btn:hover {
+                background: linear-gradient(135deg, #2980b9, #1f618d);
+                box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+                transform: translateY(-1px);
+            }
+            
+            .add-template-btn svg {
+                margin-right: 6px;
+            }
+            
+            /* 错误信息样式 */
+            .error-message {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+                border-radius: 8px;
+                padding: 16px;
+                margin-top: 16px;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+            
+            /* 成功信息样式 */
+            .success-message {
+                background-color: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+                border-radius: 8px;
+                padding: 16px;
+                margin-top: 16px;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+            
+            /* 按钮点击效果 */
+            button:active {
+                transform: scale(0.98);
+                transition: transform 0.1s ease;
             }
             
             /* 拖拽效果 */
             .homework-editor.drag-over {
                 border-color: #3498db !important;
                 background-color: #f0f8ff !important;
+            }
+            
+            /* 作业条目样式 */
+            .template-component {
+                background: white;
+                border: 2px solid #e0e0e0;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 16px;
+                position: relative;
+                transition: all 0.2s;
+                min-width: 300px;
+                max-width: 500px;
+                width: 100%;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                background-image: radial-gradient(circle at 50% 0%, transparent 12px, white 12px, white 100%);
+                background-size: 100% calc(100% + 10px);
+                background-position: 0 -10px;
+                background-repeat: no-repeat;
+                z-index: 1;
+            }
+            
+            .template-component:hover {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transform: translateY(-1px);
+            }
+            
+            .component-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            
+            .component-type {
+                font-weight: bold;
+                font-size: 14px;
+                color: #333;
+            }
+            
+            .action-btn {
+                width: 24px;
+                height: 24px;
+                border: none;
+                background: none;
+                cursor: pointer;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #666;
+                transition: all 0.2s;
+            }
+            
+            .action-btn:hover {
+                background-color: rgba(0,0,0,0.1);
+                color: #333;
+            }
+            
+            .entry-content {
+                margin-top: 10px;
+            }
+            
+            .template-components {
+                margin-top: 8px;
+                padding: 8px;
+                background-color: rgba(0, 0, 0, 0.02);
+                border-radius: 4px;
+                font-size: 12px;
+            }
+            
+            .components-title {
+                font-weight: 500;
+                margin-bottom: 4px;
+                color: #333;
+            }
+            
+            .components-list {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .component-item {
+                padding: 4px 8px;
+                background-color: rgba(0, 0, 0, 0.03);
+                border-radius: 3px;
+                color: #666;
+                word-break: break-all;
+            }
+            
+            .homework-entry {
+                margin-bottom: 16px;
+            }
+            
+            .homework-entry h4 {
+                margin-bottom: 8px;
+                color: #333;
+            }
+            
+            .homework-entry .entry-content {
+                padding: 8px;
+                background-color: rgba(0, 0, 0, 0.02);
+                border-radius: 4px;
             }
         </style>
         
@@ -661,6 +964,23 @@
             
             <!-- 响应式布局 -->
             <style>
+                /* 基础布局 - 默认竖向排列 */
+                .designer-container {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 15px !important;
+                }
+                
+                .component-library {
+                    width: 100% !important;
+                    max-height: 200px !important;
+                }
+                
+                .property-panel {
+                    width: 100% !important;
+                    max-height: 300px !important;
+                }
+                
                 /* 桌面端布局 */
                 @media (min-width: 1024px) {
                     .designer-container {
@@ -668,9 +988,11 @@
                     }
                     .component-library {
                         width: 250px !important;
+                        max-height: none !important;
                     }
                     .property-panel {
                         width: 300px !important;
+                        max-height: none !important;
                     }
                 }
                 
@@ -755,7 +1077,7 @@
         
         <div class="homework-list" id="homeworkList">
             <div class="school-info" id="schoolInfo"></div>
-            <div id="homeworkContent"></div>
+            <div id="studentHomeworkContent"></div>
             <button class="back-button" id="backBtn">返回</button>
         </div>
     </div>
@@ -787,7 +1109,7 @@
             const schoolInfo = document.getElementById('schoolInfo');
             const teacherSchoolInfo = document.getElementById('teacherSchoolInfo');
             const templateSchoolInfo = document.getElementById('templateSchoolInfo');
-            const homeworkContent = document.getElementById('homeworkContent');
+            const studentHomeworkContent = document.getElementById('studentHomeworkContent');
             const teacherHomeworkList = document.getElementById('teacherHomeworkList');
             const templateList = document.getElementById('templateList');
             const templateComponents = document.getElementById('templateComponents');
@@ -826,16 +1148,55 @@
                 });
             });
             
+            // 设置默认作业截止日期为第二天
+            function setDefaultDueDate() {
+                const newDueDateInput = document.getElementById('newDueDate');
+                if (newDueDateInput) {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const formattedDate = tomorrow.toISOString().split('T')[0];
+                    newDueDateInput.value = formattedDate;
+                }
+            }
+            
+            // 初始化作业类型状态
+            function initHomeworkTypeState() {
+                const templateLibrary = document.querySelector('.template-library');
+                const homeworkContentArea = document.getElementById('homeworkContentArea');
+                const initialType = document.querySelector('input[name="homeworkType"]:checked').value;
+                
+                if (initialType === 'normal') {
+                    templateLibrary.style.display = 'none';
+                    homeworkContentArea.style.display = 'none';
+                }
+            }
+            
+            // 调用初始化函数
+            initHomeworkTypeState();
+            setDefaultDueDate();
+            
             // 作业类型切换事件
             homeworkTypeRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
+                    const templateTestNotice = document.getElementById('templateTestNotice');
+                    const templateLibrary = document.querySelector('.template-library');
+                    const homeworkContentArea = document.getElementById('homeworkContentArea');
+                    
                     if (this.value === 'template') {
+                        // 模板作业
                         normalHomeworkGroup.style.display = 'none';
                         templateHomeworkGroup.style.display = 'block';
+                        templateTestNotice.style.display = 'block';
+                        templateLibrary.style.display = 'flex';
+                        homeworkContentArea.style.display = 'block';
                         loadTemplates();
                     } else {
+                        // 普通作业
                         normalHomeworkGroup.style.display = 'block';
                         templateHomeworkGroup.style.display = 'none';
+                        templateTestNotice.style.display = 'none';
+                        templateLibrary.style.display = 'none';
+                        homeworkContentArea.style.display = 'none';
                     }
                 });
             });
@@ -855,6 +1216,238 @@
                 
                 loadTemplates();
             });
+            
+            // 加载作业模板库
+            function loadHomeworkTemplateLibrary() {
+                let templates = getAllTemplates();
+                
+                // 检查是否需要添加默认模板
+                if (templates.length === 0) {
+                    // 添加默认的自定义文本模板
+                    const defaultTemplate = createNewTemplate('自定义文本');
+                    defaultTemplate.description = '用于添加自定义文本内容的模板';
+                    defaultTemplate.components = [
+                        createComponent(COMPONENT_TYPES.FIXED_TEXT, {
+                            content: '自定义文本内容'
+                        })
+                    ];
+                    saveTemplateToStorage(defaultTemplate);
+                    templates = getAllTemplates();
+                }
+                
+                const templateLibraryList = document.getElementById('templateLibraryList');
+                
+                if (templates.length === 0) {
+                    templateLibraryList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">暂无模板</p>';
+                    return;
+                }
+                
+                let html = '';
+                templates.forEach(template => {
+                    html += `
+                        <div class="template-item" draggable="true" data-id="${template.id}">
+                            <div class="template-name">${template.name}</div>
+                            <div class="template-desc">${template.description || '无描述'}</div>
+                            <div class="template-type">组件数: ${template.components.length}</div>
+                            <button class="add-template-btn" data-template-id="${template.id}" title="添加到作业">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                添加
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                templateLibraryList.innerHTML = html;
+                
+                // 添加拖拽事件监听器
+                document.querySelectorAll('.template-item').forEach(item => {
+                    item.addEventListener('dragstart', function(e) {
+                        e.dataTransfer.setData('text/plain', this.dataset.id);
+                        this.classList.add('dragging');
+                    });
+                    
+                    item.addEventListener('dragend', function() {
+                        this.classList.remove('dragging');
+                    });
+                });
+                
+                // 添加添加按钮点击事件监听器
+                document.querySelectorAll('.add-template-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const templateId = this.getAttribute('data-template-id');
+                        addHomeworkEntry(templateId);
+                    });
+                });
+            }
+            
+            // 作业条目管理
+            let homeworkEntries = [];
+            
+            // 为作业内容区域添加拖拽目标事件
+            const homeworkContentArea = document.getElementById('homeworkContentArea');
+            if (homeworkContentArea) {
+                homeworkContentArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                });
+                
+                homeworkContentArea.addEventListener('dragleave', function() {
+                    this.classList.remove('drag-over');
+                });
+                
+                homeworkContentArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('drag-over');
+                    
+                    const templateId = e.dataTransfer.getData('text/plain');
+                    const template = getTemplateById(templateId);
+                    
+                    if (template) {
+                        // 创建作业条目
+                        addHomeworkEntry(templateId);
+                    }
+                });
+            }
+            
+            // 添加作业条目
+            function addHomeworkEntry(templateId) {
+                const subject = document.getElementById('newSubject').value;
+                const dueDate = document.getElementById('newDueDate').value;
+                const homeworkTitle = document.getElementById('homeworkTitle').value;
+                
+                const template = getTemplateById(templateId);
+                
+                // 创建作业条目
+                const entry = {
+                    id: `entry-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                    templateId: templateId,
+                    template: template,
+                    type: 'template',
+                    subject: subject,
+                    dueDate: dueDate,
+                    title: homeworkTitle,
+                    values: {}
+                };
+                
+                // 添加到作业列表
+                homeworkEntries.push(entry);
+                
+                // 渲染作业条目
+                renderHomeworkEntry(entry);
+                
+                // 清空空状态提示
+                const emptyState = document.querySelector('.empty-state');
+                if (emptyState) {
+                    emptyState.remove();
+                }
+            }
+            
+            // 渲染作业条目
+            function renderHomeworkEntry(entry) {
+                const homeworkContent = document.getElementById('homeworkContent');
+                const entryElement = document.createElement('div');
+                entryElement.className = 'template-component';
+                entryElement.dataset.entryId = entry.id;
+                
+                let entryHTML = `
+                    <div class="component-header">
+                        <div class="component-type">
+                            ${entry.template ? entry.template.name : '自定义作业'}
+                        </div>
+                    </div>
+                    <button class="action-btn delete-btn" title="删除" onclick="deleteHomeworkEntry('${entry.id}')" style="position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border: none; background: none; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #666;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="entry-content">
+                `;
+                
+                if (entry.template) {
+                    // 渲染模板组件
+                    entryHTML += `<div class="template-components">
+                        <div class="components-title">组件:</div>
+                        <div class="components-list">
+                    `;
+                    
+                    entry.template.components.forEach((component, index) => {
+                        switch (component.type) {
+                            case COMPONENT_TYPES.FIXED_TEXT:
+                                entryHTML += `<div class="component-item">固定文本: ${component.content.substring(0, 30)}${component.content.length > 30 ? '...' : ''}</div>`;
+                                break;
+                            case COMPONENT_TYPES.NUMBER_SELECT:
+                                entryHTML += `<div class="component-item">数字选择: ${component.label} (${component.min}-${component.max})</div>`;
+                                break;
+                            case COMPONENT_TYPES.TEXT_DROPDOWN:
+                                entryHTML += `<div class="component-item">文本下拉: ${component.label} (${component.options.length}个选项)</div>`;
+                                break;
+                            default:
+                                entryHTML += `<div class="component-item">未知组件</div>`;
+                                break;
+                        }
+                    });
+                    
+                    entryHTML += `
+                        </div>
+                    </div>
+                    `;
+                }
+                
+                entryHTML += `
+                    </div>
+                `;
+                
+                entryElement.innerHTML = entryHTML;
+                homeworkContent.appendChild(entryElement);
+            }
+            
+            // 删除作业条目
+            function deleteHomeworkEntry(entryId) {
+                // 从作业列表中移除
+                homeworkEntries = homeworkEntries.filter(entry => entry.id !== entryId);
+                
+                // 从DOM中移除
+                const entryElement = document.querySelector(`.template-component[data-entry-id="${entryId}"]`);
+                if (entryElement) {
+                    entryElement.remove();
+                }
+                
+                // 如果作业列表为空，显示空状态提示
+                const homeworkContent = document.getElementById('homeworkContent');
+                if (homeworkEntries.length === 0 && homeworkContent.children.length === 0) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    emptyState.innerHTML = '<p>从左侧模板库中拖拽模板到此处，或直接输入作业内容</p>';
+                    document.getElementById('homeworkContentArea').appendChild(emptyState);
+                }
+            }
+            
+            // 渲染模板为作业内容（用于提交作业时）
+            function renderHomeworkForSubmission() {
+                let content = '';
+                
+                // 添加作业标题
+                const homeworkTitle = document.getElementById('homeworkTitle').value;
+                if (homeworkTitle) {
+                    content += `<h3>${homeworkTitle}</h3>`;
+                }
+                
+                // 添加每个作业条目的内容
+                homeworkEntries.forEach(entry => {
+                    if (entry.template) {
+                        content += `<div class="homework-entry">
+                            <h4>${entry.template.name}</h4>
+                            <div class="entry-content">${renderTemplateToContent(entry.template, entry.values)}</div>
+                        </div>`;
+                    }
+                });
+                
+                return content;
+            }
             
             // 模板管理返回按钮点击事件
             templateBackBtn.addEventListener('click', function() {
@@ -950,6 +1543,9 @@
                                 <strong>最后更新：</strong>${new Date(data.lastUpdated * 1000).toLocaleString()}
                             `;
                             
+                            // 加载作业模板库
+                            loadHomeworkTemplateLibrary();
+                            
                             // 渲染作业列表
                             renderTeacherHomeworkList(data.homeworkData);
                         } else {
@@ -1028,42 +1624,46 @@
                 const classCode = classCodeInput.value.trim();
                 const subject = newSubjectSelect.value;
                 const dueDate = newDueDateInput.value;
-                const homeworkTitle = document.getElementById('homeworkTitle').value.trim();
-                const homeworkContent = document.getElementById('homeworkContent').innerHTML;
+                const homeworkTitle = document.getElementById('homeworkTitle').value;
                 
-                let content = '';
+                // 获取当前选择的作业类型
+                const selectedHomeworkType = document.querySelector('input[name="homeworkType"]:checked').value;
                 
-                // 构建作业内容
-                if (homeworkTitle) {
-                    content += `<h3>${homeworkTitle}</h3>`;
-                }
-                
-                if (homeworkContent) {
-                    content += homeworkContent;
-                } else {
-                    teacherErrorMessage.textContent = '请输入作业内容或添加模板';
-                    return;
-                }
-                
-                // 发送添加作业请求
-                fetch('homework-sync.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'addHomework',
-                        schoolCode: schoolCode,
-                        classCode: classCode,
-                        subject: subject,
-                        content: content,
-                        dueDate: dueDate
+                if (selectedHomeworkType === 'normal') {
+                    // 普通作业
+                    const content = newContentTextarea.value.trim();
+                    
+                    if (!content) {
+                        teacherErrorMessage.textContent = '请输入作业内容';
+                        return;
+                    }
+                    
+                    // 构建作业内容
+                    let finalContent = '';
+                    if (homeworkTitle) {
+                        finalContent += `<h3>${homeworkTitle}</h3>`;
+                    }
+                    finalContent += content.replace(/\n/g, '<br>');
+                    
+                    // 发送添加作业请求
+                    fetch('homework-sync.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'addHomework',
+                            schoolCode: schoolCode,
+                            classCode: classCode,
+                            subject: subject,
+                            content: finalContent,
+                            dueDate: dueDate
+                        })
                     })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        teacherErrorMessage.textContent = '作业添加成功';
+                    .then(response => response.json())
+                    .then(data => {
+                        // 作业添加完成
+                        teacherErrorMessage.textContent = '成功添加作业';
                         // 重新渲染作业列表
                         renderTeacherHomeworkList(data.homeworkData);
                         // 重置表单
@@ -1072,20 +1672,92 @@
                         setTimeout(() => {
                             teacherErrorMessage.textContent = '';
                         }, 3000);
-                    } else {
-                        teacherErrorMessage.textContent = data.message || '添加失败';
+                    })
+                    .catch(error => {
+                        console.error('添加失败:', error);
+                        teacherErrorMessage.textContent = '网络错误，请稍后重试';
+                    });
+                } else {
+                    // 模板作业
+                    if (homeworkEntries.length === 0) {
+                        teacherErrorMessage.textContent = '请添加至少一个模板';
+                        return;
                     }
-                })
-                .catch(error => {
-                    console.error('添加失败:', error);
-                    teacherErrorMessage.textContent = '网络错误，请稍后重试';
-                });
+                    
+                    // 为每个作业条目创建一个单独的作业
+                    let addedCount = 0;
+                    let totalCount = homeworkEntries.length;
+                    
+                    homeworkEntries.forEach((entry, index) => {
+                        // 构建作业内容
+                        let content = '';
+                        
+                        // 添加作业标题
+                        if (homeworkTitle) {
+                            content += `<h3>${homeworkTitle}</h3>`;
+                        }
+                        
+                        // 添加当前作业条目的内容
+                        if (entry.template) {
+                            content += `<div class="homework-entry">
+                                <h4>${entry.template.name}</h4>
+                                <div class="entry-content">${renderTemplateToContent(entry.template, entry.values)}</div>
+                            </div>`;
+                        }
+                        
+                        // 发送添加作业请求
+                        fetch('homework-sync.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                action: 'addHomework',
+                                schoolCode: schoolCode,
+                                classCode: classCode,
+                                subject: subject,
+                                content: content,
+                                dueDate: dueDate
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            addedCount++;
+                            
+                            if (addedCount === totalCount) {
+                                // 所有作业都添加完成
+                                teacherErrorMessage.textContent = `成功添加 ${totalCount} 个作业`;
+                                // 重新渲染作业列表
+                                renderTeacherHomeworkList(data.homeworkData);
+                                // 重置表单
+                                resetHomeworkForm();
+                                // 清空作业条目
+                                homeworkEntries = [];
+                                const homeworkContent = document.getElementById('homeworkContent');
+                                homeworkContent.innerHTML = '';
+                                // 显示空状态提示
+                                const emptyState = document.createElement('div');
+                                emptyState.className = 'empty-state';
+                                emptyState.innerHTML = '<p>从左侧模板库中拖拽模板到此处，或直接输入作业内容</p>';
+                                document.getElementById('homeworkContentArea').appendChild(emptyState);
+                                // 3秒后清除错误信息
+                                setTimeout(() => {
+                                    teacherErrorMessage.textContent = '';
+                                }, 3000);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('添加失败:', error);
+                            teacherErrorMessage.textContent = '网络错误，请稍后重试';
+                        });
+                    });
+                }
             });
             
             // 渲染学生作业列表
             function renderHomeworkList(homeworkData) {
                 if (!homeworkData || homeworkData.length === 0) {
-                    homeworkContent.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">暂无作业</p>';
+                    studentHomeworkContent.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">暂无作业</p>';
                     return;
                 }
                 
@@ -1134,7 +1806,7 @@
                     `;
                 });
                 
-                homeworkContent.innerHTML = html;
+                studentHomeworkContent.innerHTML = html;
             }
             
             // 渲染老师作业列表（带删除功能）
@@ -2004,17 +2676,17 @@
                 sortedComponents.forEach(component => {
                     switch (component.type) {
                         case COMPONENT_TYPES.FIXED_TEXT:
-                            content += component.content + ' ';
+                            content += `${component.content}<br>`;
                             break;
                             
                         case COMPONENT_TYPES.NUMBER_SELECT:
                             const numberValue = values[component.id] !== undefined ? values[component.id] : component.defaultValue;
-                            content += `${numberValue} `;
+                            content += `${component.label}: ${numberValue}<br>`;
                             break;
                             
                         case COMPONENT_TYPES.TEXT_DROPDOWN:
                             const textValue = values[component.id] !== undefined ? values[component.id] : component.defaultValue;
-                            content += `${textValue} `;
+                            content += `${component.label}: ${textValue}<br>`;
                             break;
                     }
                 });

@@ -1256,6 +1256,65 @@
             document.getElementById('titleCloseBtn').addEventListener('click', () => {
                 window.close();
             });
+            
+            // 监听主进程传递的模板ID
+            ipcRenderer.on('edit-template', (event, templateId) => {
+                console.log('Received template ID to edit:', templateId);
+                if (templateId) {
+                    loadTemplateById(templateId);
+                }
+            });
+        }
+        
+        // 根据ID加载模板
+        function loadTemplateById(templateId) {
+            try {
+                // 从模板模块获取模板
+                const template = templateModule.getTemplateById(templateId);
+                if (template) {
+                    console.log('Loaded template:', template);
+                    // 设置当前模板
+                    currentTemplate = template;
+                    
+                    // 更新模板信息
+                    const templateNameInput = document.getElementById('templateName');
+                    const templateDescriptionInput = document.getElementById('templateDescription');
+                    if (templateNameInput) {
+                        templateNameInput.value = template.name;
+                    }
+                    if (templateDescriptionInput) {
+                        templateDescriptionInput.value = template.description || '';
+                    }
+                    
+                    // 清空设计画布
+                    const templateComponents = document.getElementById('templateComponents');
+                    const emptyState = document.getElementById('emptyState');
+                    templateComponents.innerHTML = '';
+                    
+                    // 渲染模板组件
+                    if (template.components && template.components.length > 0) {
+                        template.components.forEach(component => {
+                            renderComponent(component);
+                        });
+                    } else {
+                        templateComponents.innerHTML = `
+                            <div class="empty-state" id="emptyState">
+                                <p>点击左侧组件的添加按钮到此处开始设计模板</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // 清空属性面板
+                    selectedComponent = null;
+                    renderPropertyPanel(null);
+                } else {
+                    console.error('Template not found:', templateId);
+                    alert('未找到指定的模板');
+                }
+            } catch (error) {
+                console.error('Error loading template:', error);
+                alert('加载模板失败');
+            }
         }
         
         // 页面加载完成后初始化

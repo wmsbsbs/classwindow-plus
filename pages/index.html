@@ -803,6 +803,13 @@
                     renderLaunchpadApps();
                 });
 
+                // 监听启动台开关事件
+                ipcRenderer.on('launchpad-toggle', (event, isEnabled) => {
+                    isLaunchpadVisible = isEnabled;
+                    updateLaunchpadVisibility();
+                    renderLaunchpadApps(); // 重新渲染启动台
+                });
+
                 // 监听暗色主题切换事件
                 ipcRenderer.on('dark-theme-toggle', (event, isEnabled) => {
                     toggleTheme(isEnabled);

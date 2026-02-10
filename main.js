@@ -240,11 +240,13 @@ ipcMain.on('set-window-resizable', (event, resizable) => {
 		const domReadyHomeworkEnabled = homeworkSettingHandler.load();
 		const domReadyAlwaysOnTop = alwaysOnTopSettingHandler.load(); // 添加置顶状态变量
 		const domReadyDarkThemeEnabled = darkThemeSettingHandler.load(); // 添加暗色主题状态变量
+		const domReadyLaunchpadEnabled = launchpadSettingHandler.load(); // 添加启动台状态变量
 		
 		mainWindow.webContents.send('clock-toggle', domReadyClockEnabled);
 		mainWindow.webContents.send('homework-toggle', domReadyHomeworkEnabled);
 		mainWindow.webContents.send('always-on-top-toggle', domReadyAlwaysOnTop); // 发送置顶状态
 		mainWindow.webContents.send('dark-theme-toggle', domReadyDarkThemeEnabled); // 发送暗色主题状态
+		mainWindow.webContents.send('launchpad-toggle', domReadyLaunchpadEnabled); // 发送启动台状态
 		mainWindow.webContents.send('launchpad-apps-updated', getLaunchpadApps());
 	});
 
@@ -475,7 +477,7 @@ const createHomeworkDetailWindow = (homework, index) => {
 // 模板设计器窗口
 let templateDesignerWindow;
 
-const createTemplateDesignerWindow = () => {
+const createTemplateDesignerWindow = (templateId = null) => {
 	// 如果窗口已经存在，就聚焦它
 	if (templateDesignerWindow) {
 		templateDesignerWindow.focus();
@@ -508,6 +510,13 @@ const createTemplateDesignerWindow = () => {
 
 	templateDesignerWindow.loadFile('pages/template-designer.html');
 	templateDesignerWindow.setMenu(null);
+
+	// 当窗口DOM加载完成后，发送模板ID到模板设计器
+	templateDesignerWindow.webContents.once('dom-ready', () => {
+		if (templateId) {
+			templateDesignerWindow.webContents.send('edit-template', templateId);
+		}
+	});
 
 	// 窗口关闭时清理引用
 	templateDesignerWindow.on('closed', () => {
@@ -624,12 +633,20 @@ const startupSettingHandler = createSettingHandler('startupEnabled', 'startup-to
 // 添加CI自动作业设置处理程序
 const ciAutoHomeworkSettingHandler = createSettingHandler('ciAutoHomeworkEnabled', 'ci-auto-homework-toggle');
 
+// 添加启动台设置处理程序
+const launchpadSettingHandler = createSettingHandler('launchpadEnabled', 'launchpad-toggle');
+
+// 添加自动删除过期作业设置处理程序
+const autoDeleteExpiredHomeworkSettingHandler = createSettingHandler('autoDeleteExpiredHomeworkEnabled', 'auto-delete-expired-homework-toggle');
+
 let isClockEnabled = clockSettingHandler.load();
 let isHomeworkEnabled = homeworkSettingHandler.load();
 let isAlwaysOnTop = alwaysOnTopSettingHandler.load(); // 添加置顶状态变量
 let isDarkThemeEnabled = darkThemeSettingHandler.load(); // 添加暗色主题状态变量
 let isStartupEnabled = startupSettingHandler.load(); // 添加开机自启动状态变量
 let isCiAutoHomeworkEnabled = ciAutoHomeworkSettingHandler.load(); // 添加CI自动作业状态变量
+let isLaunchpadEnabled = launchpadSettingHandler.load(); // 添加启动台状态变量
+let isAutoDeleteExpiredHomeworkEnabled = autoDeleteExpiredHomeworkSettingHandler.load(); // 添加自动删除过期作业状态变量
 let currentTheme = (() => {
     const theme = themeSettingHandler.load();
     return typeof theme === 'string' ? theme : 'personal';
@@ -789,6 +806,27 @@ const handleCiAutoHomeworkToggle = (isEnabled) => {
 	console.log('CI自动作业设置:', isEnabled);
 };
 
+// 启动台切换处理函数
+const handleLaunchpadToggle = (isEnabled) => {
+	isLaunchpadEnabled = isEnabled;
+	launchpadSettingHandler.handleToggle(isEnabled, mainWindow);
+
+	// 通知主窗口更新启动台设置
+	if (mainWindow) {
+		mainWindow.webContents.send('launchpad-toggle', isEnabled);
+	}
+
+	console.log('启动台设置:', isEnabled);
+};
+
+// 自动删除过期作业切换处理函数
+const handleAutoDeleteExpiredHomeworkToggle = (isEnabled) => {
+	isAutoDeleteExpiredHomeworkEnabled = isEnabled;
+	autoDeleteExpiredHomeworkSettingHandler.handleToggle(isEnabled, mainWindow);
+
+	console.log('自动删除过期作业设置:', isEnabled);
+};
+
 // 创建大屏作业显示窗口
 const createBigScreenHomeworkWindow = () => {
 	// 如果窗口已经存在，就聚焦它
@@ -854,7 +892,7 @@ const createBigScreenHomeworkWindow = () => {
 		}
 	});
 
-	bigScreenHomeworkWindow.loadFile('pages/big-screen-homework-new.html');
+	bigScreenHomeworkWindow.loadFile('pages/big-screen-homework-floating.html');
 	bigScreenHomeworkWindow.setMenu(null);
 	
 	// 确保窗口可以调整大小和移动
@@ -1307,6 +1345,7 @@ app.whenReady().then(() => {
 	isHomeworkEnabled = homeworkSettingHandler.load();
 	isAlwaysOnTop = alwaysOnTopSettingHandler.load(); // 加载置顶设置
 	isDarkThemeEnabled = darkThemeSettingHandler.load(); // 加载暗色主题设置
+	isLaunchpadEnabled = launchpadSettingHandler.load(); // 加载启动台设置
 
 	// 如果是首次运行，显示欢迎页；否则直接创建主窗口
 	const appConfig = loadConfig();
@@ -1536,6 +1575,7 @@ ipcMain.on('get-settings', () => {
 			bigScreenColumns: config.bigScreenColumns || '2',
 			bigScreenFontSize: config.bigScreenFontSize || 14,
 			bigScreenOpacity: config.bigScreenOpacity || 95,
+			bigScreenStyle: config.bigScreenStyle || 'classwindow-plus',
 			bigScreenWindow: config.bigScreenWindow || { width: 1920, height: 1080 },
 			windowPosition: config.windowPosition || 'center',
 			windowOffset: config.windowOffset || { x: 0, y: 0 },
@@ -1610,6 +1650,16 @@ ipcMain.on('toggle-ci-auto-homework', (event, isEnabled) => {
 	handleCiAutoHomeworkToggle(isEnabled);
 });
 
+// 监听启动台开关变化
+ipcMain.on('toggle-launchpad', (event, isEnabled) => {
+	handleLaunchpadToggle(isEnabled);
+});
+
+// 监听自动删除过期作业开关变化
+ipcMain.on('toggle-auto-delete-expired-homework', (event, isEnabled) => {
+	handleAutoDeleteExpiredHomeworkToggle(isEnabled);
+});
+
 // 监听测试CI联动事件
 ipcMain.on('test-ci-integration', (event) => {
 	console.log('Test CI integration event received');
@@ -1665,8 +1715,8 @@ ipcMain.on('test-ci-integration', (event) => {
 	});
 
 	// 监听打开模板设计器窗口的请求
-	ipcMain.on('open-template-designer-window', () => {
-		createTemplateDesignerWindow();
+	ipcMain.on('open-template-designer-window', (event, templateId) => {
+		createTemplateDesignerWindow(templateId);
 	});
 
 	// 监听打开账号管理窗口的请求
@@ -1774,6 +1824,18 @@ ipcMain.on('set-big-screen-opacity', (event, opacity) => {
 	}
 });
 
+// 监听大屏模式样式设置变化
+ipcMain.on('set-big-screen-style', (event, style) => {
+	const config = loadConfig();
+	config.bigScreenStyle = style;
+	saveConfig(config);
+	
+	// 通知大屏作业窗口更新样式
+	if (bigScreenHomeworkWindow) {
+		bigScreenHomeworkWindow.webContents.send('update-big-screen-style', style);
+	}
+});
+
 // 监听大屏模式宽度设置变化
 ipcMain.on('set-big-screen-width', (event, width) => {
 	const config = loadConfig();
@@ -1819,6 +1881,7 @@ ipcMain.on('get-big-screen-settings', (event) => {
 			fontSize: config.bigScreenFontSize || 14,
 			opacity: config.bigScreenOpacity || 95,
 			blur: config.bigScreenBlur || 10,
+			style: config.bigScreenStyle || 'classwindow-plus',
 			width: config.bigScreenWindow?.width || 1920,
 			height: config.bigScreenWindow?.height || 1080
 		});
@@ -2057,9 +2120,11 @@ ipcMain.on('set-window-position', (event, position) => {
 
 // 监听窗口移动事件
 ipcMain.on('move-window', (event, deltaX, deltaY) => {
-	if (mainWindow) {
-		const [currentX, currentY] = mainWindow.getPosition();
-		mainWindow.setPosition(currentX + deltaX, currentY + deltaY, false);
+	// 获取发送事件的窗口
+	const win = BrowserWindow.fromWebContents(event.sender);
+	if (win) {
+		const [currentX, currentY] = win.getPosition();
+		win.setPosition(currentX + deltaX, currentY + deltaY, false);
 	}
 });
 
@@ -2256,4 +2321,13 @@ ipcMain.on('set-main-interface-scale', (event, scale) => {
 	checkAutoCloudSyncSettings();
 	// 启动每天下午8点自动同步
 	startEightPMAutoSync();
+	
+	// 检查是否需要自动删除过期作业
+	if (isAutoDeleteExpiredHomeworkEnabled) {
+		console.log('自动删除过期作业功能已启用，开始检查并删除过期作业...');
+		// 通知主窗口执行删除操作
+		if (mainWindow && !mainWindow.isDestroyed()) {
+			mainWindow.webContents.send('auto-delete-expired-homework');
+		}
+	}
 }); // 闭合 app.whenReady().then() 回调函数
