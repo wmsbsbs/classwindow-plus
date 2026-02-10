@@ -582,7 +582,7 @@ body.columns-auto .homework-grid {
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-hover);
     padding: 16px;
-    z-index: 999;
+    z-index: 1000;
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px) scale(0.95);

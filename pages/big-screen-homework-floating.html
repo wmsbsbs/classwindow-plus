@@ -229,17 +229,28 @@
             isBigScreenVisible = !isBigScreenVisible;
             const contentContainer = document.getElementById('contentContainer');
             const floatingBall = document.getElementById('floatingBall');
+            const launchpad = document.getElementById('launchpad');
+            
+            // 先收起启动台
+            launchpad.classList.remove('expanded');
+            isFloatingBallExpanded = false;
             
             if (isBigScreenVisible) {
                 // 展开大屏模式
-                contentContainer.classList.remove('hidden');
-                contentContainer.classList.add('expanded');
+                contentContainer.style.display = 'flex';
+                setTimeout(() => {
+                    contentContainer.classList.remove('hidden');
+                    contentContainer.classList.add('expanded');
+                }, 10);
                 floatingBall.classList.add('active');
             } else {
                 // 收起大屏模式到悬浮球
                 contentContainer.classList.add('hidden');
                 contentContainer.classList.remove('expanded');
                 floatingBall.classList.remove('active');
+                setTimeout(() => {
+                    contentContainer.style.display = 'none';
+                }, 400);
             }
         }
         
@@ -524,21 +535,7 @@
             });
         }
         
-        // 切换悬浮球状态
-        function toggleFloatingBall() {
-            const launchpad = document.getElementById('launchpad');
-            const contentContainer = document.getElementById('contentContainer');
-            
-            if (!isFloatingBallExpanded) {
-                // 展开启动台
-                launchpad.classList.add('expanded');
-                isFloatingBallExpanded = true;
-            } else {
-                // 收起启动台
-                launchpad.classList.remove('expanded');
-                isFloatingBallExpanded = false;
-            }
-        }
+
         
         // 加载作业数据
         function loadHomeworkData() {
