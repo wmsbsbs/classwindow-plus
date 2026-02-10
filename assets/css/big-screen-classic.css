@@ -1,0 +1,613 @@
+/* 大屏作业显示样式 - 经典风格 */
+:root {
+    /* 基础颜色系统 */
+    --primary-color: #3498db;
+    --primary-hover: #2980b9;
+    --primary-active: #1f6da3;
+    --background-color: rgba(255, 255, 255, 0.85);
+    --text-color: #333333;
+    --text-secondary: #666666;
+    --title-bar-bg: rgba(243, 242, 241, 0.85);
+    --border-color: #e0e0e0;
+    --card-bg: rgba(255, 255, 255, 0.8);
+    --card-opacity: 0.8;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --font-size: 14px;
+    --font-size-small: 12px;
+    --font-size-large: 16px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    
+    /* 科目颜色 */
+    --subject-chinese: #E74C3C;
+    --subject-math: #3498DB;
+    --subject-english: #F39C12;
+    --subject-physics: #2980B9;
+    --subject-chemistry: #9B59B6;
+    --subject-biology: #27AE60;
+    --subject-history: #E67E22;
+    --subject-geography: #1ABC9C;
+    --subject-politics: #1ABC9C;
+    --subject-other: #95A5A6;
+    
+    --blur-value: 10px;
+}
+
+/* 暗色主题 */
+.dark-theme {
+    --background-color: rgba(32, 31, 30, 0.85);
+    --text-color: #ffffff;
+    --text-secondary: #999999;
+    --title-bar-bg: rgba(37, 37, 38, 0.85);
+    --border-color: #3e3e42;
+    --card-bg: rgba(50, 49, 48, 0.8);
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    user-select: none;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    transition: all 0.3s ease;
+    scroll-behavior: smooth;
+    backdrop-filter: blur(var(--blur-value));
+    -webkit-backdrop-filter: blur(var(--blur-value));
+    border-radius: 12px;
+}
+
+body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+html {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+/* 标题栏 */
+.title-bar {
+    height: 32px;
+    background: var(--title-bar-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    -webkit-app-region: drag;
+    border-bottom: 1px solid var(--border-color);
+    cursor: move;
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.title {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.title-bar-buttons {
+    display: flex;
+    gap: 5px;
+    -webkit-app-region: no-drag;
+}
+
+.title-bar-button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.close-button {
+    background-color: #ff5f57;
+}
+
+.close-button:hover {
+    background-color: #FF7B72 !important;
+}
+
+/* 内容容器 */
+.content-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    overflow-y: auto;
+    border-radius: 12px;
+    background-color: transparent;
+    height: 100%;
+    margin-top: 32px; /* 为标题栏留出空间 */
+}
+
+/* 不同列数的样式 */
+body.columns-1 .homework-grid {
+    grid-template-columns: 1fr;
+}
+
+body.columns-2 .homework-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+body.columns-3 .homework-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+body.columns-4 .homework-grid {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+body.columns-auto .homework-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* 作业网格 */
+.homework-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    align-content: start;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: smooth;
+    will-change: transform;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 科目区域 */
+.subject-section {
+    margin-bottom: 30px;
+}
+
+/* 科目标题 */
+.subject-title {
+    font-size: 20px;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: var(--border-radius-md);
+    color: white;
+    text-align: center;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+.subject-title:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    transition: all 0.2s ease;
+}
+
+/* 科目颜色 */
+.subject-title.chinese { background-color: var(--subject-chinese); }
+.subject-title.math { background-color: var(--subject-math); }
+.subject-title.english { background-color: var(--subject-english); }
+.subject-title.physics { background-color: var(--subject-physics); }
+.subject-title.chemistry { background-color: var(--subject-chemistry); }
+.subject-title.biology { background-color: var(--subject-biology); }
+.subject-title.history { background-color: var(--subject-history); }
+.subject-title.geography { background-color: var(--subject-geography); }
+.subject-title.politics { background-color: var(--subject-politics); }
+.subject-title.other { background-color: var(--subject-other); }
+
+/* 作业卡片 */
+.homework-card {
+    background-color: rgba(255, 255, 255, var(--card-opacity));
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    cursor: default;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    color: var(--text-color);
+    justify-content: space-between;
+    transition: all 0.3s ease;
+}
+
+.homework-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--primary-color);
+}
+
+/* 不同科目的作业卡片边框颜色 */
+.homework-chinese {
+    border-left: 4px solid var(--subject-chinese);
+}
+
+.homework-math {
+    border-left: 4px solid var(--subject-math);
+}
+
+.homework-english {
+    border-left: 4px solid var(--subject-english);
+}
+
+.homework-physics {
+    border-left: 4px solid var(--subject-physics);
+}
+
+.homework-chemistry {
+    border-left: 4px solid var(--subject-chemistry);
+}
+
+.homework-biology {
+    border-left: 4px solid var(--subject-biology);
+}
+
+.homework-history {
+    border-left: 4px solid var(--subject-history);
+}
+
+.homework-geography {
+    border-left: 4px solid var(--subject-geography);
+}
+
+.homework-politics {
+    border-left: 4px solid var(--subject-politics);
+}
+
+.homework-other {
+    border-left: 4px solid var(--subject-other);
+}
+
+/* 作业内容 */
+.homework-content {
+    font-size: var(--font-size);
+    line-height: 1.5;
+    color: var(--text-color);
+    word-wrap: break-word;
+    word-break: break-all;
+    margin: 0;
+    white-space: pre-wrap;
+    overflow: hidden;
+    flex: 1;
+    padding-bottom: 12px;
+}
+
+/* 截止日期 */
+.due-date {
+    font-size: var(--font-size-small);
+    color: var(--text-secondary);
+    margin-top: auto;
+    padding: 6px 12px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: var(--border-radius-sm);
+    align-self: flex-start;
+    border: 1px solid var(--border-color);
+}
+
+.due-date.today {
+    color: #d13438;
+    font-weight: 600;
+    background-color: rgba(209, 52, 56, 0.1);
+    border-color: rgba(209, 52, 56, 0.3);
+}
+
+/* 无作业提示 */
+.no-homework {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--font-size);
+    padding: var(--spacing-xl);
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow);
+    margin: var(--spacing-md);
+    grid-column: 1 / -1;
+}
+
+/* 拖动把手 */
+.drag-handle {
+    position: fixed;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 120, 212, 0.8);
+    border-radius: 50%;
+    cursor: move;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 101;
+    transition: all 0.2s ease;
+}
+
+.drag-handle:hover {
+    background-color: rgba(0, 100, 180, 0.9);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.drag-handle::before {
+    content: '⋮⋮';
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* 暗色主题下的拖动把手 */
+.dark-theme .drag-handle {
+    background-color: rgba(0, 120, 212, 0.9);
+}
+
+.dark-theme .drag-handle:hover {
+    background-color: rgba(0, 140, 220, 1);
+}
+
+/* 无框窗口调整大小手柄 */
+.resize-handle {
+    position: absolute;
+    z-index: 1000;
+}
+
+/* 上边框 */
+.resize-handle.top {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    cursor: ns-resize;
+}
+
+/* 下边框 */
+.resize-handle.bottom {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    cursor: ns-resize;
+}
+
+/* 左边框 */
+.resize-handle.left {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: ew-resize;
+}
+
+/* 右边框 */
+.resize-handle.right {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: ew-resize;
+}
+
+/* 左上角 */
+.resize-handle.top-left {
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nwse-resize;
+    z-index: 1001;
+}
+
+/* 右上角 */
+.resize-handle.top-right {
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nesw-resize;
+    z-index: 1001;
+}
+
+/* 左下角 */
+.resize-handle.bottom-left {
+    bottom: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nesw-resize;
+    z-index: 1001;
+}
+
+/* 右下角 */
+.resize-handle.bottom-right {
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nwse-resize;
+    z-index: 1001;
+}
+
+/* 动画效果 */
+.homework-card {
+    animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 主题切换动画 */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.title-bar {
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.subject-title {
+    transition: all 0.3s ease;
+}
+
+.homework-card {
+    transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
+
+/* 滚动条样式 */
+.content-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.content-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.content-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.content-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* 暗色主题滚动条 */
+.dark-theme .content-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .content-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.dark-theme .content-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .homework-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 16px;
+    }
+    
+    .subject-title {
+        font-size: 18px;
+        padding: 10px 16px;
+    }
+    
+    .homework-card {
+        min-height: 160px;
+        padding: 16px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+    .homework-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (min-width: 1201px) {
+    .homework-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+}
+
+/* 暗色主题优化 */
+.dark-theme .homework-card {
+    background-color: rgba(32, 31, 30, var(--card-opacity));
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.dark-theme .due-date {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+}
+
+.dark-theme .due-date.today {
+    background-color: rgba(209, 52, 56, 0.2);
+    border-color: rgba(209, 52, 56, 0.4);
+    color: #d13438;
+}
+
+.dark-theme .no-homework {
+    background-color: rgba(32, 31, 30, 0.8);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #000000;
+        --text-secondary: #000000;
+    }
+    
+    .dark-theme {
+        --border-color: #ffffff;
+        --text-secondary: #ffffff;
+    }
+}
+
+/* 减少动画模式支持 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

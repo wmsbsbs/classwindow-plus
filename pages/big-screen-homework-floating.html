@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>大屏作业显示 - 课堂窗</title>
+    <!-- 优化资源加载：使用defer和preload提升性能 -->
+    <link rel="preload" href="../assets/css/big-screen-floating.css" as="style">
+    <link rel="preload" href="../assets/css/hide-scrollbar.css" as="style">
+    <link rel="stylesheet" href="../assets/css/big-screen-floating.css">
+    <link rel="stylesheet" href="../assets/css/hide-scrollbar.css">
+    <!-- 延迟加载Fluent UI组件，提升首屏加载速度 -->
+    <script type="module" src="https://unpkg.com/@fluentui/web-components" defer></script>
+</head>
+
+<body>
+    <!-- 标题栏 -->
+    <div class="title-bar">
+        <div class="title">作业大屏</div>
+        <div class="title-bar-buttons">
+        </div>
+    </div>
+
+    <div class="content-container" id="contentContainer">
+        <div class="homework-grid" id="homeworkGrid">
+            <!-- 作业将在这里显示 -->
+        </div>
+    </div>
+    
+    <!-- 无框窗口调整大小手柄 -->
+    <div class="resize-handle top"></div>
+    <div class="resize-handle bottom"></div>
+    <div class="resize-handle left"></div>
+    <div class="resize-handle right"></div>
+    <div class="resize-handle top-left"></div>
+    <div class="resize-handle top-right"></div>
+    <div class="resize-handle bottom-left"></div>
+    <div class="resize-handle bottom-right"></div>
+
+    <!-- 悬浮球 -->
+    <div class="floating-ball" id="floatingBall">
+        <div class="floating-ball-icon">⚙️</div>
+    </div>
+
+    <!-- 启动台 -->
+    <div class="launchpad" id="launchpad">
+        <div class="launchpad-content">
+            <div class="launchpad-item" id="launchpadHomework">
+                <div class="launchpad-item-icon">📚</div>
+                <div class="launchpad-item-text">作业</div>
+            </div>
+            <div class="launchpad-item" id="launchpadSettings">
+                <div class="launchpad-item-icon">⚙️</div>
+                <div class="launchpad-item-text">设置</div>
+            </div>
+            <div class="launchpad-item" id="launchpadClose">
+                <div class="launchpad-item-icon">✕</div>
+                <div class="launchpad-item-text">关闭</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 导入 IPC 通信
+        const { ipcRenderer } = require('electron');
+        
+        // 全局变量
+        let currentFontSize = 14;
+        let currentColumns = '2';
+        let currentOpacity = 95;
+        let currentCardOpacity = 80;
+        let isCardOpacityFollow = true;
+        let isDragging = false;
+        let isResizing = false;
+        let resizeEdge = '';
+        let startX, startY;
+        let currentStyle = 'classwindow-plus';
+        let isFloatingBallExpanded = false;
+        let isBigScreenVisible = true;
+        
+        // 节流函数，限制函数调用频率
+        function throttle(func, limit) {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            }
+        }
+        
+        // 优化的窗口移动函数
+        const optimizedMoveWindow = throttle((deltaX, deltaY) => {
+            ipcRenderer.send('move-big-screen-window-by-delta', deltaX, deltaY);
+        }, 16); // 约60fps
+        
+        // 优化的窗口调整大小函数
+        const optimizedResizeWindow = throttle((edge, deltaX, deltaY) => {
+            ipcRenderer.send('resize-big-screen-window', {
+                edge: edge,
+                deltaX: deltaX,
+                deltaY: deltaY
+            });
+        }, 16); // 约60fps
+        
+        // 初始化函数
+        function init() {
+            // 立即设置为忽略鼠标操作，确保启动时就置于底层
+            ipcRenderer.send('set-ignore-mouse-events', { 
+                ignore: true,
+                forward: true
+            });
+            
+            // 从配置中初始化设置
+            ipcRenderer.send('get-big-screen-settings');
+            
+            // 初始化事件监听器
+            setupEventListeners();
+            
+            // 加载作业数据
+            loadHomeworkData();
+            
+            // 修复x轴移动问题
+            document.body.style.overflowX = 'hidden';
+            document.documentElement.style.overflowX = 'hidden';
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 悬浮球事件
+            setupFloatingBall();
+            
+            // 启动台事件
+            setupLaunchpad();
+            
+            // 调整大小手柄支持
+            setupResizeHandles();
+            
+            // 忽视鼠标操作支持
+            setupUnderlaySupport();
+            
+            // IPC事件监听器
+            setupIpcListeners();
+        }
+        
+        // 设置悬浮球
+        function setupFloatingBall() {
+            const floatingBall = document.getElementById('floatingBall');
+            if (!floatingBall) return;
+            
+            // 鼠标事件
+            floatingBall.addEventListener('click', (e) => {
+                toggleFloatingBall();
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            
+            // 鼠标悬停效果
+            floatingBall.addEventListener('mouseenter', () => {
+                floatingBall.classList.add('hover');
+                // 开启鼠标监听
+                ipcRenderer.send('set-ignore-mouse-events', { ignore: false });
+            });
+            
+            floatingBall.addEventListener('mouseleave', () => {
+                floatingBall.classList.remove('hover');
+                // 关闭鼠标监听
+                ipcRenderer.send('set-ignore-mouse-events', { 
+                    ignore: true,
+                    forward: true
+                });
+            });
+        }
+        
+        // 设置启动台
+        function setupLaunchpad() {
+            const launchpad = document.getElementById('launchpad');
+            const launchpadHomework = document.getElementById('launchpadHomework');
+            const launchpadSettings = document.getElementById('launchpadSettings');
+            const launchpadClose = document.getElementById('launchpadClose');
+            
+            if (!launchpad) return;
+            
+            // 作业按钮
+            if (launchpadHomework) {
+                launchpadHomework.addEventListener('click', (e) => {
+                    toggleBigScreen();
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            }
+            
+            // 设置按钮
+            if (launchpadSettings) {
+                launchpadSettings.addEventListener('click', (e) => {
+                    ipcRenderer.send('open-settings');
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            }
+            
+            // 关闭按钮
+            if (launchpadClose) {
+                launchpadClose.addEventListener('click', (e) => {
+                    ipcRenderer.send('close-big-screen-homework');
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            }
+        }
+        
+        // 切换悬浮球展开/收起
+        function toggleFloatingBall() {
+            isFloatingBallExpanded = !isFloatingBallExpanded;
+            const launchpad = document.getElementById('launchpad');
+            
+            if (isFloatingBallExpanded) {
+                launchpad.classList.add('expanded');
+            } else {
+                launchpad.classList.remove('expanded');
+            }
+        }
+        
+        // 切换大屏模式显示/隐藏
+        function toggleBigScreen() {
+            isBigScreenVisible = !isBigScreenVisible;
+            const contentContainer = document.getElementById('contentContainer');
+            const floatingBall = document.getElementById('floatingBall');
+            
+            if (isBigScreenVisible) {
+                // 展开大屏模式
+                contentContainer.classList.remove('hidden');
+                contentContainer.classList.add('expanded');
+                floatingBall.classList.add('active');
+            } else {
+                // 收起大屏模式到悬浮球
+                contentContainer.classList.add('hidden');
+                contentContainer.classList.remove('expanded');
+                floatingBall.classList.remove('active');
+            }
+        }
+        
+        // 切换悬浮球状态
+        function toggleFloatingBall() {
+            const launchpad = document.getElementById('launchpad');
+            
+            if (!isFloatingBallExpanded) {
+                // 展开启动台
+                launchpad.classList.add('expanded');
+                isFloatingBallExpanded = true;
+            } else {
+                // 收起启动台
+                launchpad.classList.remove('expanded');
+                isFloatingBallExpanded = false;
+            }
+        }
+        
+        // 设置调整大小手柄
+        function setupResizeHandles() {
+            const resizeHandles = document.querySelectorAll('.resize-handle');
+            
+            // 为每个调整大小手柄添加样式和事件监听
+            resizeHandles.forEach(handle => {
+                // 添加视觉反馈样式
+                handle.style.transition = 'background-color 0.2s ease';
+                handle.style.zIndex = '1000'; // 确保手柄在最上层
+                handle.style.pointerEvents = 'auto'; // 确保可以接收鼠标事件
+                
+                // 根据手柄位置设置光标样式
+                const edge = handle.classList[1];
+                const cursorStyles = {
+                    'top': 'ns-resize',
+                    'bottom': 'ns-resize',
+                    'left': 'ew-resize',
+                    'right': 'ew-resize',
+                    'top-left': 'nesw-resize',
+                    'top-right': 'nwse-resize',
+                    'bottom-left': 'nwse-resize',
+                    'bottom-right': 'nesw-resize'
+                };
+                
+                if (cursorStyles[edge]) {
+                    handle.style.cursor = cursorStyles[edge];
+                }
+                
+                // 鼠标悬停事件 - 确保开启鼠标监听
+                handle.addEventListener('mouseenter', () => {
+                    // 开启鼠标监听
+                    ipcRenderer.send('set-ignore-mouse-events', { ignore: false });
+                    // 视觉反馈 - 悬停状态
+                    handle.style.backgroundColor = 'rgba(0, 120, 212, 0.2)';
+                });
+                
+                // 鼠标离开事件 - 恢复忽视鼠标操作
+                handle.addEventListener('mouseleave', () => {
+                    if (!isResizing) {
+                        // 关闭鼠标监听
+                        ipcRenderer.send('set-ignore-mouse-events', { 
+                            ignore: true,
+                            forward: true
+                        });
+                        // 移除视觉反馈
+                        handle.style.backgroundColor = '';
+                    }
+                });
+                
+                // 鼠标按下事件
+                handle.addEventListener('mousedown', (e) => {
+                    isResizing = true;
+                    resizeEdge = handle.classList[1];
+                    
+                    // 记录开始位置
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    // 视觉反馈 - 按下状态
+                    handle.style.backgroundColor = 'rgba(0, 120, 212, 0.3)';
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // 开启鼠标监听
+                    ipcRenderer.send('set-ignore-mouse-events', { ignore: false });
+                    
+                    // 通知主进程开始调整大小
+                    ipcRenderer.send('start-resizing', resizeEdge);
+                });
+            });
+            
+            // 鼠标释放事件
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizeEdge = '';
+                    ipcRenderer.send('stop-resizing');
+                    
+                    // 移除所有手柄的视觉反馈
+                    resizeHandles.forEach(handle => {
+                        handle.style.backgroundColor = '';
+                    });
+                    
+                    // 延迟关闭鼠标监听，确保操作完成
+                    setTimeout(() => {
+                        ipcRenderer.send('set-ignore-mouse-events', { 
+                            ignore: true,
+                            forward: true
+                        });
+                    }, 100);
+                }
+            });
+            
+            // 鼠标移动事件 - 处理调整大小
+            document.addEventListener('mousemove', (e) => {
+                if (isResizing) {
+                    // 计算鼠标移动的距离
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+                    
+                    // 使用优化的窗口调整大小函数，限制IPC消息发送频率
+                    optimizedResizeWindow(resizeEdge, deltaX, deltaY);
+                    
+                    // 更新起始位置
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    // 确保鼠标事件被正确处理
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+        }
+        
+        // 设置忽视鼠标操作支持
+        function setupUnderlaySupport() {
+            const contentContainer = document.querySelector('.content-container');
+            if (!contentContainer) return;
+            
+            // 定义交互元素选择器
+            const interactiveSelectors = 'button, fluent-button, .floating-ball, .resize-handle, .launchpad-item';
+            
+            // 只在交互元素上开启鼠标监听
+            const updateInteractiveElements = () => {
+                const interactiveElements = contentContainer.querySelectorAll(interactiveSelectors);
+                const floatingBall = document.getElementById('floatingBall');
+                const launchpad = document.getElementById('launchpad');
+                
+                // 处理悬浮球
+                if (floatingBall) {
+                    floatingBall.removeEventListener('mouseenter', handleMouseEnter);
+                    floatingBall.removeEventListener('mouseleave', handleMouseLeave);
+                    floatingBall.addEventListener('mouseenter', handleMouseEnter);
+                    floatingBall.addEventListener('mouseleave', handleMouseLeave);
+                }
+                
+                // 处理启动台
+                if (launchpad) {
+                    const launchpadItems = launchpad.querySelectorAll('.launchpad-item');
+                    launchpadItems.forEach(item => {
+                        item.removeEventListener('mouseenter', handleMouseEnter);
+                        item.removeEventListener('mouseleave', handleMouseLeave);
+                        item.addEventListener('mouseenter', handleMouseEnter);
+                        item.addEventListener('mouseleave', handleMouseLeave);
+                    });
+                }
+                
+                // 处理其他交互元素
+                interactiveElements.forEach(element => {
+                    element.removeEventListener('mouseenter', handleMouseEnter);
+                    element.removeEventListener('mouseleave', handleMouseLeave);
+                    element.addEventListener('mouseenter', handleMouseEnter);
+                    element.addEventListener('mouseleave', handleMouseLeave);
+                });
+            };
+            
+            // 鼠标进入处理
+            const handleMouseEnter = () => {
+                // 开启鼠标监听
+                ipcRenderer.send('set-ignore-mouse-events', { ignore: false });
+            };
+            
+            // 鼠标离开处理
+            const handleMouseLeave = () => {
+                // 关闭鼠标监听
+                ipcRenderer.send('set-ignore-mouse-events', { 
+                    ignore: true,
+                    forward: true
+                });
+            };
+            
+            // 初始更新交互元素
+            updateInteractiveElements();
+            
+            // 监听DOM变化，动态更新交互元素
+            const observer = new MutationObserver(() => {
+                updateInteractiveElements();
+            });
+            
+            observer.observe(contentContainer, {
+                childList: true,
+                subtree: true
+            });
+        }
+        
+        // 设置IPC事件监听器
+        function setupIpcListeners() {
+            // 监听作业数据
+            ipcRenderer.on('homework-data', (event, homeworkData) => {
+                renderHomeworkList(homeworkData);
+            });
+            
+            // 监听刷新作业列表
+            ipcRenderer.on('refresh-homework-list', () => {
+                loadHomeworkData();
+            });
+            
+            // 监听大屏设置
+            ipcRenderer.on('big-screen-settings', (event, settings) => {
+                if (settings.fontSize) {
+                    currentFontSize = settings.fontSize;
+                    updateFontSize();
+                }
+                if (settings.columns) {
+                    currentColumns = settings.columns;
+                    updateColumns();
+                }
+                if (settings.opacity) {
+                    currentOpacity = settings.opacity;
+                    updateOpacity();
+                }
+                if (settings.blur) {
+                    document.documentElement.style.setProperty('--blur-value', `${settings.blur}px`);
+                }
+                if (settings.style) {
+                    currentStyle = settings.style;
+                    // 重新渲染作业列表以应用新样式
+                    loadHomeworkData();
+                }
+
+            });
+            
+            // 监听字号变化
+            ipcRenderer.on('update-big-screen-font-size', (event, fontSize) => {
+                currentFontSize = fontSize;
+                updateFontSize();
+            });
+            
+            // 监听列数变化
+            ipcRenderer.on('update-big-screen-columns', (event, columns) => {
+                currentColumns = columns;
+                updateColumns();
+            });
+            
+            // 监听透明度变化
+            ipcRenderer.on('update-big-screen-opacity', (event, opacity) => {
+                currentOpacity = opacity;
+                updateOpacity();
+            });
+            
+            // 监听样式变化
+            ipcRenderer.on('update-big-screen-style', (event, style) => {
+                currentStyle = style;
+                // 重新渲染作业列表以应用新样式
+                ipcRenderer.send('get-homework-data');
+            });
+
+            
+            // 监听背景模糊变化
+            ipcRenderer.on('update-big-screen-blur', (event, blurValue) => {
+                document.documentElement.style.setProperty('--blur-value', `${blurValue}px`);
+            });
+            
+            // 监听暗色主题切换
+            ipcRenderer.on('dark-theme-toggle', (event, isEnabled) => {
+                if (isEnabled) {
+                    document.body.classList.add('dark-theme');
+                } else {
+                    document.body.classList.remove('dark-theme');
+                }
+                updateOpacity();
+                updateCardOpacity();
+            });
+        }
+        
+        // 切换悬浮球状态
+        function toggleFloatingBall() {
+            const launchpad = document.getElementById('launchpad');
+            const contentContainer = document.getElementById('contentContainer');
+            
+            if (!isFloatingBallExpanded) {
+                // 展开启动台
+                launchpad.classList.add('expanded');
+                isFloatingBallExpanded = true;
+            } else {
+                // 收起启动台
+                launchpad.classList.remove('expanded');
+                isFloatingBallExpanded = false;
+            }
+        }
+        
+        // 加载作业数据
+        function loadHomeworkData() {
+            // 主动请求作业数据
+            ipcRenderer.send('get-homework-data');
+        }
+        
+        // 渲染作业列表
+        function renderHomeworkList(homeworkData) {
+            const grid = document.getElementById('homeworkGrid');
+            grid.innerHTML = '';
+            grid.className = 'sticky-homeworks-grid';
+            
+            if (!homeworkData || homeworkData.length === 0) {
+                grid.innerHTML = '<div class="no-homework">暂无作业</div>';
+                return;
+            }
+            
+            // 使用文档片段减少DOM操作
+            const fragment = document.createDocumentFragment();
+            
+            // 按科目分组
+            const homeworkBySubject = homeworkData.reduce((groups, item) => {
+                const subject = item.subject;
+                if (!groups[subject]) {
+                    groups[subject] = [];
+                }
+                groups[subject].push(item);
+                return groups;
+            }, {});
+            
+            // 遍历每个科目
+            Object.entries(homeworkBySubject).forEach(([subject, items]) => {
+                // 科目区域
+                const subjectSection = document.createElement('div');
+                subjectSection.className = `sticky-subject-section ${subject}`;
+                
+                // 科目标题
+                const subjectTitle = document.createElement('div');
+                subjectTitle.className = 'sticky-subject-title';
+                subjectTitle.textContent = getSubjectName(subject);
+                subjectSection.appendChild(subjectTitle);
+                
+                // 作业列表
+                const homeworkList = document.createElement('div');
+                homeworkList.className = 'sticky-homework-list';
+                
+                // 作业项
+                items.forEach(item => {
+                    const homeworkItem = document.createElement('div');
+                    homeworkItem.className = 'sticky-homework-item';
+                    
+                    // 格式化截止日期
+                    let dueDateStr = '';
+                    if (item.dueDate) {
+                        const date = new Date(item.dueDate);
+                        const today = new Date();
+                        if (date.getFullYear() === today.getFullYear() &&
+                            date.getMonth() === today.getMonth() &&
+                            date.getDate() === today.getDate()) {
+                            dueDateStr = ' <span class="due-date today">今天截止</span>';
+                        } else {
+                            dueDateStr = ` <span class="due-date">截止: ${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}</span>`;
+                        }
+                    }
+                    
+                    // 作业内容
+                    const contentWithLineBreaks = item.content.replace(/\n/g, '<br>');
+                    
+                    homeworkItem.innerHTML = `${contentWithLineBreaks}${dueDateStr}`;
+                    homeworkList.appendChild(homeworkItem);
+                });
+                
+                subjectSection.appendChild(homeworkList);
+                fragment.appendChild(subjectSection);
+            });
+            
+            // 一次性添加所有元素
+            grid.appendChild(fragment);
+        }
+        
+        // 获取科目名称
+        function getSubjectName(subjectValue) {
+            const subjects = {
+                'chinese': '语文',
+                'math': '数学',
+                'english': '英语',
+                'physics': '物理',
+                'chemistry': '化学',
+                'biology': '生物',
+                'history': '历史',
+                'geography': '地理',
+                'politics': '道法',
+                'other': '其他'
+            };
+            return subjects[subjectValue] || subjectValue;
+        }
+        
+        // 更新字号
+        function updateFontSize() {
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}px`);
+            localStorage.setItem('bigScreenFontSize', currentFontSize.toString());
+        }
+        
+        // 更新列数
+        function updateColumns() {
+            // 移除所有列数相关的类
+            document.body.classList.remove('columns-1', 'columns-2', 'columns-3', 'columns-4', 'columns-auto');
+            // 添加当前列数的类
+            document.body.classList.add(`columns-${currentColumns}`);
+            localStorage.setItem('bigScreenColumns', currentColumns);
+        }
+        
+        // 更新透明度
+        function updateOpacity() {
+            const isDarkTheme = document.body.classList.contains('dark-theme');
+            
+            if (isDarkTheme) {
+                // 暗色主题
+                document.documentElement.style.setProperty('--background-color', `rgba(32, 31, 30, ${currentOpacity / 100})`);
+                document.documentElement.style.setProperty('--title-bar-bg', `rgba(37, 37, 38, ${currentOpacity / 100})`);
+                document.documentElement.style.setProperty('--card-bg', `rgba(50, 49, 48, ${currentOpacity / 100})`);
+            } else {
+                // 亮色主题
+                document.documentElement.style.setProperty('--background-color', `rgba(255, 255, 255, ${currentOpacity / 100})`);
+                document.documentElement.style.setProperty('--title-bar-bg', `rgba(243, 242, 241, ${currentOpacity / 100})`);
+                document.documentElement.style.setProperty('--card-bg', `rgba(255, 255, 255, ${currentOpacity / 100})`);
+            }
+            
+            localStorage.setItem('bigScreenOpacity', currentOpacity.toString());
+            
+            // 如果作业卡片透明度跟随窗口透明度，同步更新作业卡片透明度
+            if (isCardOpacityFollow) {
+                currentCardOpacity = currentOpacity;
+                updateCardOpacity();
+            }
+        }
+        
+        // 更新作业卡片透明度
+        function updateCardOpacity() {
+            document.documentElement.style.setProperty('--card-opacity', `${currentCardOpacity / 100}`);
+            localStorage.setItem('homeworkCardOpacity', currentCardOpacity.toString());
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
