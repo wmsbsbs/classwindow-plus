@@ -86,9 +86,12 @@ html, body {
     width: 100%;
     transition: all 0.3s ease;
     scroll-behavior: smooth;
+    border-radius: 12px;
+}
+
+body.big-screen-visible {
     backdrop-filter: blur(var(--blur-value));
     -webkit-backdrop-filter: blur(var(--blur-value));
-    border-radius: 12px;
 }
 
 body {
@@ -585,7 +588,7 @@ body.columns-auto .homework-grid {
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(10px) scale(0.95);
+    transform: translateY(-10px) scale(0.95);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     backdrop-filter: blur(var(--blur-value));
     -webkit-backdrop-filter: blur(var(--blur-value));

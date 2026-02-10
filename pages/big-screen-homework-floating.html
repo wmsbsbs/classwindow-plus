@@ -230,6 +230,7 @@
             const contentContainer = document.getElementById('contentContainer');
             const floatingBall = document.getElementById('floatingBall');
             const launchpad = document.getElementById('launchpad');
+            const body = document.body;
             
             // 先收起启动台
             launchpad.classList.remove('expanded');
@@ -237,6 +238,7 @@
             
             if (isBigScreenVisible) {
                 // 展开大屏模式
+                body.classList.add('big-screen-visible');
                 contentContainer.style.display = 'flex';
                 setTimeout(() => {
                     contentContainer.classList.remove('hidden');
@@ -250,6 +252,7 @@
                 floatingBall.classList.remove('active');
                 setTimeout(() => {
                     contentContainer.style.display = 'none';
+                    body.classList.remove('big-screen-visible');
                 }, 400);
             }
         }
